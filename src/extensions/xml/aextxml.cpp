@@ -29,8 +29,8 @@
 **
 **********************************************************************/
 
-#include <qfile.h>
-#include <qtextstream.h>
+#include <QFile>
+#include <QTextStream>
 
 #include "aextxml.h"
 #include "acfg.h"
@@ -91,17 +91,16 @@ AExtXML::read(const QString &fname)
     QByteArray buf;
     QString err;
     int errLine = 0, errColumn = 0;
-    if ( !file.open( IO_ReadOnly ) ) return RC_ERROR;
+    if ( !file.open( QIODevice::ReadOnly ) ) return RC_ERROR;
     buf = file.readAll();
     file.close();
-    xml.setContent( QString("") );
-    if ( !xml.setContent( buf, false, &err, &errLine, &errColumn ) ) {
-	cfg_message( 2,
-		     ( const char *) QObject::tr(
-		     "Error read XML line:%d col:%s %s"),
-		     errLine, errColumn, ( const char *) err );
-	return false;
-    }
+    xml.setContent(QString(""));
+	if (!xml.setContent(buf, false, &err, &errLine, &errColumn)) {
+		cfg_message(2,
+					QObject::tr("Error read XML line:%d col:%d %s").toUtf8().constData(),
+					errLine, errColumn, err.toUtf8().constData());
+		return false;
+	}
     rootnode = xml.documentElement();
     current = rootnode;
     return true;
@@ -124,10 +123,10 @@ bool
 AExtXML::write(const QString &fname)
 {
     QFile file( fname );
-    QByteArray buf( xml.toString(4).utf8() );
-    if ( file.open( IO_WriteOnly ) ) {
+    QByteArray buf(xml.toString(4).toUtf8());
+    if ( file.open( QIODevice::WriteOnly ) ) {
 	QTextStream ts( &file );
-	ts.setEncoding(QTextStream::UnicodeUTF8);
+	ts.setCodec("UTF-8");
 	xml.save(ts, 4);
 	file.close();
 	return true;
@@ -418,6 +417,11 @@ AExtXML::childExists()
 	QDomNode n = current.firstChild();
 	if ( n.isNull() ) return false;
 	return true;
+}
+
+QString AExtXML::name() const
+{
+    return "AExtXML";
 }
 
 #include <aextensionplugin.h>

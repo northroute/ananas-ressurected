@@ -38,10 +38,11 @@ Ananas configuration objects.
 
 #include "ananasglobal.h"
 
-#include <qdom.h>
-//#include <qdict.h>
-#include <q3intdict.h>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QMap>           // вместо Q3IntDict
 #include "acfgrc.h"
+
 
 #ifdef __BORLANDC__
 #define CHECK_POINT 	printf("%s:%i %s()\n",__FILE__,__LINE__,__FUNC__);
@@ -485,11 +486,11 @@ private:
     aCfgItem rootnode, cfginfo, md,
     iface,
     actions;
-    Q3IntDict <aCfgItemContaner> idcache;
+    QMap<int, aCfgItemContaner*> idcache;
     long nextID();
     void init();
 
     void addTypes( QStringList &list, aCfgItem context, const QString &tobject, const QString &tname);
 };
 
-#endif
+#endif // ACFG_H

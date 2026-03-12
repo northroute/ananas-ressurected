@@ -16,7 +16,7 @@ class ANANAS_EXPORT aExtSERVICE: public AExtension
 public:
 	aExtSERVICE();
 	~aExtSERVICE();
-
+	QString name() const;
 
 public slots:
 	QString GetOffice() const;

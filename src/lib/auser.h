@@ -30,14 +30,11 @@
 #ifndef AUSER_H
 #define AUSER_H
 
-#include	"arole.h"
-#include 	"adatabase.h"
-#include 	"acfg.h"
-#include 	"aobject.h"
-#include 	<q3valuelist.h>
-//class aDatabase;
-//class aRole;
-//class aObject;
+#include "arole.h"
+#include "adatabase.h"
+#include "acfg.h"
+#include "aobject.h"
+#include <QList>
 
 
 
@@ -75,7 +72,7 @@ public:
 	virtual ERR_Code delRole( qulonglong roleId );
 	virtual ERR_Code UpdateRole();
 
-	Q3ValueList< aRole *> getRoles( bool assigned);
+	QList<aRole*> getRoles(bool assigned);
 
 	bool hasRole( qulonglong roleId);
 //	virtual ERR_Code setPassword( const QString & );

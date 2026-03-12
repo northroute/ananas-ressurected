@@ -29,11 +29,10 @@
 
 #ifndef ASQLTABLE_H
 #define ASQLTABLE_H
-#include <q3sqlcursor.h>
-#include <q3dict.h>
-#include "acfg.h"
-//#include "aaregister.h"
-//#include "adatarecord.h"
+
+#include <QSqlQuery>    // вместо Q3SqlCursor
+#include <QMap>         // вместо Q3Dict
+#include "acfg.h"       // твой проектный include
 
 // temporray define for old definitions
 #define aSQLTable aDataTable
@@ -51,7 +50,7 @@ class aSQLField;
  *	Позволяет работать с табличными представлениями данных, определенных метаданными бизнес схемы.
  *	\~
  */
-class  ANANAS_EXPORT aDataTable : public Q3SqlCursor
+class  ANANAS_EXPORT aDataTable
 {
 public:
 	aDatabase*	db;
@@ -124,17 +123,15 @@ private:
 	aCfgItem		obj;
 	aCfgItem		init_obj;
 	aCfg*			md;
-	Q3Dict<QObject> p_cat;
-	Q3Dict<QObject> p_doc;
-	Q3Dict<QObject> p_reg;
-	QMap<int,aCfgItem> mapCat, mapReg, mapDoc;
-	QMap<int,QString> mapDim,mapSum;
+	QMap<QString, QObject*> p_cat;
+	QMap<QString, QObject*> p_doc;
+	QMap<QString, QObject*> p_reg;
+	QMap<int, aCfgItem> mapCat, mapReg, mapDoc;
+	QMap<int, QString> mapDim, mapSum;
 	QStringList fildsList;
-	Q3Dict<QString> fnames;
-	Q3Dict<QVariant> userFilter;
-//	QDict<aDataField> dataRecord;
-//	aDataRecord dataRecord;
-//	QSqlRecord r;
+	QMap<QString, QString> fnames;
+	QMap<QString, QVariant> userFilter;
+    QSqlQuery query;
 };
 
-#endif
+#endif // ASQLTABLE_H

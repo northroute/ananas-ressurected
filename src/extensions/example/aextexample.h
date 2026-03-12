@@ -52,6 +52,7 @@ public:
 public:
     QString getLastMessage() const { return vMessage;};
     void setLastMessage( const QString &v ){ vMessage = v;};
+    QString name() const;
 
 public slots:
     void PrintMessage( const QString &msg );

@@ -35,23 +35,20 @@
 
 #include "ananasglobal.h"
 
-#include <qobject.h>
-#include <q3buttongroup.h>
-#include <qsproject.h>
-#include <qsinterpreter.h>
-//--#include <qsargument.h>
-#include <qmutex.h>
-//Added by qt3to4:
-#include <Q3SqlForm>
+#include <QObject>
+#include <QButtonGroup>
+#include <QMutex>
+#include <QScriptEngine>
+#include <QDataWidgetMapper>
+
+#include <QtGlobal>
 
 #include "engine.h"
 #include "adatabase.h"
 #include "adocument.h"
 #include "acfg.h"
 
-
 class QWidget;
-class Q3SqlForm;
 class aWidget;
 
 
@@ -86,7 +83,7 @@ public:
 
 	aForm();
 	aForm( QWidget *parent, aEngine *eng );
-	aForm( QWidget *parent,  aEngine *eng,  Q_ULONG form_mid = 0, aWidget* caller = NULL);
+	aForm( QWidget *parent,  aEngine *eng,  quint32 form_mid = 0, aWidget* caller = NULL);
 	aForm( QWidget *parent,  aEngine *eng, QString oftype, QObject *aobj = NULL);
 	~aForm();
 	QWidget *form;

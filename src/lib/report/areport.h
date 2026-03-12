@@ -31,16 +31,18 @@
 #ifndef AREPORT_H
 #define AREPORT_H
 
-#include	<q3mainwindow.h>
-#include	<q3textbrowser.h>
-#include	<qworkspace.h>
-#include	"acfg.h"
-#include 	"aobject.h"
-#include 	"engine.h"
-#include 	"atemplate.h"
-#include 	"aootemplate.h"
+#include <QMainWindow>
+#include <QTextBrowser>
+#include <QMdiArea>
+
+#include "acfg.h"
+#include "aobject.h"
+#include "engine.h"
+#include "atemplate.h"
+#include "aootemplate.h"
 
 class aDatabase;
+
 
 /**
  * \ru
@@ -49,13 +51,15 @@ class aDatabase;
  * 	\see aTemplate aReport
  * \_ru
  */
-class  ANANAS_EXPORT aReportBrowser :public Q3MainWindow
+class ANANAS_EXPORT aReportBrowser : public QMainWindow
 {
 	Q_OBJECT
 public:
-	QWorkspace *ws;
-	Q3TextBrowser *textBrowser;
-	aReportBrowser(  QWidget *parent = 0, const char *name = 0, Qt::WFlags f = Qt::WDestructiveClose );
+	QMdiArea *ws;
+	QTextBrowser *textBrowser;
+	aReportBrowser(QWidget *parent = 0,
+				const char *name = 0,
+				Qt::WindowFlags f = 0);
 	void append( const QString &text );
 	void clear();
 public slots:

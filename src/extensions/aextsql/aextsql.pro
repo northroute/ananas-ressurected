@@ -1,5 +1,4 @@
 TARGET    = aextsql
-QT += qt3support
 	
 SOURCES	+= aextsql.cpp 
 HEADERS	+= aextsql.h 

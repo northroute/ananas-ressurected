@@ -30,6 +30,7 @@
 #ifndef AAPPLICATION_H
 #define AAPPLICATION_H
 
+#include <cstdio>   // для printf
 #include "ananasglobal.h"
 #include <QApplication>
 

@@ -115,8 +115,8 @@ public:
 
     AExtensionPlugin()
     { 
-	type o;
-	extName = o.name();
+        type o;
+        extName = o.name();
     };
     ~AExtensionPlugin(){};
     QString key() const 

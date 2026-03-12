@@ -32,7 +32,7 @@
 #define AEXTTEXT_H
 
 #include "aextension.h"
-#include <qfile.h>
+#include <QFile>
 
 
 /**
@@ -55,6 +55,7 @@ public:
 
     QString getCodec() const ;
     void setCodec( const QString &codecname );
+    QString name() const;
 
 public slots:
     int open( const QString &filename, const QString &mode );

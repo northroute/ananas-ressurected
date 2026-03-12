@@ -29,11 +29,12 @@
 #ifndef AOOTEMPLATE_H
 #define AOOTEMPLATE_H
 
-#include <qstring.h>
-#include <q3ptrlist.h>
-#include <q3valuestack.h>
-#include <qdom.h>
+#include <QString>
+#include <QList>
+#include <QStack>
+#include <QDomDocument>
 #include <QMap>
+
 
 #define open_token "<:"
 #define close_token ":>"

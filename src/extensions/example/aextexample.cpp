@@ -48,13 +48,18 @@ void
 AExtExample::PrintMessage( const QString &msg )
 {
     setLastMessage( msg );
-    cfg_message(0, "AExtTest MSG:%s\n", (const char *) msg);
+    cfg_message(0, "AExtTest MSG:%s\n", msg.toUtf8().constData());
 }
 
 void 
 AExtExample::timerEvent( QTimerEvent * )
 {
     emit event("10");
+}
+
+QString AExtExample::name() const
+{
+    return "AExtExample";
 }
 
 #include <aextensionplugin.h>

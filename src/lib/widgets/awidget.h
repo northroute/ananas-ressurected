@@ -29,14 +29,15 @@
 
 #ifndef AWIDGET_H
 #define AWIDGET_H
-#include <q3sqlform.h>
-#include <q3toolbar.h>
-#include <q3mainwindow.h>
-//Added by qt3to4:
+
+#include <QToolBar>
+#include <QMainWindow>
 #include <QKeyEvent>
+
 #include "ananas.h"
 
 class QWidget;
+class QDataWidgetMapper;
 
 
 
@@ -73,7 +74,7 @@ public:
 	virtual void		widgetEditor();
         static void		widgetEditor( QWidget *object, QDialog *editor );
 	virtual QDialog*	createEditor( QWidget *parent );
-	virtual Q3ToolBar*	createToolBar( Q3MainWindow *parent );
+	virtual QToolBar* createToolBar(QMainWindow *parent);
         virtual aObject*	createDBObject( aCfgItem obj, aDatabase * );
 	virtual QString		displayString();
 
@@ -148,7 +149,7 @@ private:
 	QString		vName;
 	int		vId, vFormMode;
 	aCfgItem	obj;
-	Q3SqlForm*	form;
+	QDataWidgetMapper* form;
 //	QDict <aSQLTable> dbtables;
 };
 

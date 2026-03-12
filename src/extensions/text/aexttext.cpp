@@ -98,7 +98,7 @@ AExtText::open( const QString &filename, const QString &mode )
 {
 	QIODevice::OpenMode m = QIODevice::ReadOnly;
 	file.close();
-	file.setName( filename );
+	file.setFileName(filename);
 	if ( mode == "WO" ) m = QIODevice::WriteOnly;
 	if ( mode == "RW" ) m = QIODevice::ReadWrite;
 	if ( mode == "A" ) m = QIODevice::Append;
@@ -193,10 +193,15 @@ AExtText::getCodec() const
 void
 AExtText::setCodec( const QString &codecname )
 {
-	QTextCodec *codec = QTextCodec::codecForName( ( const char *) codecname );
+	QTextCodec *codec = QTextCodec::codecForName(codecname.toLatin1());
 	if ( codec ) text->setCodec( codec );
 }
 
+
+QString AExtText::name() const
+{
+    return "AExtText";
+}
 
 #include <aextensionplugin.h>
 typedef AExtensionPlugin<AExtText> AExtTextPlugin;

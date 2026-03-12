@@ -31,9 +31,9 @@
 
 #include "ananasglobal.h"
 
+#include <QWidget>
+#include <QMap>
 
-#include <qwidget.h>
-#include <q3dict.h>
 
 /*!
  * \~english
@@ -61,7 +61,7 @@ public:
     QWidget *get( int id, qulonglong ido = 0 );
 
 private:
-    Q3Dict<QWidget> list;
+    QMap<QString, QWidget*> list;
     QString conv( int id, qulonglong ido );
 };
 
