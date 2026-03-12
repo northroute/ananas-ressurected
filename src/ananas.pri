@@ -21,4 +21,4 @@ win32 {
 #    LIBS	+= -L..\..\plugins -lananasplugin
 }
 
-INCLUDEPATH +=../third-party/qdataschema/src/lib
+INCLUDEPATH +=../../../third-party/qdataschema/src/lib
