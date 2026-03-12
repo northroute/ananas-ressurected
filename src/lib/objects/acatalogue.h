@@ -30,14 +30,13 @@
 #ifndef ACATALOGUE_H
 #define ACATALOGUE_H
 
-#include	"acfg.h"
-#include 	"aobject.h"
-//Added by qt3to4:
-#include <Q3ValueList>
+#include "acfg.h"
+#include "aobject.h"
+
+#include <QList>
 
 class aDatabase;
 class aCatGroup;
-//class aObject;
 
 
 
@@ -98,11 +97,11 @@ public slots:
 	virtual QVariant GetElementValue(QVariant ide, const QString &fname);
 
 	virtual qulonglong delElement();
-	virtual qulonglong delGroup(qulonglong idg, Q3ValueList<qulonglong> &listDelId);
+	virtual qulonglong delGroup(qulonglong idg, QList<qulonglong> &listDelId);
 
 	qulonglong setMarkDeletedElement(qulonglong el_id, bool del);
 	qulonglong setMarkDeletedGroup(qulonglong gr_id, bool del);
-	void getMarkDeletedList(qulonglong idg, Q3ValueList<qulonglong> &listDelId);
+	void getMarkDeletedList(qulonglong idg, QList<qulonglong> &listDelId);
 
 	virtual bool isGroupMarkDeleted();
 	virtual bool isElementMarkDeleted();

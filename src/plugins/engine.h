@@ -31,27 +31,27 @@
 ****************************************************************************/
 #ifndef ENGINE_H
 #define ENGINE_H
-#include <qobject.h>
-#include <q3popupmenu.h>
-#include <qsobjectfactory.h>
-#include <qsproject.h>
-#include <qsinterpreter.h>
-//Added by qt3to4:
+
+#include <QObject>
 #include <QTimerEvent>
-#include <qwidgetplugin.h>
 
 #include "adatabase.h"
 #include "acfg.h"
 #include "awindowslist.h"
-#include <q3mainwindow.h>
 #include "adatafield.h"
 #include "aobject.h"
 
-
+#include <qwidgetplugin.h>
+#include <QScriptEngine>
+#include <QMap>
+#include <QVariant>
 
 class aEngine;
 class aWidget;
-class QSInterpreter;
+class QMenu;
+class QScriptEngine;
+class QMainWindow;
+
 
 /*!
  * \~english
@@ -62,7 +62,7 @@ class QSInterpreter;
  *	Наследует QSObjectFactory.
  * \~
  */
-class QT_WIDGET_PLUGIN_EXPORT aObjectsFactory : public QSObjectFactory
+class QT_WIDGET_PLUGIN_EXPORT aObjectsFactory
 {
 public:
         aEngine   *engine;
@@ -131,7 +131,7 @@ public:
  *	ссылка на интерпретатор скрипта.
  *	\~
 */
-	QSInterpreter*	code;
+	QScriptEngine* code;
 /*!
  *	\~english
  *	link to script project.
@@ -139,7 +139,7 @@ public:
  *	ссылка на проект.
  *	\~
 */
-    QSProject	project;
+    QScriptEngine* project;
 /*!
  *	\~english
  *	number to form
@@ -191,8 +191,7 @@ signals:
 private:
 	QString pr_timer;
 	QString mGlobal;
-	Q3Dict <QVariant> values;
-
+	QMap<QString, QVariant> values;
 };
 
 #endif // ENGINE_H

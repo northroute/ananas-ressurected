@@ -50,13 +50,14 @@
 //#include <QHash>
 #include <QMap>
 #include <QVariant>
+#include <QtGlobal>
 class AMetaObjectGroup;
 
 class AMetaObject: public QObject
 {
 Q_OBJECT
 // system properties
-Q_PROPERTY( Q_ULONG id READ id SCRIPTABLE true )
+Q_PROPERTY( quint32 id READ id SCRIPTABLE true )
 Q_PROPERTY( QString name READ name SCRIPTABLE true )
 Q_PROPERTY( QString className READ className SCRIPTABLE true )
 Q_PROPERTY( QString description READ description SCRIPTABLE true )
@@ -69,8 +70,8 @@ public:
     ~AMetaObject();
     void setClassName( const QString &name );
 
-    Q_ULONG id();
-    void setId( Q_ULONG );
+    quint32 id();
+    void setId( quint32 );
     QString className();
     QString name();
     AMetaObject *rootObject();
@@ -104,7 +105,7 @@ public slots:
 private:
     static int v_lastId;
     AMetaObject *v_parent;
-    Q_ULONG v_id;
+    quint32 v_id;
     QString v_className;
     QString v_description;
     QMap <QString, QVariant> v_attr;

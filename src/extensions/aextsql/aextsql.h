@@ -31,11 +31,12 @@
 #define AEXTSQL_H
 
 
-#include <qobject.h>
-#include <Q3SqlSelectCursor>
+#include <QObject>
+#include <QSqlQuery>
 #include "adatabase.h"
 #include "aextension.h"
 #include "aobject.h"
+
 
 /**
  *	\en
@@ -130,23 +131,24 @@ public:
 	virtual int init( aDatabase *database );
 	~aExtSQL();
 private:
-	Q3SqlSelectCursor *cursor;
+	QSqlQuery *cursor;
 public slots:
-	Q3SqlSelectCursor *	Cursor() const;
-	QVariant		Value(int col) const;
-	int			Size() const;
-	int 			Count() const;
-	bool			ExecQuery( const QString & query);
-	QVariant 		ExecScalar( const QString & query);
-	bool			First();
-	bool			Next();
-	bool			Last();
-	bool			Prev();
-	QString			SqlFieldName(aObject * obj, const QString & userFieldName, const QString &tableType="") const;
-	QString			SqlTableName(aObject * obj, const QString &tableType="") const;
-	QString			SqlTableName(const QString & objName) const;
-	QString			SqlFieldName(const QString & fieldName) const;
-	QString			LastError() const;
+	QSqlQuery *Cursor() const;
+	QVariant Value(int col) const;
+	int Size() const;
+	int Count() const;
+	bool ExecQuery( const QString & query);
+	QVariant ExecScalar( const QString & query);
+	bool First();
+	bool Next();
+	bool Last();
+	bool Prev();
+	QString SqlFieldName(aObject * obj, const QString & userFieldName, const QString &tableType="") const;
+	QString SqlTableName(aObject * obj, const QString &tableType="") const;
+	QString SqlTableName(const QString & objName) const;
+	QString SqlFieldName(const QString & fieldName) const;
+	QString LastError() const;
+	QString name() const;
 };
 
 #endif

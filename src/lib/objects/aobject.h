@@ -161,7 +161,7 @@ protected:
 
 private:
 	bool vInited, selectFlag, filtred;
-	Q3Dict <aDataTable> dbtables;
+	QMap<QString, aDataTable*> dbtables;
 
 //	QDict <aDataRecord> attributes;
 };

@@ -52,12 +52,9 @@ aExtSQL::aExtSQL() : AExtension("SQL")
  *		\brief Функция иницализации, переопределяет функцию базового класса, создает внутренние объекты и переменные.
  * \_ru
  */
-int
-aExtSQL::init( aDatabase *database )
+int aExtSQL::init(aDatabase *database)
 {
-//	cursor = new Q3SqlSelectCursor(const QString::QString(""), database->db());
-	const QString emptyString = "";
-	cursor = new Q3SqlSelectCursor(emptyString, *(database->db()) );
+	cursor = new QSqlQuery(*database->db());
 	return AExtension::init(database);
 }
 
@@ -91,8 +88,7 @@ aExtSQL::~aExtSQL()
  * \see aExtSQL::ExecQuery()
  * \see aExtSQL::ExecScalar()
  */
-Q3SqlSelectCursor *
-aExtSQL::Cursor() const
+QSqlQuery *aExtSQL::Cursor() const
 {
 	return cursor;
 }
@@ -110,16 +106,19 @@ aExtSQL::Cursor() const
  * \return \en Column value \ru Значение столбца\_ru
  * \see aExtSQL::Count()
  */
-QVariant
-aExtSQL::Value(int col) const
+QVariant aExtSQL::Value(int col) const
 {
-	QVariant res = QVariant::Invalid;
-	if(cursor->count() > col && col >= 0) res = cursor->value(col);
-	if(res.type() == QVariant::ULongLong || res.type() == QVariant::LongLong)
-	{
-		res = res.toString();
-	}
-	return res;
+    QVariant res = QVariant::Invalid;
+
+    const QSqlRecord rec = cursor->record();  // получаем метаданные текущей строки
+    if(col >= 0 && col < rec.count())        // проверка индекса колонки
+        res = cursor->value(col);             // получаем значение
+
+    // конвертируем большие числа в строку
+    if(res.type() == QVariant::ULongLong || res.type() == QVariant::LongLong)
+        res = res.toString();
+
+    return res;
 }
 
 /**
@@ -130,10 +129,13 @@ aExtSQL::Value(int col) const
  *		\brief Функция получения количества записей в результате.
  * \_ru
  */
-int
-aExtSQL::Size() const
+int aExtSQL::Size() const
 {
-	return cursor->size();
+    int size = 0;
+    QSqlQuery *tmp = cursor;      // копия курсора, чтобы не сдвинуть текущую позицию
+    if(tmp->last())               // перемещаемся на последнюю строку
+        size = tmp->at() + 1;     // индексы с 0, поэтому +1
+    return size;
 }
 
 /**
@@ -144,10 +146,9 @@ aExtSQL::Size() const
  *		\brief Функция получения количества столбцов в результате.
  * \_ru
  */
-int 
-aExtSQL::Count() const
+int aExtSQL::Count() const
 {
-	return cursor->count();
+    return cursor->record().count();
 }
 
 /**
@@ -182,10 +183,21 @@ aExtSQL::Count() const
  * \see aExtSQL::Value()
  * \see aExtSQL::LastError()
  */
-bool
-aExtSQL::ExecQuery( const QString & query)
+bool aExtSQL::ExecQuery(const QString &query)
 {
-	return cursor->exec(query);
+    bool ok = cursor->exec(query);          // выполняем запрос
+
+    if(!ok)
+        return false;
+
+    // Считаем строки для Size()
+    int m_size = 0;
+    QSqlQuery *tmp = cursor;                // копия, чтобы не сдвинуть текущую позицию
+    while(tmp->next())
+        ++m_size;
+
+    cursor->first(); // вернуть курсор на первую строку
+    return true;
 }
 
 /**
@@ -213,14 +225,20 @@ aExtSQL::ExecQuery( const QString & query)
  * \endcode
  * \see aExtSQL::ExecQuery()
  */
-QVariant 
-aExtSQL::ExecScalar( const QString & query)
+QVariant aExtSQL::ExecScalar(const QString &query)
 {
-	cursor->exec(query);
-	if(cursor->size() > 0)
-		return cursor->value(0);
-	else
-		return QVariant::Invalid;
+    if(!cursor->exec(query))
+        return QVariant::Invalid;         // ошибка выполнения
+
+    if(cursor->first())                     // проверяем, есть ли хотя бы одна строка
+        return cursor->value(0);           // возвращаем первую колонку первой строки
+
+    return QVariant::Invalid;             // нет строк
+}
+
+QString aExtSQL::name() const
+{
+    return "aExtSQL";
 }
 
 /**
@@ -238,8 +256,7 @@ aExtSQL::ExecScalar( const QString & query)
  * \_ru
  * \see aExtSQL::ExecuteQuery()
  */
-bool
-aExtSQL::First()
+bool aExtSQL::First()
 {
 	return cursor->first();
 }
@@ -257,8 +274,7 @@ aExtSQL::First()
  * \_ru
  * \see aExtSQL::ExecuteQuery()
  */
-bool
-aExtSQL::Next()
+bool aExtSQL::Next()
 {
 	return cursor->next();
 }
@@ -276,8 +292,7 @@ aExtSQL::Next()
  * \_ru
  * \see aExtSQL::ExecuteQuery()
  */
-bool
-aExtSQL::Last()
+bool aExtSQL::Last()
 {
 	return cursor->last();
 }
@@ -296,10 +311,9 @@ aExtSQL::Last()
  * \_ru
  * \see aExtSQL::ExecuteQuery()
  */
-bool
-aExtSQL::Prev()
+bool aExtSQL::Prev()
 {
-	return cursor->prev();
+	return cursor->previous();
 }
 
 

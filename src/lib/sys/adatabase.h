@@ -30,16 +30,16 @@
 
 #ifndef ADATABASE_H
 #define ADATABASE_H
+
 #include <QObject>
-#include <qstringlist.h>
-#include <qsqldatabase.h>
-#include <q3dict.h>
-//Added by qt3to4:
-#include <QSqlError>
-#include "acfg.h"
-#include <qwidget.h>
-#include <QMap>
-#include <qdataschema.h>
+#include <QStringList>       // Qt4 QStringList
+#include <QSqlDatabase>      // Qt4 SQL
+#include <QSqlError>         // Qt4 SQL ошибки
+#include <QWidget>           // Qt4 QWidget
+#include <QMap>              // вместо Q3Dict
+#include "acfg.h"            // твой проектный include
+#include <qdataschema.h>     // если это Qt4-compatible
+#include <QtGlobal>   // для quint64
 
 
 /**
@@ -130,16 +130,16 @@ public:
 	bool create();
 	bool drop( const QString &);
 	bool update();
-	Q_ULLONG uid( int otype );
+	quint64 uid( int otype );
 //	int otype( Q_ULLONG uid );
-	int uidType ( Q_ULLONG uid );
+	int uidType ( quint64 uid );
 	aDataTable *table( const QString & name = QString::null );
 	bool tableExists( const QString & name );
 	void markDeleted(qulonglong uid);
 	void deleteMarked();
         QString driverName();
 
-        bool isAccessRights( int md_type, Q_ULLONG obj_id, DBPermission req_operation );
+        bool isAccessRights( int md_type, quint64 obj_id, DBPermission req_operation );
 
 	static QStringList supportedDriverList();
 	static QStringList getUniqueIndices(const QString & flddef);
@@ -164,9 +164,9 @@ public:
         void logout();
         void netupdate();
 
-        bool isObjectLocked( Q_ULLONG id );
-        bool objectLock( Q_ULLONG id );
-        void objectUnlock( Q_ULLONG id=0 );
+        bool isObjectLocked( quint64 id );
+        bool objectLock( quint64 id );
+        void objectUnlock( quint64 id=0 );
 //        QDataSchema *qds();
 
         int  rolePermission( int role_id, int md_id );
@@ -205,4 +205,4 @@ private:
         QMap<int, int> accessRights;
 };
 
-#endif
+#endif // ADATABASE_H

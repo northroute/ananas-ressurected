@@ -63,7 +63,7 @@ public:
     AExtMeta();
     ~AExtMeta();
 public:
-
+	QString name() const;
 public slots:
 	QString GetBaseClassName(const long &ClassId);
 	QString GetClassName(const long &ClassId);

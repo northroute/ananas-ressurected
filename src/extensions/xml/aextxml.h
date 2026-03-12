@@ -50,6 +50,7 @@ public:
     AExtXML();
     ~AExtXML();
 public:
+	QString name() const;
 
 public slots:
 	bool read(const QString &fname);

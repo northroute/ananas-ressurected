@@ -29,17 +29,17 @@
 
 #ifndef AIREGISTER_H
 #define AIREGISTER_H
-#include	<q3valuelist.h>
-#include	<qstringlist.h>
-#include	<qvariant.h>
-#include	<qdatetime.h>
-#include	"acfg.h"
-#include 	"aobject.h"
+
+#include <QList>
+#include <QStringList>
+#include <QVariant>
+#include <QDateTime>
+
+#include "acfg.h"
+#include "aobject.h"
 
 class aDatabase;
-
 class aDocJournal;
-
 class aDocument;
 
 

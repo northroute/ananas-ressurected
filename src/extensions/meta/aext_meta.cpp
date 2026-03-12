@@ -213,5 +213,10 @@ AExtMeta::ListByClassName(const QString &className) {
 	return sList;
 }
 
+QString AExtMeta::name() const
+{
+    return "AExtMeta";
+}
+
 typedef AExtensionPlugin<AExtMeta> AExtMetaPlugin;
 A_EXPORT_PLUGIN( AExtMetaPlugin )
