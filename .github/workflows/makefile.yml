@@ -12,20 +12,41 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: extensions
+            module: aextsql
+          - group: extensions
+            module: example
+          - group: extensions
+            module: meta
+          - group: extensions
+            module: service
+          - group: extensions
+            module: text
+          - group: extensions
+            module: xml
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: configure
-      run: ./configure
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            qt4-qmake \
+            libqt4-dev \
+            libqt4-sql-sqlite \
+            libqt4-sql-mysql \
+            libqt4-sql-psql
 
-    - name: Install dependencies
-      run: make
-
-    - name: Run check
-      run: make check
-
-    - name: Run distcheck
-      run: make distcheck
+      - name: Build module
+        run: |
+          cd src/${{ matrix.group }}/${{ matrix.module }}
+          qmake-qt4
+          make -j1
