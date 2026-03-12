@@ -31,10 +31,13 @@
 #ifndef afilter_h
 #define afilter_h
 
-#include <qstring.h>
-#include <q3valuelist.h>
-#include <qdatetime.h>
+#include <QString>
+#include <QList>
+#include <QDateTime>
+#include <QtGlobal>
+
 #include "ananasglobal.h"
+
 
 ANANAS_EXPORT enum OperationEnum{
 		OperationEnumEquals,
@@ -49,33 +52,33 @@ ANANAS_EXPORT enum OperationEnum{
 class ANANAS_EXPORT aFilter
 {
 public:
-	aFilter();
-	virtual ~aFilter();
-	void Dump() const;
+    aFilter();
+    virtual ~aFilter();
+    void Dump() const;
 
-	void Add(const QString& fname, const char* value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const Q_INT64 value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const int value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const double value, OperationEnum op, bool AndOp = true, bool replace = true);
-	//void Add(const QString& fname, bool value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const QString& value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const QDateTime& value, OperationEnum op, bool AndOp = true, bool replace = true);
-	void Add(const QString& fname, const QDate& value, OperationEnum op, bool AndOp = true, bool replace = true);
-	QString toString(bool removeFirst = true) const;
-	void Clear();
+    void Add(const QString& fname, const char* value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const qint64 value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const int value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const double value, OperationEnum op, bool AndOp = true, bool replace = true);
+    //void Add(const QString& fname, bool value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const QString& value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const QDateTime& value, OperationEnum op, bool AndOp = true, bool replace = true);
+    void Add(const QString& fname, const QDate& value, OperationEnum op, bool AndOp = true, bool replace = true);
+    QString toString(bool removeFirst = true) const;
+    void Clear();
 protected:
-	void AddHelper(const QString& fname, const QString& value, OperationEnum op, bool And, bool replace);
-	QString Escape(const QString& val);
+    void AddHelper(const QString& fname, const QString& value, OperationEnum op, bool And, bool replace);
+    QString Escape(const QString& val);
 private:
-	struct filterCondition
-	{
-		QString fname;
-		QString value;
-		QString operation;
-		QString AndOr;
-	}f;
-	//typedef struct filterCondition FilterCondition;
-	Q3ValueList<filterCondition> conditions;
+    struct filterCondition
+    {
+        QString fname;
+        QString value;
+        QString operation;
+        QString AndOr;
+    } f;
+
+    QList<filterCondition> conditions;
 };
 
 #endif

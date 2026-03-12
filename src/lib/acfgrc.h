@@ -32,10 +32,10 @@
 
 #include "ananasglobal.h"
 
-#include <qobject.h>
-#include <q3dict.h>
-//Added by qt3to4:
-#include <QPixmap>
+#include <QObject>     // Qt4 QObject
+#include <QMap>        // вместо Q3Dict
+#include <QPixmap>     // Qt4 pixmap
+
 
 QPixmap ANANAS_EXPORT rcIcon(const char *name);
 void ANANAS_EXPORT setMessageHandler(bool GUI = false);
@@ -66,7 +66,7 @@ public:
 
 private:
 	QString filename;
-	Q3Dict <QString> values;
+	QMap<QString, QString> values;
 };
 
-#endif
+#endif // ACFGRC_H

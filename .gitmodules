@@ -1,0 +1,3 @@
+[submodule "third-party/qdataschema"]
+	path = third-party/qdataschema
+	url = git@github.com:northroute/qdataschema.git
