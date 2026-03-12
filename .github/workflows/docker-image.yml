@@ -1,4 +1,4 @@
-name: Makefile CI
+name: Docker Image CI
 
 on:
   push:
@@ -34,19 +34,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Rebuild CI image
+        run: docker build -f docker/ci/Dockerfile -t ananas-ci:latest .
+
+      - name: Check Qt toolchain
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            qt4-qmake \
-            libqt4-dev \
-            libqt4-sql-sqlite \
-            libqt4-sql-mysql \
-            libqt4-sql-psql
+          docker run --rm ananas-ci:latest bash -lc "qmake-qt4 -v"
 
       - name: Build module
         run: |
-          cd src/${{ matrix.group }}/${{ matrix.module }}
-          qmake-qt4
-          make -j1
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            ananas-ci:latest \
+            bash -lc "
+              cd src/${{ matrix.group }}/${{ matrix.module }}
+              qmake-qt4
+              make -j1
+            "
