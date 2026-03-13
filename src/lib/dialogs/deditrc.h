@@ -3,6 +3,11 @@
 
 #include "ui_deditrc.h"
 
+#include <QFileDialog>
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 class ANANAS_EXPORT dEditRC : public QDialog, public Ui::dEditRC
 {
     Q_OBJECT

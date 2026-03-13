@@ -1,11 +1,8 @@
 #include "dselectdb.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "atests.h"
 #include "dhelpcfgform.h"
+
 /*
  *  Constructs a dSelectDB as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -14,11 +11,15 @@
  *  true to construct a modal dialog.
  */
 dSelectDB::dSelectDB(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
-    ,settings( QSettings::IniFormat, QSettings::UserScope, "Ananas company Ltd", "Ananas4")
+    : QDialog(parent, fl)
+    , settings(QSettings::IniFormat, QSettings::UserScope, "Ananas company Ltd", "Ananas4")
 {
-    setupUi(this);
+    if (name)
+        setObjectName(name);
 
+    setModal(modal);
+
+    setupUi(this);
     init();
 }
 
@@ -40,16 +41,6 @@ void dSelectDB::languageChange()
 }
 
 
-//#include "acfgobj.h"
-#include <qdir.h>
-#include <qstring.h>
-#include <q3filedialog.h>
-#include <qlineedit.h>
-#include <qstring.h>
-#include <qdom.h>
-//Added by qt3to4:
-#include <Q3PopupMenu>
-
 #include "deditrc.h"
 #include "dimportdb.h"
 #include "acfgrc.h"
@@ -57,18 +48,21 @@ void dSelectDB::languageChange()
 #include "adataexchange.h"
 #include "alog.h"
 
+
 void dSelectDB::init()
 {
-	aLog::init("ananas.log", aLog::Debug);
-	createMenu();
-	progressBar1->hide();
-	QString fname;
-	withgroups = 1;
-	//--settings.insertSearchPath( QSettings::Unix, QString(QDir::homeDirPath())+QString("/.ananas"));
-	//--settings.insertSearchPath( QSettings::Windows, "/ananasgroup/ananas" );
+    aLog::init("ananas.log", aLog::Debug);
+    createMenu();
+    progressBar1->hide();
 
-	local = settings.entryList("/groups").count();
-	changes = false;
+    QString fname;
+    withgroups = 1;
+
+    settings.beginGroup("groups");
+    local = settings.childGroups().count();
+    settings.endGroup();
+
+    changes = false;
 	/*--if(!local)
 	{
 
@@ -107,218 +101,228 @@ void dSelectDB::init()
 	}
 	else*/
 	{
-		QStringList lst = settings.entryList("/groups");
-		settings.beginGroup("/groups");
-		readSettings(lst);
-		settings.endGroup();
+    QStringList lst = settings.childGroups();
+    settings.beginGroup("groups");
+    readSettings(lst);
+    settings.endGroup();
 	}
-	setIcon( rcIcon("a-system.png"));
-	listDBRC->hideColumn( 1 );
-	listDBRC->setSorting( -1 );
+
+	setWindowIcon(rcIcon("a-system.png"));
+	listDBRC->hideColumn(1);
+	listDBRC->setSortingEnabled(false);
 	listDBRC->header()->hide();
-	listDBRC->setRootIsDecorated(1);
-	buttonOk->setEnabled( FALSE );
+	listDBRC->setRootIsDecorated(true);
+	buttonOk->setEnabled(false);
 	return;
 }
 
 void dSelectDB::readSettings(QStringList entryGroup)
 {
-	rcfile="";
-	ro_mode=0;
-	QFile f, fc;
-	QString s, sp, sn, rc;
-	rcListViewItem *item, *gitem=NULL; //, *subitem;
-	for(uint j=0; j<entryGroup.count();j++)
-	{
-        	QStringList eitems;
-		eitems = settings.entryList(entryGroup[j]);
-		QString groupName = "unknown group";
-		groupName = settings.readEntry(entryGroup[j]);
-		aLog::print(aLog::Debug, tr("dSelectDB read settings for group with name %1").arg(groupName));
-		rcListViewItem * lastIt = (rcListViewItem *) listDBRC->lastItem();
-		if(lastIt!=NULL)
-		{
-			while(lastIt->depth()>0)
-			{
-				lastIt =(rcListViewItem *) lastIt->parent();
-			}
-			gitem= new rcListViewItem(listDBRC, lastIt, groupName, "", true );
-			gitem->setOpen(true);
-		}
-		else
-		{
-			gitem= new rcListViewItem(listDBRC, groupName, "", true );
-			gitem->setOpen(true);
-		}
-//		withgroups=1;
-		QMap<QString,QString> cfg;
-		for(int k = eitems.count()-1; k>=0; k--)
-		{
-			if(k<0) break;
-			rc = settings.readEntry(entryGroup[j]+"/"+eitems[k]);
-			cfg = aTests::readConfig(QDir::convertSeparators(rc));
-			sn=cfg["dbtitle"];
-			if (gitem) item= new rcListViewItem( gitem, sn, rc );
-			else item= new rcListViewItem( listDBRC, sn, rc );
-		}
-	}
+    rcfile = "";
+    ro_mode = 0;
+
+    QFile f, fc;
+    QString s, sp, sn, rc;
+    rcListViewItem *item, *gitem = NULL;
+
+    for (int j = 0; j < entryGroup.count(); j++)
+    {
+        QString groupKey = entryGroup[j];
+
+        settings.beginGroup(groupKey);
+        QStringList eitems = settings.childKeys();
+        settings.endGroup();
+
+        QString groupName = settings.value(groupKey, "unknown group").toString();
+
+        aLog::print(aLog::Debug,
+                    tr("dSelectDB read settings for group with name %1").arg(groupName));
+
+        gitem = new rcListViewItem(listDBRC, groupName, "", true);
+        gitem->setExpanded(true);
+
+        QMap<QString,QString> cfg;
+        for (int k = eitems.count() - 1; k >= 0; k--)
+        {
+            rc = settings.value(groupKey + "/" + eitems[k]).toString();
+            cfg = aTests::readConfig(QDir::toNativeSeparators(rc));
+            sn = cfg["dbtitle"];
+
+            if (gitem)
+                item = new rcListViewItem(gitem, sn, rc);
+            else
+                item = new rcListViewItem(listDBRC, sn, rc);
+        }
+    }
 }
 
 
-void dSelectDB::itemSelect( Q3ListViewItem *item )
+void dSelectDB::itemSelect(QTreeWidgetItem *item, int col)
 {
-	if (! item ) return;
-	rcListViewItem *i = ( rcListViewItem *) item ;
-	buttonOk->setEnabled( !i->group );
+    if (!item) return;
+
+    rcListViewItem *i = static_cast<rcListViewItem*>(item);
+    buttonOk->setEnabled(!i->group);
 }
 
 
 void dSelectDB::newGroup()
 {
-	Q3ListViewItem *gitem;
-	gitem = new rcListViewItem(listDBRC, tr("New group"), "", true );
-	listDBRC->setRootIsDecorated(1);
-	gitem->setOpen(true);
-	listDBRC->setSelected(gitem, true);
-	editItem();
-	withgroups=1;
-	changes = true;
-	//saveRC();
+    QTreeWidgetItem *gitem;
+
+    gitem = new rcListViewItem(listDBRC, tr("New group"), "", true);
+
+    listDBRC->setRootIsDecorated(true);
+    listDBRC->setCurrentItem(gitem);
+
+    editItem();
+    withgroups = 1;
+    changes = true;
 }
 
 
 void dSelectDB::newItem()
 {
-	rcListViewItem *item, *gitem;
-	QString rc;
-	item= ( rcListViewItem *) listDBRC->selectedItem();
-	if (!item) return;
-	if (withgroups) {
-		if (item->parent()) gitem = ( rcListViewItem *) item->parent();
-		else gitem=item;
-		item = new rcListViewItem(gitem, tr("New shema"), "myrc");
-		gitem->setOpen(true);
+    rcListViewItem *item, *gitem;
+    QString rc;
 
-	} else {
-		item = new rcListViewItem(listDBRC, tr("New shema"), "myrc");
-	}
-	listDBRC->setSelected(item, true);
-	editItem();
-	changes = true;
+    item = static_cast<rcListViewItem *>(listDBRC->currentItem());
+    if (!item) return;
+
+    if (withgroups)
+    {
+        if (item->parent())
+            gitem = static_cast<rcListViewItem *>(item->parent());
+        else
+            gitem = item;
+
+        item = new rcListViewItem(gitem, tr("New shema"), "myrc");
+        gitem->setExpanded(true);
+    }
+    else
+    {
+        item = new rcListViewItem(listDBRC, tr("New shema"), "myrc");
+    }
+
+    listDBRC->setCurrentItem(item);
+    editItem();
+    changes = true;
 }
-
 
 void dSelectDB::editItem()
 {
-	rcListViewItem *item;
-	dEditRC *d = new dEditRC(this);
+    rcListViewItem *item;
+    dEditRC *d = new dEditRC(this);
 
-	item = ( rcListViewItem *) listDBRC->selectedItem();
-	if (!item) return;
-	if ( item->group )
-	{
-	// Group
-		item->setRenameEnabled(0, true);
-		item->startRename(0);
-		changes = true;
-	}
-	else
-	{
-	// Resource
-		d->setdata( QDir::convertSeparators(item->rcfile), item );
-		if ( d->exec() == QDialog::Accepted )
-		{
-			changes = true;
-		}
-	}
+    item = static_cast<rcListViewItem *>(listDBRC->currentItem());
+    if (!item) return;
+
+    if (item->group)
+    {
+        item->setFlags(item->flags() | Qt::ItemIsEditable);
+        listDBRC->editItem(item, 0);
+        changes = true;
+    }
+    else
+    {
+        d->setdata(QDir::toNativeSeparators(item->rcfile), item);
+        if (d->exec() == QDialog::Accepted)
+        {
+            changes = true;
+        }
+    }
 }
 
 
 
 void dSelectDB::deleteItem()
 {
-	Q3ListViewItem *item;
-	item=listDBRC->selectedItem();
-	if (item)
-	{
-		QString msg = tr("Delete item?");
-		if(QMessageBox::question(this,tr("confirm delete"),msg,QMessageBox::Ok,QMessageBox::Cancel)!=QMessageBox::Ok)
-		{
-			return;
-		}
+    QTreeWidgetItem *item = listDBRC->currentItem();
 
-		delete item;
-		if (listDBRC->childCount()==0) withgroups=0;
-		changes = true;
-	}
+    if (item)
+    {
+        QString msg = tr("Delete item?");
+        if (QMessageBox::question(this, tr("confirm delete"), msg,
+                                  QMessageBox::Ok, QMessageBox::Cancel) != QMessageBox::Ok)
+        {
+            return;
+        }
+
+        delete item;
+
+        if (listDBRC->topLevelItemCount() == 0)
+            withgroups = 0;
+
+        changes = true;
+    }
 }
 
 
 void dSelectDB::saveRC()
 {
-	rcListViewItem *item, *gitem;
-	QFile f( rcfile );
-	aLog::print(aLog::Info, tr("dSelectDB save settings"));
-	if (!local)
-	{
-		if(!changes) return;
-		QString home = QDir::homeDirPath();
+    rcListViewItem *item, *gitem;
+    QFile f(rcfile);
+
+    aLog::print(aLog::Info, tr("dSelectDB save settings"));
+
+    if (!local)
+    {
+        if (!changes) return;
+
+        QString home = QDir::homePath();
 #ifndef Q_OS_WIN32
-		QString msg = QString("Все внесенные изменения будут сохранены локально в вашем домашнем каталоге.\nПри очередном запуске программы будут использованы локальные настройки из каталога\n%1/.ananas.\nЕсли Вы хотите использовать глобальные настройки, вам следует удалить каталог\n%2/.ananas").arg(home).arg(home);
+        QString msg = QString("Все внесенные изменения будут сохранены локально в вашем домашнем каталоге.\nПри очередном запуске программы будут использованы локальные настройки из каталога\n%1/.ananas.\nЕсли Вы хотите использовать глобальные настройки, вам следует удалить каталог\n%2/.ananas").arg(home).arg(home);
 #else
-		QString msg = tr("save settings local?");
+        QString msg = tr("save settings local?");
 #endif
-		if(QMessageBox::question(this,tr("save"),QString::fromUtf8(msg),QMessageBox::Ok,QMessageBox::Cancel)!=QMessageBox::Ok)
-		{
-			return;
-		}
-	}
-		//--settings.removeSearchPath( QSettings::Unix, "/etc/ananas" );
-		//--settings.removeSearchPath( QSettings::Windows, "/ananasgroup/ananas/globalsettings");
+        if (QMessageBox::question(this, tr("save"), QString::fromUtf8(msg.toUtf8()), QMessageBox::Ok, QMessageBox::Cancel) != QMessageBox::Ok)
+        {
+            return;
+        }
+    }
 
+    uint gcount = 0;
+    clearSettings();
 
-		gitem= ( rcListViewItem *) listDBRC->firstChild();
-		uint gcount=0;
-		uint ecount=0;
-		clearSettings();
+    settings.beginGroup("groups");
 
-		settings.beginGroup("/groups");
+    for (int gi = 0; gi < listDBRC->topLevelItemCount(); ++gi)
+    {
+        gitem = static_cast<rcListViewItem *>(listDBRC->topLevelItem(gi));
 
-		while (gitem)
-		{
-			if (withgroups)
-			{
-                                settings.writeEntry(QString::number(gcount),gitem->text(0));
-				if(gitem->childCount())
-				{
-					item = ( rcListViewItem *) gitem->firstChild();
-					while (item)
-					{
-						settings.writeEntry(QString::number(gcount)+"/"+QString::number(ecount),item->rcfile);
-						item =  ( rcListViewItem *) item->nextSibling();
-						++ecount;
-					}
-				}
-			}
-			++gcount;
-			gitem =  ( rcListViewItem *) gitem->nextSibling();
-		}
-		settings.endGroup();
+        if (withgroups)
+        {
+            settings.setValue(QString::number(gcount), gitem->text(0));
+
+            for (int ei = 0; ei < gitem->childCount(); ++ei)
+            {
+                item = static_cast<rcListViewItem *>(gitem->child(ei));
+                settings.setValue(QString::number(gcount) + "/" + QString::number(ei), item->rcfile);
+            }
+        }
+
+        ++gcount;
+    }
+
+    settings.endGroup();
 }
 
 
 void dSelectDB::onOK()
 {
-	rcListViewItem *item;
+    rcListViewItem *item;
 
-	saveRC();
-	item =  ( rcListViewItem *) listDBRC->selectedItem();
-	if (item) {
-	             if ( !item->rcfile.isEmpty() ) {
-			 rcfile = item->rcfile;
-			 accept();
-		}
-	}
+    saveRC();
+    item = static_cast<rcListViewItem*>(listDBRC->currentItem());
+
+    if (item)
+    {
+        if (!item->rcfile.isEmpty())
+        {
+            rcfile = item->rcfile;
+            accept();
+        }
+    }
 }
 
 
@@ -329,29 +333,24 @@ void dSelectDB::onCancel()
 }
 
 
-void dSelectDB::ItemRenamed(Q3ListViewItem *item, int col)
+void dSelectDB::ItemRenamed(QTreeWidgetItem *item, int col)
 {
-	if (!item) return;
-	if (col>1) return;
+    if (!item) return;
+    if (col > 1) return;
 }
 
 
 void dSelectDB::clearSettings()
 {
-        QStringList eitems;
-	QStringList entryGroup =settings.entryList("/groups");
-	settings.beginGroup("/groups");
-	for(uint j=0; j<entryGroup.count();j++)
-	{
-		eitems = settings.entryList(entryGroup[j]);
-		settings.removeEntry(entryGroup[j]);
-		for(int k = eitems.count()-1; k>=0; k--)
-		{
-			if(k<0) break;
-			settings.removeEntry(entryGroup[j]+"/"+eitems[k]);
-		}
-	}
-	settings.endGroup();
+    settings.beginGroup("groups");
+
+    QStringList entryGroup = settings.childGroups();
+    for (int j = 0; j < entryGroup.count(); j++)
+    {
+        settings.remove(entryGroup[j]);
+    }
+
+    settings.endGroup();
 }
 
 
@@ -363,158 +362,166 @@ void dSelectDB::onHelp()
 
 void dSelectDB::createMenu()
 {
+    menuBar = new QMenuBar(this);
 
-	menuBar = new QMenuBar(this);
-	Q3PopupMenu *menuFile = new Q3PopupMenu(this);
-	menuFile->insertItem(tr("E&xit"), this, SLOT(onCancel()));
+    QMenu *menuFile = new QMenu(this);
+    menuFile->setTitle(tr("Program"));
+    menuFile->addAction(tr("E&xit"), this, SLOT(onCancel()));
 
-	Q3PopupMenu *menuEdit = new Q3PopupMenu(this);
-	menuEdit->insertItem(tr("New &group"), this, SLOT(newGroup()));
-	menuEdit->insertItem(tr("&New shema"), this, SLOT(newItem()));
-	menuEdit->insertSeparator();
-	menuEdit->insertItem(tr("Edi&t"),  this, SLOT(editItem()));
-	menuEdit->insertSeparator();
-	menuEdit->insertItem(tr("&Delete"),  this, SLOT(deleteItem()));
+    QMenu *menuEdit = new QMenu(this);
+    menuEdit->setTitle(tr("Actions"));
+    menuEdit->addAction(tr("New &group"), this, SLOT(newGroup()));
+    menuEdit->addAction(tr("&New shema"), this, SLOT(newItem()));
+    menuEdit->addSeparator();
+    menuEdit->addAction(tr("Edi&t"), this, SLOT(editItem()));
+    menuEdit->addSeparator();
+    menuEdit->addAction(tr("&Delete"), this, SLOT(deleteItem()));
 
-	Q3PopupMenu *menuAction = new Q3PopupMenu(this);
-	menuAction->insertItem(tr("&Import"),  this, SLOT(importItem()));
-	menuAction->insertItem(tr("&Export"),  this, SLOT(exportItem()));
+    QMenu *menuAction = new QMenu(this);
+    menuAction->setTitle(tr("Service"));
+    menuAction->addAction(tr("&Import"), this, SLOT(importItem()));
+    menuAction->addAction(tr("&Export"), this, SLOT(exportItem()));
 
-	menuBar->insertItem(tr("Program"), menuFile);
-	menuBar->insertItem(tr("Actions"), menuEdit);
-	menuBar->insertItem(tr("Service"), menuAction);
-	layout()->setMenuBar(menuBar);
-	menuBar->show();
+    menuBar->addMenu(menuFile);
+    menuBar->addMenu(menuEdit);
+    menuBar->addMenu(menuAction);
+
+    layout()->setMenuBar(menuBar);
+    menuBar->show();
 }
 
 
 void dSelectDB::importItem()
 {
-	rcListViewItem *item,*gitem;
-	dImportDB *d = new dImportDB(this);
-	item = (rcListViewItem *)listDBRC->selectedItem();
-	if (!item) return;
-	if (withgroups)
-	{
-		if (item->parent()) gitem = ( rcListViewItem *) item->parent();
-		else gitem=item;
-		item = new rcListViewItem(gitem, tr("New shema"), "myrc");
-		gitem->setOpen(true);
+    rcListViewItem *item, *gitem;
+    dImportDB *d = new dImportDB(this);
 
-	}
-	else
-	{
-		item = new rcListViewItem(listDBRC, tr("New shema"), "myrc");
-	}
-	listDBRC->setSelected(item, true);
-	d->setdata("", item );
-	if ( d->exec() == QDialog::Accepted )
-	{
-		bool res;
-		QString rcfile = item->rcfile;
-		QString filename = d->eCfgName->text();
-		progressBar1->show();
-		progressBar1->reset();
-		aBackup newBase;
-		connect (&newBase, SIGNAL(progress(int,int)), progressBar1, SLOT( setProgress(int,int)));
-		if(newBase.importData(rcfile, filename, true)==false)
-		{
-			QMessageBox::information(this,tr("Backup"),newBase.lastError(),Qt::NoButton);
-			progressBar1->hide();
-			aLog::print(aLog::Info, tr("dSelectDB business schema import"));
-		}
-		else
-		{
-			aLog::print(aLog::Error, tr("dSelectDB restore: %1").arg(newBase.lastError()));
-			QMessageBox::critical(this,tr("Backup"),newBase.lastError(),0, Qt::NoButton);
-			progressBar1->hide();
-			delete item;
-			item =0;
-			return;
-		}
+    item = static_cast<rcListViewItem *>(listDBRC->currentItem());
+    if (!item) return;
 
+    if (withgroups)
+    {
+        if (item->parent())
+            gitem = static_cast<rcListViewItem *>(item->parent());
+        else
+            gitem = item;
 
+        item = new rcListViewItem(gitem, tr("New shema"), "myrc");
+        gitem->setExpanded(true);
+    }
+    else
+    {
+        item = new rcListViewItem(listDBRC, tr("New shema"), "myrc");
+    }
 
-		changes = true;
-	}
-	else
-	{
-		delete item;
-		item = 0;
-		return;
-	}
+    listDBRC->setCurrentItem(item);
+    d->setdata("", item);
+
+    if (d->exec() == QDialog::Accepted)
+    {
+        QString rcfile = item->rcfile;
+        QString filename = d->eCfgName->text();
+
+        progressBar1->show();
+        progressBar1->reset();
+
+        aBackup newBase;
+        // connect(&newBase, SIGNAL(progress(int,int)), progressBar1, SLOT(setProgress(int,int)));
+
+        if (newBase.importData(rcfile, filename, true) == false)
+        {
+            QMessageBox::information(this, tr("Backup"), newBase.lastError(), QMessageBox::Ok);
+            progressBar1->hide();
+            aLog::print(aLog::Info, tr("dSelectDB business schema import"));
+        }
+        else
+        {
+            aLog::print(aLog::Error, tr("dSelectDB restore: %1").arg(newBase.lastError()));
+            QMessageBox::critical(this, tr("Backup"), newBase.lastError(), QMessageBox::Ok);
+            progressBar1->hide();
+            delete item;
+            item = 0;
+            return;
+        }
+
+        changes = true;
+    }
+    else
+    {
+        delete item;
+        item = 0;
+        return;
+    }
 }
 
 
 void dSelectDB::exportItem()
 {
-//	progressBar1->setTotalSteps(10);
-	QString dir,rcfile,filename;
+    QString dir, rcfile, filename;
 #ifndef Q_OS_WIN32
-	dir = "/home";
+    dir = "/home";
 #endif
 
-	rcListViewItem *item =  ( rcListViewItem *) listDBRC->selectedItem();
-	if (item)
-	{
-		if ( !item->rcfile.isEmpty() && !item->group )
-		{
-			rcfile = item->rcfile;
-		}
-		else
-		{
-			QMessageBox::information(this,tr("Select item"),tr("Please, select item for export"),Qt::NoButton);
-			return;
-		}
+    rcListViewItem *item = static_cast<rcListViewItem *>(listDBRC->currentItem());
+    if (item)
+    {
+        if (!item->rcfile.isEmpty() && !item->group)
+        {
+            rcfile = item->rcfile;
+        }
+        else
+        {
+            QMessageBox::information(this, tr("Select item"),
+                                     tr("Please, select item for export"),
+                                     QMessageBox::Ok);
+            return;
+        }
 
-		Q3FileDialog *fdlg = new Q3FileDialog(this, "fileDialog",true); // create modal dialog
-		fdlg->setMode ( Q3FileDialog::AnyFile );
-		if(fdlg->exec()==QDialog::Accepted)
-		{
-			filename = fdlg->selectedFile();
-		}
-		else
-		{
-			return;
-		}
-		delete fdlg;
-		fdlg = 0;
+        filename = QFileDialog::getSaveFileName(
+            this,
+            tr("Export"),
+            dir,
+            tr("Any files (*)")
+        );
 
-		aBackup backupBase;
-		progressBar1->show();
-		progressBar1->reset();
-		connect (&backupBase, SIGNAL(progress(int,int)), progressBar1, SLOT( setProgress(int,int)));
-		if(backupBase.exportData(rcfile, filename, true )==0)
-		{
-			aLog::print(aLog::Info, tr("dSelectDB backup ok"));
-			QMessageBox::information(this,tr("Backup"),backupBase.lastError(),Qt::NoButton);
-			progressBar1->hide();
+        if (filename.isEmpty())
+            return;
 
-		}
-		else
-		{
-			aLog::print(aLog::Debug, tr("dSelectDB backup: %1").arg(backupBase.lastError()));
-			QMessageBox::critical(this,tr("Backup"),backupBase.lastError(),0, Qt::NoButton);
-			progressBar1->hide();
-			return;
-		}
-	}
-	else
-	{
-		QMessageBox::information(this,tr("Select item"),tr("Please, select item for export"),Qt::NoButton);
-		return;
-	}
+        aBackup backupBase;
+        progressBar1->show();
+        progressBar1->reset();
 
+        // Старый connect почти наверняка надо переписывать отдельно:
+        // connect(&backupBase, SIGNAL(progress(int,int)), progressBar1, SLOT(setProgress(int,int)));
+
+        if (backupBase.exportData(rcfile, filename, true) == 0)
+        {
+            aLog::print(aLog::Info, tr("dSelectDB backup ok"));
+            QMessageBox::information(this, tr("Backup"), backupBase.lastError(), QMessageBox::Ok);
+            progressBar1->hide();
+        }
+        else
+        {
+            aLog::print(aLog::Debug, tr("dSelectDB backup: %1").arg(backupBase.lastError()));
+            QMessageBox::critical(this, tr("Backup"), backupBase.lastError(), QMessageBox::Ok);
+            progressBar1->hide();
+            return;
+        }
+    }
+    else
+    {
+        QMessageBox::information(this, tr("Select item"),
+                                 tr("Please, select item for export"),
+                                 QMessageBox::Ok);
+        return;
+    }
 }
 
 
-void dSelectDB::onDblClick( Q3ListViewItem *item)
+void dSelectDB::onDblClick(QTreeWidgetItem *item, int col)
 {
-
-	if (! (( rcListViewItem *)item)->group )
-	{
-		onOK();
-
-	}
+    if (!static_cast<rcListViewItem*>(item)->group)
+    {
+        onOK();
+    }
 }
-

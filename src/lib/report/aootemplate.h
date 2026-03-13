@@ -29,10 +29,18 @@
 #ifndef AOOTEMPLATE_H
 #define AOOTEMPLATE_H
 
+
+#include <cstdlib>
+#include <QFile>
+#include <QSqlQuery>
+#include <QProcess>
+#include <QDomDocument>
+#include <QRegExp>
+#include <QDateTime>
+#include <QTextStream>
 #include <QString>
 #include <QList>
 #include <QStack>
-#include <QDomDocument>
 #include <QMap>
 
 

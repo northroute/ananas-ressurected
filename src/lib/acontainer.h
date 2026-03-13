@@ -31,11 +31,20 @@
 #ifndef ACONTAINER_H
 #define ACONTAINER_H
 
-#include "qdom.h"
-#include "qstringlist.h"
 #include "ananas.h"
 #include "acmanifest.h"
-#include <qobject.h>
+
+#include <QApplication>   // вместо <qapplication.h>
+#include <QFile>          // вместо <qfile.h>
+#include <QDir>           // вместо <qdir.h>
+#include <QProcess>       // вместо <q3process.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <QDomDocument>   // вместо "qdom.h"
+#include <QStringList>    // вместо "qstringlist.h"
+#include "ananas.h"
+#include <QObject>        // вместо <qobject.h>
 
 
 //class aDatabase;

@@ -21,7 +21,6 @@
 **********************************************************************/
 
 #include "amoney.h"
-#include	<math.h>
 
 
 /**
@@ -478,7 +477,7 @@ AMoney::decimalCurrencyName(QString string ){
 QString
 AMoney::firstUp( QString str) {
 
-	return str.left(1).upper() + str.right( str.length() - 1);
+	return str.left(1).toUpper() + str.right( str.length() - 1);
 }
 
 /**

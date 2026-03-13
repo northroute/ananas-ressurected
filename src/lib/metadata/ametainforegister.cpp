@@ -33,15 +33,13 @@
  * \class AMetaInfoRegister
  *
  */
-AMetaInfoRegister::AMetaInfoRegister( AMetaObject *parent )
-:AMetaObject("InfoRegister", "", parent )
+AMetaInfoRegister::AMetaInfoRegister( AMetaObject *parent ) : AMetaObject("InfoRegister", "", parent )
 {
     setId( lastId() );
-    setName( QString("%1_%2").arg( tr("InfoRegister") ).arg( id() ) );
+    setObjectName( QString("%1_%2").arg( tr("InfoRegister") ).arg( id() ) );
     addChild( &v_fields );
     addChild( &v_gfields );
     addChild( &v_forms );
-
 }
 
 

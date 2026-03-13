@@ -31,7 +31,10 @@
 #define ATESTS_H
 
 #include	"ananas.h"
-#include	<qmap.h>
+#include	<QMap>
+#include 	<QFile>
+#include	<QDateTime>
+#include 	<QDir>
 
 /*!
  *	\~english

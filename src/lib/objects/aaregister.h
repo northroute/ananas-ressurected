@@ -31,12 +31,12 @@
 #ifndef AAREGISTER_H
 #define AAREGISTER_H
 
-#include	"acfg.h"
-#include	"airegister.h"
-//Added by qt3to4:
+
+#include	<stdlib.h>
 #include <QSqlQuery>
 
-
+#include	"acfg.h"
+#include	"airegister.h"
 
 /*!
  *\en

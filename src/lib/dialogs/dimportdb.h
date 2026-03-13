@@ -10,6 +10,11 @@
 #ifndef DIMPORTDB_H
 #define DIMPORTDB_H
 
+#include <QLabel>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QFileDialog>
+
 #include "ananasglobal.h"
 #include "deditrc.h"
 

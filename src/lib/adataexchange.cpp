@@ -30,13 +30,6 @@
 #include "alog.h"
 #include "adataexchange.h"
 #include "aservice.h"
-#include <qapplication.h>
-#include <qfile.h>
-#include <qdir.h>
-#include <q3process.h>
-#include <QTextStream>
-#include <stdio.h>
-#include <stdlib.h>
 
 //#define ERROR true
 
@@ -97,9 +90,10 @@ aBackup::importData(const QString& rcfile, const QString &archfile, bool dropBas
 	}
 
 
-	QString srcDirName = QDir::convertSeparators(tmpDirName + "/templates/");
+	QString srcDirName = QDir::toNativeSeparators(tmpDirName + "/templates/");
 	dir.setPath(srcDirName);
-	templatesName = dir.entryList("templ_*.odt;templ_*.ods");
+
+	templatesName = dir.entryList(QStringList() << "templ_*.odt" << "templ_*.ods");
 
 
 	qApp->processEvents();
@@ -160,7 +154,7 @@ aBackup::importData(const QString& rcfile, const QString &archfile, bool dropBas
 	if(!destDir.exists(destDirName))
 	{
 		aLog::print(aLog::Debug, tr("aBackup template dir `%1' not exists, try create").arg(destDirName));
-		if(!destDir.mkdir(destDirName,true))
+		if(!destDir.mkpath(destDirName))
 		{
 			aLog::print(aLog::Error, tr("aBackup create template dir `%1' fail").arg(destDirName));
 		}
@@ -268,7 +262,7 @@ aBackup::exportData(const QString& rcfile, const QString &archfile, bool withTem
 		srcDirName = QDir::convertSeparators(cfg.rc.value("workdir"));
 		aLog::print(aLog::Debug, tr("aBackup workdir=%1").arg(srcDirName));
 		dir.setPath(srcDirName);
-		templatesName = dir.entryList("templ_*.odt;templ_*.ods");
+		templatesName = dir.entryList(QStringList() << "templ_*.odt" << "templ_*.ods");
 		for(uint i=0; i<templatesName.count(); i++)
 		{
 			//ayTests::print2log("f:\\ERROR.log", "aBackup", tmpDirName + "/templates/"+templatesName[i]);
@@ -358,36 +352,33 @@ bool
 aBackup::unzipArchive(const QString& archName, const QString& dir)
 {
 #ifndef _Windows
-	Q3Process process( QString("unzip") );
-//	process.setWorkingDirectory (dir);
-	process.addArgument( archName );
-	process.addArgument( "-d" );
-	process.addArgument( dir );
+	QProcess process;
+	process.start("unzip", QStringList()
+				<< archName
+				<< "-d"
+				<< dir);
+	process.waitForFinished();
 
 #else
-	Q3Process process( QString("7z") );
-//	process.setWorkingDirectory ( templateDir);
-//	printf("working dir = `%s'\n", QString(templateDir).ascii());
-	process.addArgument( "x" );
-	process.addArgument( "-y" );
-	process.addArgument( QString("-o%1").arg(dir) );
-	process.addArgument( archName );
+	QProcess process;
+	process.start("7z", QStringList()
+				<< "x"
+				<< "-y"
+				<< QString("-o%1").arg(dir)
+				<< archName);
+	process.waitForFinished();
 
 #endif
+	// if( !process.start() )
+	// {
+	// 	//qWarning("FormTemplate::unzip(): failed to start unzip");
+	// 	setLastError(tr("Can't start zip"));
+	// 	aLog::print(aLog::Error, tr("aBackup start unzip"));
 
-//	printf("unzip to %s file `%s'\n",copyName.ascii(),fname.ascii());
-	if( !process.start() )
-	{
-		//qWarning("FormTemplate::unzip(): failed to start unzip");
-		setLastError(tr("Can't start zip"));
-		aLog::print(aLog::Error, tr("aBackup start unzip"));
+	// 	return true;
+	// }
 
-		return true;
-	}
-
-	while( process.isRunning() );
-
-	if( !process.normalExit() )
+	if(process.exitStatus() != QProcess::NormalExit)
 	{
 	//	qWarning("FormTemplate::unzip(): error extracting document content");
 		setLastError(tr("Zip ended anormal"));
@@ -414,33 +405,38 @@ aBackup::zipArchive(const QString& archName, const QString& dir)
 
 
 #ifndef _Windows
+	QProcess processUpdate;
+	processUpdate.setWorkingDirectory(dir);
 
-	Q3Process processUpdate( QString("zip") );
-	processUpdate.setWorkingDirectory(dir);
-	processUpdate.addArgument( "-r" ); // recurce into subdirectories
-	processUpdate.addArgument( "-0" ); // store only
-	processUpdate.addArgument( archName ); // backup name
-	processUpdate.addArgument(".");
+	processUpdate.start("zip", QStringList()
+						<< "-r"
+						<< "-0"
+						<< archName
+						<< ".");
+
+	processUpdate.waitForFinished();
 #else
-	Q3Process processUpdate( QString("7z") );
+	QProcess processUpdate;
 	processUpdate.setWorkingDirectory(dir);
-	processUpdate.addArgument( "a" );
-	processUpdate.addArgument( "-tzip" );
-	processUpdate.addArgument( archName );
-	processUpdate.addArgument( "-r" );
-	processUpdate.addArgument(".");
+
+	processUpdate.start("7z", QStringList()
+						<< "a"
+						<< "-tzip"
+						<< archName
+						<< "-r"
+						<< ".");
+
+	processUpdate.waitForFinished();
 #endif
 
-	if( !processUpdate.start() )
-	{
-		setLastError(tr("Unable to start zip"));
-		aLog::print(aLog::Error, tr("aBackup zip start error"));
-		return true;
-	}
+	// if( !processUpdate.start() )
+	// {
+	// 	setLastError(tr("Unable to start zip"));
+	// 	aLog::print(aLog::Error, tr("aBackup zip start error"));
+	// 	return true;
+	// }
 
-	while( processUpdate.isRunning() );
-
-	if( !processUpdate.normalExit() )
+	if(processUpdate.exitStatus() != QProcess::NormalExit)
 	{
 		setLastError(tr("Zip ended with error"));
 		aLog::print(aLog::Error, tr("aBackup zip dead"));
@@ -511,7 +507,7 @@ bool
 aBackup::writeXml(const QString & name2Save, QDomDocument xml)
 {
 	QFile file(name2Save);
-	QByteArray buf( xml.toString(4).utf8() );
+	QByteArray buf( xml.toString(4).toUtf8() );
 	if ( file.open( QIODevice::WriteOnly ) )
 	{
 		QTextStream ts( &file );
@@ -599,33 +595,38 @@ aBackup::lastError() const
 	return txtError;
 }
 
-void
-aBackup::cleanupTmpFiles(const QString& tmpDirName, QStringList *files)
+void aBackup::cleanupTmpFiles(const QString& tmpDirName, QStringList *files)
 {
-	QFile file;
-	QDir dir;
-	file.setName(QDir::convertSeparators(tmpDirName+"/content.xml"));
-	aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.name()));
-	file.remove();
-	file.setName(QDir::convertSeparators(tmpDirName+"/busines-schema.cfg"));
-	aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.name()));
-	file.remove();
-	file.setName(QDir::convertSeparators(tmpDirName+"/META-INF/manifest.xml"));
-	aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.name()));
-	file.remove();
-	for(uint i=0; i<files->count(); i++)
-	{
-			file.setName(QDir::convertSeparators(tmpDirName + "/templates/"+ (*files)[i]));
-			aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.name()));
-			file.remove();
-	}
-	aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName + "/META-INF"));
-	dir.rmdir(QDir::convertSeparators(tmpDirName + "/META-INF"));
-	aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName + "/templates"));
-	dir.rmdir(QDir::convertSeparators(tmpDirName + "/templates"));
-	aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName));
-	dir.rmdir(QDir::convertSeparators(tmpDirName));
-	aLog::print(aLog::Info, tr("aBackup cleanup temporary files"));
+    QFile file;
+    QDir dir;
 
+    file.setFileName(QDir::toNativeSeparators(tmpDirName + "/content.xml"));
+    aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.fileName()));
+    file.remove();
+
+    file.setFileName(QDir::toNativeSeparators(tmpDirName + "/busines-schema.cfg"));
+    aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.fileName()));
+    file.remove();
+
+    file.setFileName(QDir::toNativeSeparators(tmpDirName + "/META-INF/manifest.xml"));
+    aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.fileName()));
+    file.remove();
+
+    for (uint i = 0; i < files->count(); i++)
+    {
+        file.setFileName(QDir::toNativeSeparators(tmpDirName + "/templates/" + (*files)[i]));
+        aLog::print(aLog::Debug, tr("aBackup delete file %1").arg(file.fileName()));
+        file.remove();
+    }
+
+    aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName + "/META-INF"));
+    dir.rmdir(QDir::toNativeSeparators(tmpDirName + "/META-INF"));
+
+    aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName + "/templates"));
+    dir.rmdir(QDir::toNativeSeparators(tmpDirName + "/templates"));
+
+    aLog::print(aLog::Debug, tr("aBackup delete directory %1").arg(tmpDirName));
+    dir.rmdir(QDir::toNativeSeparators(tmpDirName));
+
+    aLog::print(aLog::Info, tr("aBackup cleanup temporary files"));
 }
-

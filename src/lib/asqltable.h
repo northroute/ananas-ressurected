@@ -30,6 +30,8 @@
 #ifndef ASQLTABLE_H
 #define ASQLTABLE_H
 
+#include <QDateTime>   // вместо <qdatetime.h>
+#include <QSqlError>
 #include <QSqlQuery>    // вместо Q3SqlCursor
 #include <QMap>         // вместо Q3Dict
 #include "acfg.h"       // твой проектный include
@@ -107,7 +109,10 @@ public:
 	virtual bool prev ();
 	virtual bool first ();
 	virtual bool last ();
-
+	QSqlError lastError() const;
+	int position(const QString &name) const;
+	QString filter() const;
+	QString currentFilter;
 
 protected:
 	QVariant calcFieldValue( const QString &name );

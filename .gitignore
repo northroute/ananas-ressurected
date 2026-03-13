@@ -1,3 +1,4 @@
 .moc
 .obj
 *.so
+.ui

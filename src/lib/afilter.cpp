@@ -29,9 +29,6 @@
 **********************************************************************/
 
 #include "afilter.h"
-#include <stdio.h>
-//Added by qt3to4:
-#include <Q3ValueList>
 
 /*!
  *	\~english
@@ -62,10 +59,9 @@ aFilter::~aFilter()
  *	Выводит содержимое фильтра на stdout.
  *	\~
  */
-void
-aFilter::Dump() const
+void aFilter::Dump() const
 {
-	printf("%s\n", toString().ascii());
+    printf("%s\n", toString().toLocal8Bit().constData());
 }
 
 /*!
@@ -75,28 +71,27 @@ aFilter::Dump() const
  *	Переводит фильтр в его sql представление. Параметр \a removeFirst отвечает за удаление ведущего оператора AND или OR
  *	\~
  */
-QString
-aFilter::toString(bool removeFirst) const
+QString aFilter::toString(bool removeFirst) const
 {
-	QString str = QString::null;
-	Q3ValueList<filterCondition>::const_iterator it;
-	for ( it = conditions.begin(); it != conditions.end(); ++it )
-	{
-		filterCondition flt = (*it);
-		if(it != conditions.begin() && removeFirst)
-		{
-			str+= flt.AndOr + " ";
-		}
-		str+= flt.fname + " ";
-		str+= flt.operation + " ";
-		str+= flt.value + " ";
-	}
-	return str;
+    QString str = QString();
+    QList<filterCondition>::const_iterator it;
+    for (it = conditions.begin(); it != conditions.end(); ++it)
+    {
+        filterCondition flt = (*it);
+        if (it != conditions.begin() && removeFirst)
+        {
+            str += flt.AndOr + " ";
+        }
+        str += flt.fname + " ";
+        str += flt.operation + " ";
+        str += flt.value + " ";
+    }
+    return str;
 }
 
 
 void
-aFilter::Add(const QString& fname, const Q_INT64 value, OperationEnum op, bool AndOp, bool replace)
+aFilter::Add(const QString& fname, const qint64 value, OperationEnum op, bool AndOp, bool replace)
 {
 	AddHelper(fname, QString::number(value), op, AndOp, replace);
 }
@@ -193,17 +188,19 @@ aFilter::AddHelper(const QString& fname, const QString& value, OperationEnum op,
 	}
 	if(replace) // replace all entries, append to end list of conditions, if nothing found
 	{
-		Q3ValueList<filterCondition>::iterator it;
+		QList<filterCondition>::iterator it;
 		bool isFound = false;
-		for ( it = conditions.begin(); it != conditions.end(); ++it )
+
+		for (it = conditions.begin(); it != conditions.end(); ++it)
 		{
-			if((*it).fname == fname)
+			if ((*it).fname == fname)
 			{
 				(*it) = flt;
 				isFound = true;
 			}
 		}
-		if(!isFound) conditions.append(flt);
+
+		if (!isFound) conditions.append(flt);
 	}
 	else
 	{

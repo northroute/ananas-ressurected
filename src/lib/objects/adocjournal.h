@@ -31,7 +31,10 @@
 #ifndef ADOCJOURNAL_H
 #define ADOCJOURNAL_H
 
-#include	<qdatetime.h>
+
+#include	<QDateTime>
+#include <QSqlQuery>
+
 #include	"acfg.h"
 #include	"aobject.h"
 #include	"adocument.h"

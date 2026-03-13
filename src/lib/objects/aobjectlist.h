@@ -30,7 +30,11 @@
 #ifndef AOBJECTLIST_H
 #define AOBJECTLIST_H
 
-#include <qdatetime.h>
+
+#include <QObject>
+#include <QDialog>
+#include <QDateTime>
+
 #include "acfg.h"
 #include "asqltable.h"
 
@@ -104,7 +108,7 @@ protected:
 private:
 	aDataTable *table;
 	bool vInited, selectFlag, filtred;
-	Q3Dict <aDataTable> dbtables;
+	QList<aDataTable*> dbtables;
 //	QDict <aDataRecord> attributes;
 };
 

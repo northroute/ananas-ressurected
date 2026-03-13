@@ -30,7 +30,10 @@
 #ifndef AOBJECT_H
 #define AOBJECT_H
 
-#include <qdatetime.h>
+#include <QDateTime>
+#include <QDialog>
+#include <QObject>
+
 #include "acfg.h"
 #include "asqltable.h"
 

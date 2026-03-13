@@ -33,6 +33,13 @@
 #include "QStringList"
 #include "aextension.h"
 
+#include <QApplication>   // вместо <qapplication.h>
+#include <QObject>        // вместо <qobject.h>
+#include <QHash>
+#include <QStringList>
+#include <QDir>
+#include <QPluginLoader>
+
 /*!
  * \en
  *   \brief The AExtensionFactory class creates AExtension objects.

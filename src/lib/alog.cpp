@@ -28,9 +28,6 @@
 **********************************************************************/
 
 #include	"alog.h"
-#include 	<qfile.h>
-#include	<qdir.h>
-#include	<qdatetime.h>
 #include 	"aservice.h"
 
 
@@ -102,7 +99,8 @@ aLog::printr(	const QString &toWrite)
 {
 	if(aLog::f.handle () !=-1)
 	{
-		aLog::f.writeBlock((const char*)toWrite.local8Bit(),strlen((const char*)toWrite.local8Bit()));
+		QByteArray ba = toWrite.toLocal8Bit();
+		aLog::f.write(ba.constData(), ba.size());
 		aLog::f.flush();
 	}
 	else
@@ -133,7 +131,7 @@ aLog::init(const QString &log_name, int show_up)
 	if(log_name =="" || logName==QString::null)
 	{
 		log = aService::readConfigVariable("log", &ok);	
-		if(!ok) log = QDir::homeDirPath()+"/.ananas/ananas.log";
+		if(!ok) log = QDir::homePath() + "/.ananas/ananas.log";
 	}
 	else
 	{
@@ -149,10 +147,9 @@ aLog::init(const QString &log_name, int show_up)
 	
 	aLog::logName = log;
 
-	if (aLog::f.isOpen()) f.close();	
-	aLog::f.setName(getLogName());
-	aLog::f.open( IO_WriteOnly | IO_Append );
-
+	if (aLog::f.isOpen()) f.close();
+	aLog::f.setFileName(getLogName());
+	aLog::f.open(QIODevice::WriteOnly | QIODevice::Append);
 }
 
 QString

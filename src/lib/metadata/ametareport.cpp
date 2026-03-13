@@ -37,7 +37,7 @@ AMetaReport::AMetaReport( AMetaObject *parent )
 :AMetaObject("Report", "", parent )
 {
     setId( lastId() );
-    setName( QString("%1_%2").arg( tr("Report") ).arg( id() ) );
+    setObjectName( QString("%1_%2").arg( tr("Report") ).arg( id() ) );
     addChild( &v_fields );
     addChild( &v_tables );
     addChild( &v_forms );

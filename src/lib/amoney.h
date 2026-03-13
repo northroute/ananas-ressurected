@@ -21,8 +21,10 @@
 **********************************************************************/
 #ifndef AMONEY_H_
 #define AMONEY_H_
+
 #include	"ananas.h"
-#include	"qstring.h"
+#include	<QString>
+#include	<math.h>
 
 class Degree;
 class Currency;

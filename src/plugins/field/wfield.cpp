@@ -28,22 +28,6 @@
 **
 **********************************************************************/
 
-#include <qlineedit.h>
-#include <qlayout.h>
-#include <qcombobox.h>
-#include <qmessagebox.h>
-#include <qdom.h>
-#include <qvalidator.h>
-#include <qlabel.h>
-#include <q3listbox.h>
-#include <qsizepolicy.h>
-#include <q3groupbox.h>
-#include <qpushbutton.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
-#include <Q3Frame>
-#include <QKeyEvent>
-
 //--#include "command.h"
 //--#include "mainwindow.h"
 //--#include "formwindow.h"

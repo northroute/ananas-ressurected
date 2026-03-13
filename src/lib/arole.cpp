@@ -199,8 +199,8 @@ aRole::addPermission( aPermission p )
 	idg = rec->value("id").toULongLong();
 	rec->setValue("id",idg );
 	rec->setValue("permission",p);
-	tg->insert(); // insert record
-	tg->update();
+	tg->New(); // insert record
+	tg->Update();
 return  err_noerror;
 }
 
@@ -352,7 +352,7 @@ aRole::New(const QString &rname)
 	ide = rec->value("id").toULongLong();
 	rec->setValue("id",ide); // set defult values for all user fields = id
 	rec->setValue( "name", rname );
-	te->insert(); // insert edit buffer as new line in table
+	te->New(); // insert edit buffer as new line in table
 	te->select(QString("id=%1").arg(ide),false); // set cursor to inserted record
 	te->first();
 	setSelected(true);
@@ -381,8 +381,7 @@ aRole::Delete()
 	if ( ide )
 	{
 		printf("ide=" LLU_SPEC "\n",ide);
-		t->primeDelete();
-		t->del();
+		t->Delete();
 		setSelected( false );
 	}
 	else return err_notselected;

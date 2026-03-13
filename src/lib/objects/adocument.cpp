@@ -36,8 +36,6 @@
 #include	"adocjournal.h"
 #include	"airegister.h"
 #include	"aaregister.h"
-//Added by qt3to4:
-#include <QSqlQuery>
 
 
 
@@ -375,7 +373,7 @@ aDocument::TableNewLine( const QString & tablename )
 	if ( !t ) return err_notable;
 	qulonglong tUid = t->primeInsert()->value("id").toULongLong(), dUid = getUid();
 	if ( !dUid ) return err_abstractobj;
-	if ( t->insert() )
+	if ( t->New() )
 	{
 		t->select( QString("id=%1").arg(tUid), false );
 		if (!t->first())
@@ -492,8 +490,7 @@ aDocument::TableDelete( const QString & tablename )
 	//reg->deleteTable(tUid);
 	//delete reg;
 	db->markDeleted( tUid );
-	t->primeDelete();
-	t->del();
+	t->Delete();
 	t->selected = false;
 	aLog::print(aLog::Info, tr("aDocument delete table"));
 	return err_noerror;

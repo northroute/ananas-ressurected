@@ -28,13 +28,6 @@
 **
 **********************************************************************/
 
-#include <qdatetime.h>
-#include <qobject.h>
-#include <qfile.h>
-#include <qstringlist.h>
-#include <QTextStream>
-#include <QDomDocument>
-
 #include "ametadataioxml.h"
 
 
@@ -326,7 +319,7 @@ AMetaDataIOXML::XMLToAMetaObject( QDomElement e, AMetaObject *o )
             if ( se.hasAttribute( "type" ) ) {
               t = se.attribute("type");
               v.clear();
-              v = AMetaObject::strToVar( se.text(), QVariant::nameToType( t ) );
+              v = AMetaObject::strToVar(se.text(), static_cast<QVariant::Type>(QMetaType::type(t.toLatin1())));
 //              if ( v.convert( QVariant::nameToType( t ) ) ) o->setAttr( se.tagName(), v );
               if ( v.isValid() ) o->setAttr( se.tagName(), v );
             }

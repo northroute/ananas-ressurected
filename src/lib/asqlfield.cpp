@@ -27,7 +27,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
 #include "acfg.h"
 #include "asqlfield.h"
 
@@ -109,17 +108,16 @@ Return pointer to asociated sql field.
 //}
 
 
-aSQLField::aSQLField( aCfg *newmd, aCfgItem newcontext )
-: QObject( 0, "aSQLField" )
+aSQLField::aSQLField(aCfg *newmd, aCfgItem newcontext) : QObject(0)
 {
-
+    setObjectName("aSQLField");
 }
 
 
-aSQLField::aSQLField( const QString &name, const QString &type, const QString &tname )
-: QObject( 0, "aSQLField" )
+aSQLField::aSQLField(const QString &name, const QString &type, const QString &tname) : QObject(0)
 {
-	tName = tname;
+    setObjectName("aSQLField");
+    tName = tname;
 }
 
 

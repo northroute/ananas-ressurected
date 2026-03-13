@@ -34,18 +34,17 @@
  * \class AMetaField
  *
  */
-AMetaField::AMetaField( AMetaObject *parent )
-:AMetaObject("MetaField","", parent )
+AMetaField::AMetaField(AMetaObject *parent) : AMetaObject("MetaField","", parent)
 {
-    setId( lastId() );
-    setName( QString("%1_%2").arg( tr("Field") ).arg( id() ) );
-    setFieldType( Unknown );
-    setFieldSubType( 0 );
-    setWidth( 0 );
-    setDecimals( 0 );
-    setNotNull( false );
-    setNotNegative( false );
-    setCalcSumm( false );
+    setId(lastId());
+    setObjectName(QString("%1_%2").arg(tr("Field")).arg(id()));
+    setFieldType(Unknown);
+    setFieldSubType(0);
+    setWidth(0);
+    setDecimals(0);
+    setNotNull(false);
+    setNotNegative(false);
+    setCalcSumm(false);
 }
 
 

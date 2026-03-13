@@ -33,8 +33,6 @@
 #include	"adatabase.h"
 #include	"acatalogue.h"
 #include 	"alog.h"
-//Added by qt3to4:
-#include <Q3ValueList>
 
 
 /*!\en
@@ -101,8 +99,7 @@ aCatalogue::setGroup( qulonglong idg )
 	if ( !t ) return err_notable;
 	if ( !selected() ) return err_notselected;
 	t->setSysValue( "idg", idg );
-	t->primeUpdate();
-	t->update();
+	t->Update();
 	return err_noerror;
 }
 
@@ -129,8 +126,7 @@ aCatalogue::setOwner( qulonglong ido )
 	if ( !t ) return err_notable;
 	if ( !selected() ) return err_notselected;;
 	t->setSysValue( "ido", ido );
-	t->primeUpdate();
-	t->update();
+	t->Update();
 	return err_noerror;
 }
 
@@ -150,8 +146,7 @@ aCatalogue::New( bool child )
 	aSQLTable * t = table();
 	t->setSysValue( "idg", group );
 	if ( child ) t->setSysValue( "ido", parent );
-	t->primeUpdate();
-	t->update();
+	t->Update();
 	if ( group ) groupSelect();
 	setSelected(true);
 	return err_noerror;
@@ -415,7 +410,7 @@ aCatalogue::GroupNew( bool reparent )
 //	setSelected(true, md_group);
 	qulonglong idp = getGroup(), level = tg->sysValue("level").toULongLong(),
 			idg = tg->primeInsert()->value("id").toULongLong();
-	if ( tg->insert() )
+	if ( tg->New() )
 	{
 		if ( idp ) level++;
 		tg->select( idg );
@@ -460,7 +455,7 @@ aCatalogue::newGroup(qulonglong parentId )
 	rec->setValue("idp",parentId);
 	rec->setValue("level",level);
 	rec->setValue("df","0");
-	tg->insert(); // insert record
+	tg->New(); // insert record
 	tg->select(QString("id=%1").arg(idg),false); // set cursor to inserted record
 	tg->first();
 	setSelected(true,md_group);
@@ -496,7 +491,7 @@ aCatalogue::newElement(qulonglong parentId )
 	rec->setValue("idg",parentId);
 	rec->setValue("df","0");
 	rec->setNull("ido");
-	te->insert(); // insert edit buffer as new line in table
+	te->New(); // insert edit buffer as new line in table
 	te->select(QString("id=%1").arg(ide),false); // set cursor to inserted record
 	te->first();
 	setSelected(true);
@@ -550,8 +545,7 @@ aCatalogue::delElement()
 	if ( ide )
 	{
 		aLog::print(aLog::Info,tr("aCatalogue delete element with id=%1").arg(ide));
-		t->primeDelete();
-		t->del();
+		t->Delete();
 		setSelected( false );
 	}
 	return ide;
@@ -575,49 +569,48 @@ aCatalogue::delElement()
  * \param listDelId (in,out) - список идентификационных номеров выделенных для удаления элементов и групп.
   *\_ru
  */
-void
-aCatalogue::getMarkDeletedList(qulonglong idg,
-				Q3ValueList<qulonglong> &listDelId)
+void aCatalogue::getMarkDeletedList(qulonglong idg, QList<qulonglong> &listDelId)
 {
-	Q3ValueList<qulonglong> lst;
-	aSQLTable * tg = table ( md_group );
-	if ( !tg ) return;
-	qulonglong tmp;
-	if ( idg )
-	{
+    QList<qulonglong> lst;
+    aSQLTable *tg = table(md_group);
+    if (!tg) return;
 
-	//	delete elements in group;
-			if(selectByGroup(idg)==err_noerror)
-			{
-				do
-				{
-					listDelId << sysValue("id").toULongLong();
-				}
-				while(Next());
-			}
-			if (groupByParent(idg)==err_noerror)
-			{
-				do
-				{
-				lst << GroupSysValue("id").toULongLong();
-				}while(NextInGroupTable());
+    if (idg)
+    {
+        // delete elements in group
+        if (selectByGroup(idg) == err_noerror)
+        {
+            do
+            {
+                listDelId << sysValue("id").toULongLong();
+            }
+            while (Next());
+        }
 
-				Q3ValueList<qulonglong>::iterator it = lst.begin();
-				while(it!= lst.end())
-				{
-					getMarkDeletedList((*it),listDelId);
-					++it;
-				}
-			}
+        if (groupByParent(idg) == err_noerror)
+        {
+            do
+            {
+                lst << GroupSysValue("id").toULongLong();
+            }
+            while (NextInGroupTable());
 
-	}
-	tg->select(QString("id=%1").arg(idg),false);
-	if(tg->first())
-	{
-		listDelId << idg;
-	}
-	return;
+            QList<qulonglong>::iterator it = lst.begin();
+            while (it != lst.end())
+            {
+                getMarkDeletedList(*it, listDelId);
+                ++it;
+            }
+        }
+    }
+
+    tg->select(QString("id=%1").arg(idg), false);
+    if (tg->first())
+    {
+        listDelId << idg;
+    }
 }
+
 bool
 aCatalogue::isGroupMarkDeleted()
 {
@@ -641,8 +634,7 @@ aCatalogue::isElementMarkDeleted()
  * \param listDelId (in,out) - список идентификационных номеров выделенных для удаления элементов и групп.
  *\_ru
  */
-qulonglong
-aCatalogue::delGroup(qulonglong idg, Q3ValueList<qulonglong> &listDelId)
+qulonglong aCatalogue::delGroup(qulonglong idg, QList<qulonglong> &listDelId)
 {
 	aSQLTable * tg = table ( md_group );
 	if ( !tg ) return 0;
@@ -668,8 +660,7 @@ aCatalogue::delGroup(qulonglong idg, Q3ValueList<qulonglong> &listDelId)
 	tg->select(QString("id=%1").arg(idg),false);
 	if(tg->first())
 	{
-		tg->primeDelete();
-		tg->del();
+		tg->Delete();
 		listDelId << idg;
 		setSelected( false, md_group );
 	}
@@ -701,8 +692,7 @@ aCatalogue::GroupDelete()
 			cat.GroupDelete();
 		}
 	}
-	tg->primeDelete();
-	tg->del();
+	tg->Delete();
 	aLog::print(aLog::Info,tr("aCatalogue delete group with id=%1").arg(idg));
 	if(tg->first())
 	{
@@ -742,8 +732,7 @@ aCatalogue::GroupSetGroup( aCatalogue * cat )
 	else newidp = cat->getGroup();
 	if ( newidp == oldidp ) return err_noerror;
 	t->setSysValue( "idp", newidp );
-	t->primeUpdate();
-	t->update();
+	t->Update();
 	return err_noerror;
 }
 

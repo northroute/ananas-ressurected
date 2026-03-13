@@ -27,12 +27,9 @@
 **
 **********************************************************************/
 
-#include	"qsettings.h"
 #include	"aservice.h"
 #include 	"alog.h"
 #include	"amoney.h"
-#include 	<qdir.h>
-#include	<math.h>
 
 
 /*!
@@ -174,8 +171,8 @@ aService::parts2money(qulonglong rubli,
 	{
 		res+=part2string(0,kopeyki/10,kopeyki%10,-1,false,"копеек","копейка","копейки");
 	}
-	res = res.stripWhiteSpace();
-	res = res.replace(0,1,res.at(0).upper());
+	res = res.trimmed();
+	res = res.replace(0,1,res.at(0).toUpper());
 	return res;
 }
 
@@ -392,10 +389,10 @@ aService::saveSize2Config(QRect windowSize, const QString &mdname)
 	//--settings.insertSearchPath( QSettings::Unix, QString(QDir::homeDirPath())+QString("/.ananas"));
 	//--settings.insertSearchPath( QSettings::Windows, "/ananasgroup/ananas" );
 	settings.beginGroup(QString("/config/%1").arg(mdname));
-	settings.writeEntry("/left", windowSize.left());
-	settings.writeEntry("/top", windowSize.top());
-	settings.writeEntry("/right", windowSize.right());
-	settings.writeEntry("/bottom", windowSize.bottom());
+	settings.setValue("/left", windowSize.left());
+	settings.setValue("/top", windowSize.top());
+	settings.setValue("/right", windowSize.right());
+	settings.setValue("/bottom", windowSize.bottom());
 }
 
 
@@ -422,10 +419,10 @@ aService::loadSizeFromConfig(const QString &mdname)
 	//--settings.insertSearchPath( QSettings::Unix, QString(QDir::homeDirPath())+QString("/.ananas"));
 	//--settings.insertSearchPath( QSettings::Windows, "/ananasgroup/ananas" );
 	settings.beginGroup(QString("/config/%1").arg(mdname));
-	int l = settings.readNumEntry("/left", 0);
-	int t = settings.readNumEntry("/top", 0);
-	int r = settings.readNumEntry("/right", 400);
-	int b = settings.readNumEntry("/bottom", 300);
+	int l = settings.value("/left", 0).toInt();
+	int t = settings.value("/top", 0).toInt();
+	int r = settings.value("/right", 400).toInt();
+	int b = settings.value("/bottom", 300).toInt();
 	return QRect(l,t,r,b);
 }
 
@@ -451,7 +448,9 @@ aService::readConfigVariable(const QString &name, bool *ok)
 	//--settings.insertSearchPath( QSettings::Unix, QString(QDir::homeDirPath())+QString("/.ananas"));
 	//--settings.insertSearchPath( QSettings::Windows, "/ananasgroup/ananas" );
 	settings.beginGroup(QString("/config/variables"));
-	return settings.readEntry(QString("/%1").arg(name), "", ok);
+	QString v = settings.value(QString("/%1").arg(name), "").toString();
+	if (ok) *ok = true;
+	return v;
 }
 
 
@@ -474,7 +473,7 @@ aService::writeConfigVariable(const QString &name, const QString &value)
 	//--settings.insertSearchPath( QSettings::Unix, QString(QDir::homeDirPath())+QString("/.ananas"));
 	//--settings.insertSearchPath( QSettings::Windows, "/ananasgroup/ananas" );
 	settings.beginGroup(QString("/config/variables"));
-	settings.writeEntry(QString("/%1").arg(name), value);
+	settings.setValue(QString("/%1").arg(name), value);
 }
 
 /*!
@@ -522,7 +521,7 @@ aService::copyFile(const QString& srcFileName, const QString& destFileName, bool
 	}
 
 	const int BUFFER_SIZE = 1024;
-	Q_INT8 buffer[BUFFER_SIZE];
+	qint8 buffer[BUFFER_SIZE];
 	QDataStream srcStream(&srcFile);
 	QDataStream destStream(&destFile);
 

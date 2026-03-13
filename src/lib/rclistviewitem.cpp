@@ -27,43 +27,51 @@
 **
 **********************************************************************/
 #include "rclistviewitem.h"
-#include "qpixmap.h"
 
-rcListViewItem::rcListViewItem( Q3ListView *parent,
-			const QString &name,
-			const QString &rc,
-			bool fgroup): Q3ListViewItem( parent, name )
-	{
-		init( rc, fgroup );
-	};
+rcListViewItem::rcListViewItem(QTreeWidget *parent,
+                               const QString &name,
+                               const QString &rc,
+                               bool fgroup)
+    : QTreeWidgetItem(parent)
+{
+    setText(0, name);
+    init(rc, fgroup);
+}
 
-rcListViewItem::rcListViewItem( Q3ListView *parent,
-			rcListViewItem* after,
-			const QString &name,
-			const QString &rc,
-			bool fgroup ): Q3ListViewItem( parent, after, name )
-	{
-		init( rc, fgroup );
-	};
+rcListViewItem::rcListViewItem(QTreeWidget *parent,
+                               rcListViewItem* after,
+                               const QString &name,
+                               const QString &rc,
+                               bool fgroup)
+    : QTreeWidgetItem(parent)
+{
+    Q_UNUSED(after);
+    setText(0, name);
+    init(rc, fgroup);
+}
 
-rcListViewItem::rcListViewItem( rcListViewItem *parent,
-			const QString &name,
-			const QString &rc,
-			bool fgroup): Q3ListViewItem( parent, name )
-	{
-		init( rc, fgroup );
-	};
+rcListViewItem::rcListViewItem(rcListViewItem *parent,
+                               const QString &name,
+                               const QString &rc,
+                               bool fgroup)
+    : QTreeWidgetItem(parent)
+{
+    setText(0, name);
+    init(rc, fgroup);
+}
 
 rcListViewItem::~rcListViewItem()
 	{
 //		rcfile = "";
 	};
 
-void
-rcListViewItem::init( const QString &rc, bool fgroup)
-	{
-		group = fgroup;
-		rcfile = rc;
-		if ( group ) setPixmap(0, QPixmap(":/images/lib_dbgroup.png") );
-		else setPixmap(0, QPixmap(":/images/lib_database.png") );
-	};
+void rcListViewItem::init(const QString &rc, bool fgroup)
+{
+    group = fgroup;
+    rcfile = rc;
+
+    if (group)
+        setIcon(0, QIcon(":/images/lib_dbgroup.png"));
+    else
+        setIcon(0, QIcon(":/images/lib_database.png"));
+}

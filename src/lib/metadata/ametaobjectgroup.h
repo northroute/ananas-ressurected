@@ -41,7 +41,11 @@
 #include <QVariant>
 
 
-
+#include <QDateTime>
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
+#include <QDomDocument>
 
 
 class AMetaTables: public AMetaGroup

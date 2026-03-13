@@ -33,15 +33,13 @@
  * \class AMetaCatalogue
  *
  */
-AMetaCatalogue::AMetaCatalogue( AMetaObject *parent )
-:AMetaObject("Catalogue", "", parent )
+AMetaCatalogue::AMetaCatalogue(AMetaObject *parent) : AMetaObject("Catalogue", "", parent)
 {
-    setId( lastId() );
-    setName( QString("%1_%2").arg( tr("Catalogue") ).arg( id() ) );
-    addChild( &v_fields );
-    addChild( &v_gfields );
-    addChild( &v_forms );
-
+    setId(lastId());
+    setObjectName(QString("%1_%2").arg(tr("Document")).arg(id()));
+    addChild(&v_fields);
+    addChild(&v_gfields);
+    addChild(&v_forms);
 }
 
 

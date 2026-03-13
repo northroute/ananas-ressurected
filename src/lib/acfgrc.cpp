@@ -27,15 +27,6 @@
 **
 **********************************************************************/
 
-#include <stdlib.h>
-#include <qfile.h>
-#include <qstringlist.h>
-#include <q3textstream.h>
-//#include <QTextStream>
-#include <qpixmap.h>
-#include <q3dragobject.h>
-#include <Q3MimeSourceFactory>
-
 #include "acfg.h"
 #include "acfgrc.h"
 #include "messageswindow.h"
@@ -90,7 +81,6 @@ Ananas resource file object.
 */
 aCfgRc::aCfgRc()
 {
-	values.setAutoDelete( TRUE );
 	filename = QString::null;
 }
 
@@ -105,30 +95,30 @@ aCfgRc::aCfgRc()
  *	1 - если не удалось открыть файл ресурсов для чтения.
  * \_ru
  */
-int
-aCfgRc::read(const QString &fname)
+int aCfgRc::read(const QString &fname)
 {
-	QStringList l;
-	QFile file( fname );
+    QStringList l;
+    QFile file(fname);
 
-	filename = fname;
-	values.clear();
-	if ( file.open( QIODevice::ReadOnly ) )
-	{
-		Q3TextStream stream( &file );
-		QString line, k, v;
+    filename = fname;
+    values.clear();
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QTextStream stream(&file);
+        QString line, k, v;
 
-		stream.setEncoding(Q3TextStream::UnicodeUTF8);
-		while ( !stream.eof() ) {
-			line = stream.readLine(); // line of text excluding '\n'
-			k = line.section("=",0,0);
-			v = line.section("=",1,100); if ( v.isNull() ) v = "";
-			values.insert( k, new QString( v ) );
-		}
-		file.close();
-		return 0;
-	}
-	return 1;
+        stream.setCodec("UTF-8");
+        while (!stream.atEnd()) {
+            line = stream.readLine();
+            k = line.section("=", 0, 0);
+            v = line.section("=", 1, 100);
+            if (v.isNull()) v = "";
+            values.insert(k, v);
+        }
+        file.close();
+        return 0;
+    }
+    return 1;
 }
 
 
@@ -143,28 +133,24 @@ aCfgRc::read(const QString &fname)
  *	1, если не удалось открыть файл ресурсов на запись.
  * \_ru
  */
-int
-aCfgRc::write(const QString &fname)
+int aCfgRc::write(const QString &fname)
 {
-	QFile file( fname );
-//	int i;
+    QFile file(fname);
 
-	if ( file.open( QIODevice::WriteOnly ) )
-	{
-		Q3TextStream stream( &file );
-		Q3DictIterator<QString> it( values );
-//		int i, vc;
+    if (file.open(QIODevice::WriteOnly))
+    {
+        QTextStream stream(&file);
+        QMap<QString, QString>::iterator it;
 
-		stream.setEncoding(Q3TextStream::UnicodeUTF8);
-		for( ; it.current(); ++it )
-		stream << it.currentKey() << "=" << *it.current() << endl;
-//			cout << endl;
-//		vc = values.count();
-//		for ( i = 0; i< vc; i++) stream << *it << "\n";
-		file.close();
-		return 0;
-	}
-	return 1;
+        stream.setCodec("UTF-8");
+
+        for (it = values.begin(); it != values.end(); ++it)
+            stream << it.key() << "=" << it.value() << "\n";
+
+        file.close();
+        return 0;
+    }
+    return 1;
 }
 
 
@@ -200,12 +186,9 @@ aCfgRc::write()
  *	найден.
  * \_ru
  */
-QString
-aCfgRc::value(const QString &name, const QString &defValue)
+QString aCfgRc::value(const QString &name, const QString &defValue)
 {
-	QString *s;
-	s = values.find( name );
-	if ( s ) return *s; else return defValue;
+    return values.value(name, defValue);
 }
 
 
@@ -231,11 +214,9 @@ aCfgRc::value(const QString &name, const QString &defValue)
  *	\endcode 
  * \_ru
  */
-void
-aCfgRc::setValue(const QString &name, const QString &value)
+void aCfgRc::setValue(const QString &name, const QString &value)
 {
-	if (values.find( name )) values.replace( name, new QString( value ));
-	else values.insert( name, new QString( value ));
+    values.insert(name, value);
 }
 
 

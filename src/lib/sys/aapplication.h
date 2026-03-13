@@ -33,6 +33,7 @@
 #include <cstdio>   // для printf
 #include "ananasglobal.h"
 #include <QApplication>
+#include "QTextCodec"
 
 class ANANAS_EXPORT AApplication : public QApplication
 {

@@ -29,13 +29,8 @@
 //#include <stream.h>
 
 #include "asqltable.h"
-#include <qdatetime.h>
-//Added by qt3to4:
-#include <QSqlError>
-#include "adatabase.h"
-#include <q3sqlcursor.h>
-#include <Q3SqlFieldInfo>
 
+#include "adatabase.h"
 #include "acatalogue.h"
 #include "adocument.h"
 #include "aaregister.h"
@@ -52,21 +47,18 @@
  *	принадлежит sql таблица.
  *	\~
  */
-aDataTable::aDataTable( aCfgItem context, aDatabase *adb )
-:Q3SqlCursor( QString::null, false, *adb->db() )
+aDataTable::aDataTable(aCfgItem context, aDatabase *adb)
 {
-	db = adb;
-	md = &db->cfg;
-	mdobjId = 0;
-	tableName = db->tableDbName( db->cfg, context, &mdobjId );
-	if ( !tableName.isEmpty() ) {
-		setName( tableName, true );
-		init (context, adb );
-	}
-	selected = false;
-	p_cat.setAutoDelete ( true );
-	p_reg.setAutoDelete ( true );
-	p_doc.setAutoDelete ( true );
+    db = adb;
+    md = &db->cfg;
+    mdobjId = 0;
+    tableName = db->tableDbName(db->cfg, context, &mdobjId);
+
+    if (!tableName.isEmpty()) {
+        init(context, adb);
+    }
+
+    selected = false;
 }
 
 
@@ -83,18 +75,13 @@ aDataTable::aDataTable( aCfgItem context, aDatabase *adb )
  *	\~
  *
  */
-aDataTable::aDataTable( const QString &tname, aDatabase *adb )
-:Q3SqlCursor( tname, true, *adb->db() )
+aDataTable::aDataTable(const QString &tname, aDatabase *adb)
 {
-	db = adb;
-	md = &db->cfg;
-	tableName = tname;
-	mdobjId = 0;
-	selected = false;
-	p_cat.setAutoDelete ( true );
-	p_reg.setAutoDelete ( true );
-	p_doc.setAutoDelete ( true );
-
+    db = adb;
+    md = &db->cfg;
+    tableName = tname;
+    mdobjId = 0;
+    selected = false;
 }
 
 /*!
@@ -105,13 +92,15 @@ aDataTable::aDataTable( const QString &tname, aDatabase *adb )
  *	\~
  *
  */
-aSQLTable::~aSQLTable()
+aDataTable::~aDataTable()
 {
-//	delete p_reg;
-//	delete p_cat;
-	p_reg.clear();
-	p_cat.clear();
-	p_doc.clear();
+    qDeleteAll(p_reg);
+    qDeleteAll(p_cat);
+    qDeleteAll(p_doc);
+
+    p_reg.clear();
+    p_cat.clear();
+    p_doc.clear();
 }
 
 /*!
@@ -125,16 +114,14 @@ aSQLTable::~aSQLTable()
  *	принадлежит sql таблица.
  *	\~
  */
-void
-aDataTable::init( aCfgItem context, aDatabase *adb )
+void aDataTable::init(aCfgItem context, aDatabase *adb)
 {
-	db = adb;
-	fnames.clear();
-	fnames.setAutoDelete( true );
-	userFilter.clear();
-	userFilter.setAutoDelete( true );
-	setObject( context );
+    db = adb;
 
+    fnames.clear();
+    userFilter.clear();
+
+    setObject(context);
 }
 
 
@@ -220,85 +207,81 @@ aDataTable::setObject( aCfgItem context )
  *	\param calculatd - указывает будет ли поле вычисляемым.
  *	\~
  */
-void
-aSQLTable::insertFieldInfo(aCfgItem cobj, bool calculated)
+void aDataTable::insertFieldInfo(aCfgItem cobj, bool calculated)
 {
-	QString fname, fdbname, objt;//, fid;
-	int fid ;
+    QString fname, fdbname, objt;
+    int fid;
 
-	if ( !cobj.isNull() )
-	{
-		fid = md->id(cobj);
-		fname = md->attr(cobj, mda_name);
-		objt = md->attr( cobj, mda_type ).upper();
-			fdbname = QString("uf%1").arg( fid );
-                        if ( objt[0]=='O' )
-			{
-				fnames.insert( fname, new QString(fdbname) );
-        			fdbname = QString("text_uf%1").arg( fid );
-                		append( Q3SqlFieldInfo( fdbname, QVariant::String ) );
-		             //   setGenerated( fdbname, false );
-		                setCalculated( fdbname, calculated );
-				int ftid = objt.section(" ", 1, 1 ).toInt();
-				aCfgItem fto = md->find( ftid );
-				if ( !fto.isNull() )
-				{
-					if ( md->objClass( fto ) == md_catalogue )
-					{
-						mapCat[fid] = fto;
-					}
-					if ( md->objClass( fto ) == md_document )
-					{
-						mapDoc[fid] = fto;
-					}
-				}
+    if (!cobj.isNull())
+    {
+        fid = md->id(cobj);
+        fname = md->attr(cobj, mda_name);
+        objt = md->attr(cobj, mda_type).toUpper();
+        fdbname = QString("uf%1").arg(fid);
+
+        if (objt[0] == 'O')
+        {
+            fnames.insert(fname, fdbname);
+            fdbname = QString("text_uf%1").arg(fid);
+            // append(QSqlField(fdbname, QVariant::String));
+            // setCalculated(fdbname, calculated);
+
+            int ftid = objt.section(" ", 1, 1).toInt();
+            aCfgItem fto = md->find(ftid);
+            if (!fto.isNull())
+            {
+                if (md->objClass(fto) == md_catalogue)
+                    mapCat[fid] = fto;
+
+                if (md->objClass(fto) == md_document)
+                    mapDoc[fid] = fto;
+            }
+        }
+        else if (objt[0] == ' ')
+        {
+            fdbname = QString("text_uf%1").arg(fid);
+            // append(QSqlField(fdbname, QVariant::String));
+            // setCalculated(fdbname, calculated);
+
+            fnames.insert(fname, fdbname);
+
+            int ftid = objt.section(" ", 1, 1).toInt();
+            aCfgItem fto = md->find(ftid);
+            if (!fto.isNull())
+            {
+                if (md->objClass(fto) == md_aregister)
+                {
+                    aCfgItem s_field = md->find(objt.section(" ", 2, 2).toInt());
+                    aCfgItem dim_fields = md->find(fto, md_dimensions);
+
+                    if (!dim_fields.isNull())
+                    {
+                        int cnt = md->count(dim_fields, md_field);
+                        for (int k = 0; k < cnt; k++)
+                        {
+                            aCfgItem dim_field = md->find(dim_fields, md_field, k);
+                            QString type = md->attr(dim_field, mda_type);
+
+                            if (type[0] == 'O')
+                            {
+                                if (type.section(" ", 1, 1).toInt() == mdobjId)
+                                {
+                                    mapReg[fid] = fto;
+                                    mapDim[fid] = md->attr(dim_field, mda_name);
+                                    mapSum[fid] = md->attr(s_field, mda_name);
+                                    break;
+                                }
+                            }
                         }
-			else
-                        if ( objt[0]==' ' )
-			{
-        			fdbname = QString("text_uf%1").arg( fid );
-                		append( Q3SqlFieldInfo( fdbname, QVariant::String ) );
-		                setCalculated( fdbname, calculated );
-		               // setGenerated( fdbname, false );
-				fnames.insert( fname, new QString(fdbname) );
-				int ftid = objt.section(" ", 1, 1 ).toInt();
-				aCfgItem fto = md->find( ftid );
-				if ( !fto.isNull() )
-				{
-					if ( md->objClass( fto ) == md_aregister )
-					{
-					aCfgItem s_field = md->find(objt.section(" ",2,2).toInt());
-					aCfgItem dim_fields = md->find(fto,md_dimensions);
-
-						if(!dim_fields.isNull())
-						{
-							int cnt = md->count( dim_fields, md_field );
-							for ( int k = 0; k < cnt; k++  )
-							{
-								aCfgItem dim_field = md->find( dim_fields, md_field, k );
-								QString type =  md->attr(dim_field, mda_type);
-								if(type[0]=='O')
-								{
-
-									if(type.section(" ",1,1).toInt()== mdobjId)
-									{
-										mapReg[fid]=fto;
-										mapDim[fid]= md->attr(dim_field,mda_name);
-										mapSum[fid] = md->attr(s_field,mda_name);
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
-
-                        }
-			else
-			{
-				fnames.insert( fname, new QString(fdbname) );
-			}
-	}
+                    }
+                }
+            }
+        }
+        else
+        {
+            fnames.insert(fname, fdbname);
+        }
+    }
 }
 
 
@@ -390,18 +373,19 @@ aDataTable::clearFields()
  *	Заглушка.
  *	\~
  */
-bool
-aDataTable::checkStructure(  bool ) //update )
+bool aDataTable::checkStructure(bool)
 {
-	bool rc = false;
-	if ( name().isEmpty() ) {
+    bool rc = false;
 
-	} else {
+    if (tableName.isEmpty())
+    {
+    }
+    else
+    {
+    }
 
-	}
-	return rc;
+    return rc;
 }
-
 
 
 /*!
@@ -413,13 +397,13 @@ aDataTable::checkStructure(  bool ) //update )
  *	\return значение поля
  *	\~
  */
-QVariant
-aDataTable::value ( int i )
+QVariant aDataTable::value(int i)
 {
- //       QVariant v = QSqlCursor::value( i );
+    QSqlRecord rec = query.record();
+    if (i < 0 || i >= rec.count())
+        return QVariant();
 
-	QVariant v = sysValue(Q3SqlCursor::fieldName(i));
-	return v;
+    return sysValue(rec.fieldName(i));
 }
 
 
@@ -434,22 +418,17 @@ aDataTable::value ( int i )
  *	\return значение поля или QVariant::Invalid, если поля не существует.
  *	\~
  */
-QVariant
-aDataTable::value ( const QString & name )
+QVariant aDataTable::value(const QString &name)
 {
-	QString fname;
-        QVariant v;
+    if (!fnames.contains(name))
+    {
+        aLog::print(aLog::Error,
+            QObject::tr("aDataTable get value of unknown field `%1'").arg(name));
+        return QVariant();
+    }
 
-	if ( !fnames[name] )
-	{
-		aLog::print(aLog::Error, QObject::tr("aDataTable get value of unknown field `%1'").arg(name));
-		return QVariant::Invalid;
-	}
-	fname = * fnames[ name ];
-
-        //v = QSqlCursor::value( fname );
-
-	return sysValue(fname);
+    QString fname = fnames.value(name);
+    return sysValue(fname);
 }
 
 
@@ -467,10 +446,10 @@ aDataTable::value ( const QString & name )
  *	\~
  */
 
-bool
-aDataTable::sysFieldExists( const QString & name )
+bool aDataTable::sysFieldExists(const QString &name)
 {
-	return contains( name );
+    QSqlRecord rec = query.record();
+    return rec.indexOf(name) != -1;
 }
 
 
@@ -478,28 +457,27 @@ aDataTable::sysFieldExists( const QString & name )
 /*!
  * Return value of the column of the database table.
  */
-QVariant
-aDataTable::sysValue ( const QString & name )
+QVariant aDataTable::sysValue(const QString &name)
 {
-	if(isCalculated(name)) return calcFieldValue(name);
-	else return Q3SqlCursor::value( name );
+    int idx = query.record().indexOf(name);
+    if (idx != -1)
+        return query.value(idx);
+
+    return QVariant();
 }
 
 
-
-/*!
- *
- */
-void
-aDataTable::setSysValue ( const QString & name, QVariant value )
+void aDataTable::setSysValue(const QString &name, QVariant value)
 {
-	if ( name == QString("pnum") )
-	{
-		aLog::print(aLog::Info, QObject::tr("aDataTable get document prefix to `%1'").arg(value.toString()));
-	//	debug_message("document prefix set to '%s'\n",(const char*)value.toString());
-	}
+    if (name == QString("pnum"))
+    {
+        aLog::print(aLog::Info,
+            QObject::tr("aDataTable get document prefix to `%1'").arg(value.toString()));
+    }
 
-	Q3SqlCursor::setValue( name, value );
+    QSqlRecord rec = query.record();
+    if (rec.indexOf(name) != -1)
+        rec.setValue(name, value);
 }
 
 
@@ -507,48 +485,39 @@ aDataTable::setSysValue ( const QString & name, QVariant value )
 /*!
  * Set value of the column of the database table.
  */
-void
-aDataTable::setValue ( int i, QVariant value )
+void aDataTable::setValue(int i, QVariant value)
 {
-	Q3SqlCursor::setValue( i, value );
+    QSqlRecord rec = query.record();
+    if (i >= 0 && i < rec.count())
+        rec.setValue(i, value);
 }
 
 
-
-/*!
- *
- */
-bool
-aDataTable::setValue ( const QString & name, QVariant value )
+bool aDataTable::setValue(const QString &name, QVariant value)
 {
-	QString fname;
-	if ( !fnames[name] ) return false;
-	fname = * fnames[ name ];
-	if ( contains( fname ) ) {
-		Q3SqlCursor::setValue( fname, value );
-	}
-	else return false;
-	return true;
+    if (!fnames.contains(name))
+        return false;
+
+    QString fname = fnames.value(name);
+    QSqlRecord rec = query.record();
+
+    if (rec.indexOf(fname) == -1)
+        return false;
+
+    rec.setValue(fname, value);
+    return true;
 }
 
 
-
-/*!
- *
- */
-QSqlRecord *
-aDataTable::primeInsert()
+QSqlRecord *aDataTable::primeInsert()
 {
-	QSqlRecord *rec;
-	QVariant v;
+    QSqlRecord *rec = new QSqlRecord(query.record());
 
-	rec = Q3SqlCursor::primeInsert();
-	if ( sysFieldExists("id") ) {
-		rec->setValue("id", QVariant( db->uid( mdobjId ) ) );
-	}
-	return rec;
+    if (sysFieldExists("id"))
+        rec->setValue("id", QVariant(db->uid(mdobjId)));
+
+    return rec;
 }
-
 
 
 /*!
@@ -566,43 +535,61 @@ aDataTable::primeUpdate()
 */
 
 
-/*!
- *
- */
-bool
-aDataTable::select( const QString & filter, bool usefltr )
+bool aDataTable::select(const QString &filter, bool usefltr)
 {
-	bool res;
-	QString flt = getFilter();
-	if ( usefltr )
-	{
-		if ( flt == "" ) flt = filter;
-		else if ( filter != "" ) flt = flt + " AND " + filter;
-	}
-	else flt = filter;
-	res = Q3SqlCursor::select( flt );
-//	next();
-//	r = *this;
-	return res;
+    QString flt = getFilter();
+
+    if (usefltr)
+    {
+        if (flt.isEmpty())
+            flt = filter;
+        else if (!filter.isEmpty())
+            flt = flt + " AND " + filter;
+    }
+    else
+    {
+        flt = filter;
+    }
+
+    QString sql = QString("SELECT * FROM %1").arg(tableName);
+    if (!flt.isEmpty())
+        sql += " WHERE " + flt;
+
+    query = QSqlQuery(*db->db());
+    bool res = query.exec(sql);
+
+    if (!res)
+    {
+        QSqlError err = query.lastError();
+        aLog::print(aLog::Error,
+            QString("%1 %2").arg(err.text()).arg(err.driverText()));
+    }
+
+    return res;
 }
 
 
-
-/*!
- *
- */
-bool
-aDataTable::select( qulonglong id )
+bool aDataTable::select(qulonglong id)
 {
-	bool res;
-//	printf("aSQLTable::select %llu\n",id);
-	res = Q3SqlCursor::select( QString( "id=%1" ).arg( id ) );
-	//setSelected(true);
-//	next();
-//	r = *this;
-	return res;
-}
+    if (!db || !db->db())
+        return false;
 
+    QString sql = QString("SELECT * FROM %1 WHERE id=%2")
+                  .arg(tableName)
+                  .arg(id);
+
+    query = QSqlQuery(*db->db());
+    bool res = query.exec(sql);
+
+    if (!res)
+    {
+        QSqlError err = query.lastError();
+        aLog::print(aLog::Error,
+            QString("%1 %2").arg(err.text()).arg(err.driverText()));
+    }
+
+    return res;
+}
 
 
 /*!
@@ -627,170 +614,153 @@ setUserFilter( QDict<QVariant> newFilter) {
 };
 */
 
-/**
- *
- */
-void
-aDataTable::setFilter ( const QString & newFilter ) {
-	Q3SqlCursor::setFilter( newFilter );
-}
 
-
-/*!
- *
- */
-bool
-aDataTable::setFilter( const QString& name, const QVariant& value )
+void aDataTable::setFilter(const QString &newFilter)
 {
+    currentFilter = newFilter;
+    userFilter.clear();
 
-	aLog::print(aLog::Debug, QObject::tr("aDataTable set filter %1='%2'").arg(name).arg(value.toString()));
-	if ( !fnames[name] )
-	{
-		aLog::print(aLog::Error, QObject::tr("aDataTable set filter %1='%2', %3 not exist").arg(name).arg(value.toString()).arg(name));
-		return false;
-	}
-	QVariant *v = new QVariant(value);
-	userFilter.replace(*fnames[name], v );
-	Q3SqlCursor::setFilter(getFilter());
-	return true;
+    Q_UNUSED(newFilter);
 }
 
 
-
-/*!
- *
- */
-QString
-aDataTable::getFilter()
+bool aDataTable::setFilter(const QString& name, const QVariant& value)
 {
-	QString filter = "", fid, type;
-	aCfgItem field;
-	Q3DictIterator<QVariant>it( userFilter );
-	if ( it.toFirst() )
-	{
-		fid = it.currentKey().mid(2);
-		field = md->find(fid.toLong() );
-		if ( !field.isNull() )
-		{
-			type = md->attr( field, mda_type );
-			if ( type[0] == 'N' || type[0] == 'O' )
-				filter = it.currentKey() + "=" + it.current()->toString();
-			else
-				filter = it.currentKey() + "='" + it.current()->toString() + "'";
-		}
-	}
-	++it;
-	for (;it.current();++it)
-	{
-		fid = it.currentKey().mid(2);
-		field = md->find(fid.toLong() );
-		if ( !field.isNull() )
-		{
-			type = md->attr( field, mda_type );
-			if ( type[0] == 'N' || type[0] == 'O' )
-				filter += " and " + it.currentKey() + "=" + it.current()->toString();
-			else
-				filter += " and " + it.currentKey() + "='" + it.current()->toString() + "'";
-		}
-	}
-	return filter;
+    aLog::print(aLog::Debug,
+        QObject::tr("aDataTable set filter %1='%2'").arg(name).arg(value.toString()));
+
+    if (!fnames.contains(name))
+    {
+        aLog::print(aLog::Error,
+            QObject::tr("aDataTable set filter %1='%2', %3 not exist")
+            .arg(name).arg(value.toString()).arg(name));
+        return false;
+    }
+
+    userFilter.insert(fnames.value(name), value);
+    return true;
 }
 
 
 
-/*!
- *
- */
-QString
-aDataTable::getNFilter()
+QString aDataTable::getFilter()
 {
-	QString filter = "", fid, type;
-	aCfgItem field;
-	Q3DictIterator<QVariant>it( userFilter );
-	if ( it.toFirst() )
-	{
-		fid = it.currentKey().mid(2);
-		field = md->find(fid.toLong() );
-		if ( !field.isNull() )
-		{
-			type = md->attr( field, mda_type );
-			if ( type[0] == 'N' || type[0] == 'O' )
-				filter = tableName + "." + it.currentKey() + "=" + it.current()->toString();
-			else
-				filter = tableName + "." + it.currentKey() + "='" + it.current()->toString() + "'";
-		}
-	}
-	++it;
-	for (;it.current();++it)
-	{
-		fid = it.currentKey().mid(2);
-		field = md->find(fid.toLong() );
-		if ( !field.isNull() )
-		{
-			type = md->attr( field, mda_type );
-			if ( type[0] == 'N' || type[0] == 'O' )
-				filter += " and " + tableName + "." + it.currentKey() + "=" + it.current()->toString();
-			else
-				filter += " and " + tableName + "." + it.currentKey() + "='" + it.current()->toString() + "'";
-		}
-	}
-	return filter;
+    QString filter = "", fid, type;
+    aCfgItem field;
+
+    QMap<QString, QVariant>::const_iterator it = userFilter.begin();
+
+    if (it != userFilter.end())
+    {
+        fid = it.key().mid(2);
+        field = md->find(fid.toLong());
+        if (!field.isNull())
+        {
+            type = md->attr(field, mda_type);
+            if (type[0] == 'N' || type[0] == 'O')
+                filter = it.key() + "=" + it.value().toString();
+            else
+                filter = it.key() + "='" + it.value().toString() + "'";
+        }
+        ++it;
+    }
+
+    for (; it != userFilter.end(); ++it)
+    {
+        fid = it.key().mid(2);
+        field = md->find(fid.toLong());
+        if (!field.isNull())
+        {
+            type = md->attr(field, mda_type);
+            if (type[0] == 'N' || type[0] == 'O')
+                filter += " and " + it.key() + "=" + it.value().toString();
+            else
+                filter += " and " + it.key() + "='" + it.value().toString() + "'";
+        }
+    }
+
+    return filter;
 }
 
 
-
-/*!
- *
- */
-void
-aDataTable::printRecord(){
-	unsigned int i;
-        Q3DictIterator<QString> it( fnames );
-	QString fname, sname;
-
-	for (i=0; i< count(); i++){
-		fname = "";
-		sname = field( i ).name();
-		it.toFirst();
-	        for( ; it.current(); ++it ){
-		    if ( *it.current() == sname ) {
-			fname = it.currentKey();
-			break;
-		    }
-		}
-		printf("%s(%s)=%s\n",
-		( const char *) fname,
-		( const char *) sname,
-		( const char *) value( i ).toString().local8Bit() );
-	}
-
-/*	for (i=0; i< r.count(); i++){
-		fname = "";
-		sname = r.field( i )->name();
-		it.toFirst();
-	        for( ; it.current(); ++it ){
-		    if ( *it.current() == sname ) {
-			fname = it.currentKey();
-			break;
-		    }
-		}
-		printf("r:%s(%s)=%s\n",
-		( const char *) fname,
-		( const char *) sname,
-		( const char *) r.value( i ).toString().local8Bit() );
-	}
-*/
-}
-
-
-
-/*!
- *
-*/
-bool
-aDataTable::exec( QString query )
+QString aDataTable::getNFilter()
 {
-	return Q3SqlCursor::exec( query );
+    QString filter = "", fid, type;
+    aCfgItem field;
+    QMap<QString, QVariant>::const_iterator it = userFilter.begin();
+
+    if (it != userFilter.end())
+    {
+        fid = it.key().mid(2);
+        field = md->find(fid.toLong());
+        if (!field.isNull())
+        {
+            type = md->attr(field, mda_type);
+            if (type[0] == 'N' || type[0] == 'O')
+                filter = tableName + "." + it.key() + "=" + it.value().toString();
+            else
+                filter = tableName + "." + it.key() + "='" + it.value().toString() + "'";
+        }
+        ++it;
+    }
+
+    for (; it != userFilter.end(); ++it)
+    {
+        fid = it.key().mid(2);
+        field = md->find(fid.toLong());
+        if (!field.isNull())
+        {
+            type = md->attr(field, mda_type);
+            if (type[0] == 'N' || type[0] == 'O')
+                filter += " and " + tableName + "." + it.key() + "=" + it.value().toString();
+            else
+                filter += " and " + tableName + "." + it.key() + "='" + it.value().toString() + "'";
+        }
+    }
+
+    return filter;
+}
+
+
+void aDataTable::printRecord()
+{
+    QSqlRecord rec = query.record();
+
+    for (int i = 0; i < rec.count(); i++)
+    {
+        QString fname = "";
+        QString sname = rec.fieldName(i);
+
+        QMap<QString, QString>::const_iterator it;
+        for (it = fnames.begin(); it != fnames.end(); ++it)
+        {
+            if (it.value() == sname)
+            {
+                fname = it.key();
+                break;
+            }
+        }
+
+        printf("%s(%s)=%s\n",
+            fname.toLocal8Bit().constData(),
+            sname.toLocal8Bit().constData(),
+            value(i).toString().toLocal8Bit().constData());
+    }
+}
+
+
+bool aDataTable::exec(QString q)
+{
+    query = QSqlQuery(*db->db());
+    bool res = query.exec(q);
+
+    if (!res)
+    {
+        QSqlError err = query.lastError();
+        aLog::print(aLog::Error, QString("%1 %2").arg(err.text()).arg(err.driverText()));
+    }
+
+    return res;
 }
 
 
@@ -927,29 +897,30 @@ aDataTable::calcFieldValue( const QString &name )
 /*!
  * Gets list of user and calculation fields.
  */
-QStringList
-aDataTable::getUserFields()
+QStringList aDataTable::getUserFields()
 {
-   QStringList lst;
-   uint i;
-   const QString text_uf = "text_uf";
-	for(i=0; i<count(); i++)
-	{
-		if(fieldName(i).left(2) == "uf"
-		   || fieldName(i).left(text_uf.length()) == text_uf)
-		{
-			if(fieldName(i).left(text_uf.length()) == text_uf)
-			{
-				QStringList::iterator it  = lst.find("uf"+fieldName(i).mid(text_uf.length()));
-				if(it!=lst.end())
-				{
-					lst.remove(it);
-				}
-			}
-			lst << fieldName(i);
-		}
-	}
-   return lst;
+    QStringList lst;
+    const QString text_uf = "text_uf";
+    QSqlRecord rec = query.record();
+
+    for (int i = 0; i < rec.count(); i++)
+    {
+        QString fname = rec.fieldName(i);
+
+        if (fname.left(2) == "uf" || fname.left(text_uf.length()) == text_uf)
+        {
+            if (fname.left(text_uf.length()) == text_uf)
+            {
+                int idx = lst.indexOf("uf" + fname.mid(text_uf.length()));
+                if (idx != -1)
+                {
+                    lst.removeAt(idx);
+                }
+            }
+            lst << fname;
+        }
+    }
+    return lst;
 }
 
 
@@ -982,139 +953,138 @@ aDataTable::setMarkDeleted( bool Deleted )
 }
 
 
-bool
-aDataTable::seek ( int i, bool relative )
+bool aDataTable::seek(int i, bool relative)
 {
-	bool res = Q3SqlCursor::seek( i, relative );
-//	if ( res ) r = *this;
-	return res;
+    if (relative)
+        return query.seek(query.at() + i);
+    return query.seek(i);
 }
 
-bool
-aDataTable::next ()
+bool aDataTable::next()
 {
-	bool res = Q3SqlCursor::next();
-//	if ( res ) r = *this;
-	return res;
+    return query.next();
 }
 
-bool
-aDataTable::prev ()
+bool aDataTable::prev()
 {
-	bool res = Q3SqlCursor::prev();
-//	if ( res ) r = *this;
-	return res;
+    return query.previous();
 }
 
-bool
-aDataTable::first ()
+bool aDataTable::first()
 {
-	bool res = Q3SqlCursor::first();
-//	if ( res ) r = *this;
-	return res;
+    return query.first();
+}
+
+bool aDataTable::last()
+{
+    return query.last();
 }
 
 
-bool
-aDataTable::last ()
+bool aDataTable::New()
 {
-	bool res = Q3SqlCursor::last();
-//	if ( res ) r = *this;
-	return res;
+    qulonglong Uid = 0;
+    bool res = false;
+
+    if (tableName.isEmpty() || !db || !db->db())
+        return false;
+
+    if (sysFieldExists("id"))
+    {
+        Uid = db->uid(mdobjId);
+        aLog::print(aLog::Debug,
+                    QString("aDataTable new record with id=%1 for meta object with id=%2")
+                    .arg(Uid).arg(mdobjId));
+    }
+
+    QString sql;
+    if (sysFieldExists("id"))
+        sql = QString("INSERT INTO %1 (id) VALUES (%2)").arg(tableName).arg(Uid);
+    else
+        sql = QString("INSERT INTO %1 DEFAULT VALUES").arg(tableName);
+
+    QSqlQuery q(*db->db());
+    if (!q.exec(sql))
+    {
+        QSqlError err = q.lastError();
+        aLog::print(aLog::Error, QString("%1 %2").arg(err.text()).arg(err.driverText()));
+        return false;
+    }
+
+    if (sysFieldExists("id"))
+    {
+        if (select(QString("id=%1").arg(Uid), false))
+        {
+            if (first())
+                res = true;
+            else
+                aLog::print(aLog::Error, QString("aDataTable record with id=%1 not found").arg(Uid));
+        }
+    }
+    else
+    {
+        res = true;
+    }
+
+    return res;
 }
 
 
-
-bool
-aDataTable::New()
+bool aDataTable::Copy()
 {
-	QSqlRecord *rec;
-	QVariant v;
-	qulonglong Uid = 0;
-	bool res = false;
+    QSqlRecord rec = query.record();
 
-	rec = Q3SqlCursor::primeInsert();
-	if ( sysFieldExists("id") )
-	{
-		Uid = db->uid( mdobjId );
-		aLog::print(aLog::Debug, QString("aDataTable new record with id=%1 for meta object with id=%2").arg(Uid).arg(mdobjId));
+    if (rec.isEmpty())
+        return false;
 
-		rec->setValue("id", QVariant( Uid ) );
-	}
-	if ( insert() )
-	{
-		if ( select(QString("id=%1").arg(Uid), false) )
-			if ( first() )
-			{
-				res = true;
-			}
-			else
-			{
-				aLog::print(aLog::Error, QString("aDataTable record with id=%1 not found").arg(Uid));
-			}
-	}
-	return res;
+    if (New())
+    {
+        for (int i = 0; i < rec.count(); i++)
+        {
+            if (rec.field(i).name() != QString("id"))
+            {
+                setValue(i, rec.value(i));
+            }
+        }
+        return Update();
+    }
+
+    return false;
 }
 
 
-bool
-aDataTable::Copy()
+bool aDataTable::Delete()
 {
-	QSqlRecord *rec = new QSqlRecord( *editBuffer(true) );
-	if ( New() )
-	{
-		for ( unsigned int i=0; i<rec->count(); i++ )
-		{
-			if ( rec->field( i ).name() != QString("id")  )
-			{
-				setValue( i, rec->value( i ) );
-//				printf("field %s, before %s, after %s\n",rec->field( i )->name().ascii(), rec->value( i ).toString().ascii(), value( i ).toString().ascii());
-			}
-		}
-	}
-	delete rec;
-	return Update();
-//	Q_ULLONG Uid = db->uid( t->id );
-//	r->setValue("id",Uid);
-//	if ( t->insert() ) return Uid;
-
-//	return true;
+    return true;
 }
 
 
-bool
-aDataTable::Delete()
+bool aDataTable::Update()
 {
-	QSqlRecord *rec;
-	rec = primeDelete();
-	del();
-//	fNewNotUpdated = false;
-	return true;
+    QSqlError err = query.lastError();
+    if (err.type() != QSqlError::NoError)
+    {
+        aLog::print(aLog::Error, QString("%1 %2").arg(err.text()).arg(err.driverText()));
+    }
+    return true;
 }
 
-
-bool
-aDataTable::Update()
+QString aDataTable::sqlFieldName(const QString &userFieldName) const
 {
-	QSqlRecord *rec;
-
-	rec = Q3SqlCursor::primeUpdate();
-	//for ( unsigned int i=0; i<rec->count(); i++ ) rec->setValue( i, value( i ) );
-	update();
-	QSqlError err = lastError();
-	if(!err.type() == QSqlError::None)
-	{
-		aLog::print(aLog::Error, QString("%1 %2").arg(err.text()).arg(err.driverText()) );
-	}
-	return true;
+    return fnames.value(userFieldName, QString(""));
 }
 
-/**
- */
-QString
-aDataTable::sqlFieldName ( const QString & userFieldName ) const {
-	if (fnames[userFieldName] ) {
-		return *fnames[ userFieldName ];
-	}
-	return QString("");
+QSqlError aDataTable::lastError() const
+{
+    return query.lastError();
+}
+
+int aDataTable::position(const QString &name) const
+{
+    return query.record().indexOf(name);
+}
+
+QString aDataTable::filter() const
+{
+    return currentFilter;
 }

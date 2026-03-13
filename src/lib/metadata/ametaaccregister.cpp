@@ -37,7 +37,7 @@ AMetaAccRegister::AMetaAccRegister( AMetaObject *parent )
 :AMetaObject("AccRegister", "", parent )
 {
     setId( lastId() );
-    setName( QString("%1_%2").arg( tr("AccRegister") ).arg( id() ) );
+    setObjectName( QString("%1_%2").arg( tr("AccRegister") ).arg( id() ) );
     addChild( &v_fields );
     addChild( &v_gfields );
     addChild( &v_forms );

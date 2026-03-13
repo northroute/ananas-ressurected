@@ -29,18 +29,12 @@
 
 #ifndef ADATAFIELD_H
 #define ADATAFIELD_H
-//#include <qsqlfield.h>
 
-#include <qobject.h>
-#include <qvariant.h>
+#include <QObject>
+#include <QVariant>
 #include "ananasglobal.h"
 #include "acfg.h"
 
-
-//class aCfg;
-//class aCfgItem;
-//class QObject;
-//#define
 
 /*!
  * \en

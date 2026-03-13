@@ -28,7 +28,6 @@ UI_DIR = ../../tmp/ui/$$TARGET
 #INCLUDEPATH	+= ../lib ../lib/tmp/ui ../lib/.ui ./formdesigner /usr/lib
 
 include ( ../ananas.pri )
-load(qsa)
 
 HEADERS	= \
     actiontree.h \

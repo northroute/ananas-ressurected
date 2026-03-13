@@ -28,15 +28,7 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <qdialog.h>
-#include <qlineedit.h>
-//Added by qt3to4:
-#include <Q3SqlForm>
-#include <QLabel>
-#include <QKeyEvent>
+
 #include "adatabase.h"
 #include "awidget.h"
 #include "wfield.h"
@@ -59,15 +51,15 @@
  *	\param fl - флаги используемые при создании виджета. Передаются в конструктор базового класса.
  *\_ru
  */
-aWidget::aWidget( QWidget *parent, const char *name, Qt::WFlags fl )
-:QWidget( parent, name, fl )
+aWidget::aWidget(QWidget *parent, const char *name, Qt::WindowFlags fl) : QWidget(parent, fl)
 {
-	vId = 0;
-	db = 0;
-        dbobj = 0;
-	engine = 0;
-	vFormMode = 0;
-	vInited = false;
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+    vId = 0;
+    db = 0;
+    dbobj = 0;
+    engine = 0;
+    vFormMode = 0;
+    vInited = false;
 }
 
 /*!
@@ -81,18 +73,18 @@ aWidget::aWidget( QWidget *parent, const char *name, Qt::WFlags fl )
  * 	\param fl - флаги, используемые конструктором базового класса.
  * \_ru
  */
-aWidget::aWidget( const QString &itemname, aDatabase *adb, QWidget *parent, const char *name, Qt::WFlags fl )
-:QWidget( parent, name, fl )
+aWidget::aWidget(const QString &itemname, aDatabase *adb, QWidget *parent, const char *name, Qt::WindowFlags fl) : QWidget(parent, fl)
 {
-	vId = 0;
-        dbobj = 0;
-	vInited = false;
-	engine = 0;
-	vFormMode = 0;
-	if ( adb ) {
-		obj = adb->cfg.find( itemname );
-		init( adb );
-	}
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+    vId = 0;
+    dbobj = 0;
+    vInited = false;
+    engine = 0;
+    vFormMode = 0;
+    if (adb) {
+        obj = adb->cfg.find(itemname);
+        init(adb);
+    }
 }
 
 
@@ -107,16 +99,16 @@ aWidget::aWidget( const QString &itemname, aDatabase *adb, QWidget *parent, cons
  * 	\param fl - флаги, используемые конструктором базового класса.
  * \_ru
  */
-aWidget::aWidget( aCfgItem context, aDatabase *adb, QWidget *parent, const char *name, Qt::WFlags fl )
-:QWidget( parent, name, fl )
+aWidget::aWidget(aCfgItem context, aDatabase *adb, QWidget *parent, const char *name, Qt::WindowFlags fl) : QWidget(parent, fl)
 {
-	vId = 0;
-        dbobj = 0;
-	vInited = false;
-	engine = 0;
-	obj = context;
-	vFormMode = 0;
-	init( adb );
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+    vId = 0;
+    dbobj = 0;
+    vInited = false;
+    engine = 0;
+    obj = context;
+    vFormMode = 0;
+    init(adb);
 }
 
 aWidget::~aWidget()
@@ -152,10 +144,9 @@ aWidget::createDBObject(  aCfgItem , aDatabase * )
  *	Пока ничего не делает. Возвращает 0;
  *\_ru
  */
-Q3ToolBar*
-aWidget::createToolBar( Q3MainWindow * )
+QToolBar *aWidget::createToolBar(QMainWindow *)
 {
-	return 0;
+    return 0;
 }
 
 
@@ -187,82 +178,61 @@ aWidget::init( aDatabase *adb )
  *\_ru
  *\param adb - \en ananas database object. \_en \ru объект доступа к базе данных. \_ru
  */
-void
-aWidget::initObject( aDatabase *adb )
+void aWidget::initObject(aDatabase *adb)
 {
-	aCfgItem fg, f;
-	QString tname;
+    aCfgItem fg, f;
+    QString tname;
 
-	aLog::print(aLog::Debug, tr("aWidget init widget %1 form mode %2").arg(name()).arg(formMode()) );
-	// Init myself.
-	setInited( true );
+    aLog::print(aLog::Debug, tr("aWidget init widget %1 form mode %2").arg(objectName()).arg(formMode()));
+    setInited(true);
 
-	//<для чего?
-	Q3SqlPropertyMap *pm = new Q3SqlPropertyMap();
-	//>
+    db = adb;
+    md = 0;
+    if (db)
+    {
+        md = &db->cfg;
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("aWidget init: invalid database"));
+        return;
+    }
 
+    if (obj.isNull())
+    {
+        obj = md->find(getId());
+    }
 
-	db = adb;
-	md = 0;
-	if ( db )
-	{
-		md = &db->cfg;
-	}
-	else
-	{
-		aLog::print(aLog::Error, tr("aWidget init: invalid database") );
-		return;
-	}
+    if (obj.isNull())
+    {
+        aLog::print(aLog::Error, tr("aWidget init: invalid meta object"));
+        return;
+    }
 
-	if ( obj.isNull() )
-	{
-		obj = md->find( getId() );
-	}
+    dbobj = createDBObject(obj, adb);
 
+    const QList<QWidget*> widgets = this->findChildren<QWidget*>();
+    QList<QWidget*>::const_iterator it = widgets.begin();
+    while (it != widgets.end())
+    {
+        QWidget *w = *it;
+        if (parentContainer(w) != this)
+        {
+            ++it;
+            continue;
+        }
 
-	//<для чего?
-	form = new Q3SqlForm( this );
-	pm->insert("wDBField","value");
-	form->installPropertyMap( pm );
-	//>
+        if (w->inherits("wDBTable"))
+        {
+            aLog::print(aLog::Debug, tr("aWidget init: connect signals wDBTable"));
+            connect(this, SIGNAL(changeObj(const QString &)),
+                    w, SLOT(newFilter(const QString &)));
+            connect(this, SIGNAL(changeObjId(const qulonglong)),
+                    w, SLOT(newDataId(const qulonglong)));
+        }
 
-
-	if ( obj.isNull() )
-	{
-		aLog::print(aLog::Error, tr("aWidget init: invalid meta object") );
-		return;
-	}
-	dbobj = createDBObject( obj, adb );
-	QObjectList l = this->queryList( "QWidget" );
-	QListIterator<QObject*>  it( l );
-	QObject *obj;
-	while ( it.hasNext() )
-	{
-		obj = it.next();
-		if ( parentContainer( ( QWidget *) obj ) != this ) continue;
-
-		//debug_message("SCAN: Widget class name=%s\n", obj->className() );
-
-		if ( obj->className()==QString("wDBTable") )
-		{
-
-			aLog::print(aLog::Debug, tr("aWidget init: connect signals wDBTable") );
-			connect( this, SIGNAL( changeObj(const QString &) ),
-				//(wDBTable*)
-				obj, SLOT( newFilter(const QString &) ));
-			connect( this, SIGNAL( changeObjId(const qulonglong) ),
-				//(wDBTable*)
-				obj, SLOT( newDataId(const qulonglong) ));
-		}
-	//	if ( obj->className()==QString("wDBField") )
-	//	{
-//			connect( this, SIGNAL( changeObj(const QString &) ),
-//				//(wDBTable*)
-//				obj, SLOT( newFilter(const QString &) ));
-	//	}
-	}
-	//--delete l; // delete the list, not the objects
-	//--l=0;
+        ++it;
+    }
 }
 
 
@@ -416,17 +386,16 @@ aWidget::getObjectData( QWidget *object )
  *	Возвращает объект конфигурации для виджета верхнего уровня.
  *\_ru
  */
-aCfg*
-aWidget::getMd()
+aCfg *aWidget::getMd()
 {
-	aCfg *md = 0;
-	QWidget *mw = topLevelWidget();
-	if (mw->name() == QString("ananas-designer_mainwindow") )
-	{
-		connect( this, SIGNAL( getMd( aCfg ** ) ), mw, SLOT( getMd( aCfg ** ) ));
-		emit ( getMd( &md ) );
-	}
-	return md;
+    aCfg *md = 0;
+    QWidget *mw = window();
+    if (mw->objectName() == QString("ananas-designer_mainwindow"))
+    {
+        connect(this, SIGNAL(getMd(aCfg**)), mw, SLOT(getMd(aCfg**)));
+        emit getMd(&md);
+    }
+    return md;
 }
 
 
@@ -477,33 +446,37 @@ aWidget::widgetEditor()
  *\~russian
  *\~
  */
-void
-aWidget::widgetEditor(  QWidget *object, QDialog *editor )
+void aWidget::widgetEditor(QWidget *object, QDialog *editor)
 {
-        aCfg *md = 0;
-	QWidget *mw = object->topLevelWidget();
-        aWidget o( mw );
-	if ( mw->name() == QString( "ananas-designer_mainwindow" ) )
-	{
-                md = o.getMd();
-		if ( !md )
-		{
-			aLog::print(aLog::Error, tr("aWidget widgetEditor: invalid metadata object") );
-			return;
-		}
-		if ( editor ) {
-			connect( &o, SIGNAL( setData( QWidget *, aCfg* ) ), editor, SLOT( setData( QWidget *, aCfg* ) ) );
-			connect( &o, SIGNAL( getData( QWidget * ) ), editor, SLOT( getData( QWidget * ) ) );
-			o.setObjectData( object, md );
-			if ( editor->exec() == QDialog::Accepted )
-			{
-				o.getObjectData( object );
-				//o.updateProp();
-			}
-			delete editor;
-			editor = 0;
-		}
-	}
+    aCfg *md = 0;
+    QWidget *mw = object->window();
+    aWidget o(mw);
+
+    if (mw->objectName() == QString("ananas-designer_mainwindow"))
+    {
+        md = o.getMd();
+        if (!md)
+        {
+            aLog::print(aLog::Error, tr("aWidget widgetEditor: invalid metadata object"));
+            return;
+        }
+
+        if (editor)
+        {
+            connect(&o, SIGNAL(setData(QWidget*,aCfg*)), editor, SLOT(setData(QWidget*,aCfg*)));
+            connect(&o, SIGNAL(getData(QWidget*)), editor, SLOT(getData(QWidget*)));
+
+            o.setObjectData(object, md);
+
+            if (editor->exec() == QDialog::Accepted)
+            {
+                o.getObjectData(object);
+            }
+
+            delete editor;
+            editor = 0;
+        }
+    }
 }
 
 
@@ -537,15 +510,15 @@ aWidget::parentContainer( QWidget *w )
  *\~russian
  *\~
  */
-aForm *
-aWidget::parentForm( QWidget *w )
+aForm *aWidget::parentForm(QWidget *w)
 {
-        while ( w )
-	{
-                if ( w->inherits("aForm") ) break;
-                w = w->parentWidget(true);
-        }
-        return ( aForm *) w;
+    while (w)
+    {
+        if (w->inherits("aForm"))
+            break;
+        w = w->parentWidget();
+    }
+    return (aForm *)w;
 }
 
 
@@ -689,37 +662,29 @@ aWidget::Select( qulonglong id )
  *\~russian Обновляет данные по данному виджету в базе
  *\~
  */
-ERR_Code
-aWidget::Update()
+ERR_Code aWidget::Update()
 {
-	QString fname;
-	if ( dbobj )
-	{
+    QString fname;
+    if (dbobj)
+    {
+        const QList<aWidget*> fields = this->findChildren<aWidget*>();
+        QList<aWidget*>::const_iterator it = fields.begin();
+        while (it != fields.end())
+        {
+            aWidget *obj = *it;
+            if (!obj || !obj->inherits("wDBField")) {
+                ++it;
+                continue;
+            }
+            fname = obj->getFieldName();
+            dbobj->SetValue(fname, obj->value());
+            ++it;
+        }
 
-		QObjectList l = this->queryList( "wDBField" );
-		QListIterator<QObject*> it( l );
-		aWidget *obj;
-		while ( it.hasNext() )
-		{
-			obj = qobject_cast<aWidget*>(it.next());
-			fname= obj->getFieldName();
-			dbobj->SetValue( fname,( ( aWidget *) obj )->value() );
-		}
-		//--delete l; // delete the list, not the objects
-		//--l=0;
-/*
-		while ( (obj = (aWidget*) tit.current()) != 0 ){
-			++tit;
-			((QDataTable*)obj)->refresh();
-		}
-		delete tl; // delete the list, not the objects
-
-		return err_noerror;
-*/
-		return dbobj->Update();
-	}
-	aLog::print(aLog::Error, tr("aWidget update: invalid data source object") );
-	return err_incorrecttype;
+        return dbobj->Update();
+    }
+    aLog::print(aLog::Error, tr("aWidget update: invalid data source object"));
+    return err_incorrecttype;
 }
 
 /*!
@@ -727,32 +692,39 @@ aWidget::Update()
  *\~russian
  *\~
  */
-ERR_Code
-aWidget::Refresh()
+ERR_Code aWidget::Refresh()
 {
-	QString fname;
-	QObjectList l = this->queryList( "wDBField" );
-	QListIterator<QObject*> it( l );
-	QObjectList tl = this->queryList( "wDBTable" );
-	QListIterator<QObject*> tit( tl );
-	aWidget *obj;
-	while ( it.hasNext() ){
-		obj = qobject_cast<aWidget*>(it.next());
-		if ( parentContainer( obj ) != this ) continue;
-		fname= obj->getFieldName();
-		obj->setValue(dbobj->Value(fname).toString());
-	}
-	//--delete l; // delete the list, not the objects
-	//--l=0;
+    QString fname;
 
-    Q3DataTable* obj2;
-	while ( tit.hasNext() ){
-		obj2 = qobject_cast<Q3DataTable*>(tit.next());
-		obj2->refresh();
-	}
-	//--delete tl; // delete the list, not the objects
+    const QList<aWidget*> fields = this->findChildren<aWidget*>();
+    QList<aWidget*>::const_iterator it = fields.begin();
+    while (it != fields.end()) {
+        aWidget *obj = *it;
+        if (!obj || !obj->inherits("wDBField")) {
+            ++it;
+            continue;
+        }
+        if (parentContainer(obj) != this) {
+            ++it;
+            continue;
+        }
+        fname = obj->getFieldName();
+        obj->setValue(dbobj->Value(fname).toString());
+        ++it;
+    }
 
-	return err_noerror;
+    const QList<QWidget*> tables = this->findChildren<QWidget*>();
+    QList<QWidget*>::const_iterator tit = tables.begin();
+    while (tit != tables.end()) {
+        QWidget *obj2 = *tit;
+        if (obj2 && obj2->inherits("wDBTable")) {
+            if (!QMetaObject::invokeMethod(obj2, "refresh"))
+                obj2->update();
+        }
+        ++tit;
+    }
+
+    return err_noerror;
 }
 
 
@@ -780,46 +752,30 @@ aWidget::TurnOn()
  *\param name - \~english field md name. \~russian имя поля в конфигурации.\~
  *\return \~english field value. \~russian значение поля.\~
  */
-QVariant
-aWidget::value( const QString & nameWidget )
+QVariant aWidget::value(const QString &nameWidget)
 {
-	QObject *w;
-	QVariant res;
-/*
-	aObject *o = 0;
-        if ( mainWidget ) o = mainWidget->dataObject();
-        if ( o ) {
-                res = o->Value( name );
-        }
-        if ( res.type() != QVariant::Invalid ) return res;
-        else printf("no field %s in data object\n", ( const char *) name );
-*/
-	w = Widget( nameWidget );
-	if ( w ) {
-		if (w->inherits("aWidget")){
-			res=( (aWidget*)w )->textValue();//value();
-//		} else if (w->inherits("wField")){
-//			res=( (wField*)w )->text();//value();
-		} else if (!strcmp(w->className(),"QPushButton")){
-			res=((QPushButton *)w)->text();
-		} else if (!strcmp(w->className(),"QLabel")){
-			res=((QLabel*)w)->text();
-		} else if (!strcmp(w->className(),"QLineEdit")){
-			res=((QLineEdit*)w)->text();
-		} else if (!strcmp(w->className(),"QCheckBox")){
-			res=((QCheckBox*)w)->text();
-		} else if (!strcmp(w->className(),"QDateEdit")){
-			res=((Q3DateEdit*)w)->date().toString(Qt::ISODate);
-		}
-	} else {
-	//	debug_message(tr("Error! Can't find widget by name==`%s`\n"),(const char*) name.local8Bit());
+    QWidget *w;
+    QVariant res;
 
-		aLog::print(aLog::Error, tr("aWidget value not fount widget with name %1").arg(nameWidget) );
-	}
-	return res;
-//	if ( dbobj ) return dbobj->Value(name);
-//CHECK_POINT
-//	return QVariant("");
+    w = Widget(nameWidget);
+    if (w) {
+        if (w->inherits("aWidget")) {
+            res = ((aWidget*)w)->textValue();
+        } else if (qobject_cast<QPushButton*>(w)) {
+            res = ((QPushButton*)w)->text();
+        } else if (qobject_cast<QLabel*>(w)) {
+            res = ((QLabel*)w)->text();
+        } else if (qobject_cast<QLineEdit*>(w)) {
+            res = ((QLineEdit*)w)->text();
+        } else if (qobject_cast<QCheckBox*>(w)) {
+            res = ((QCheckBox*)w)->text();
+        } else if (qobject_cast<QDateEdit*>(w)) {
+            res = ((QDateEdit*)w)->date().toString(Qt::ISODate);
+        }
+    } else {
+        aLog::print(aLog::Error, tr("aWidget value not fount widget with name %1").arg(nameWidget));
+    }
+    return res;
 }
 
 
@@ -839,35 +795,31 @@ aWidget::value( const QString & nameWidget )
  		\~russian Значение виджета.
 		\~
  */
-int
-aWidget::setValue( const QString & nameWidget, const QVariant &value )
+int aWidget::setValue(const QString &nameWidget, const QVariant &value)
 {
-	QObject *w;
-	int	rc= err_noerror;
+    QWidget *w;
+    int rc = err_noerror;
 
-	w = Widget( nameWidget );
-	if ( w ) {
-		if (w->inherits("wField")){
-			((aWidget*)w)->setValue(value.toString());
-//		} else if (w->inherits("wField")){
-//			((wField*)w)->setValue(value.toString());
-		} else if (!strcmp(w->className(),"QPushButton")){
-			((QPushButton *)w)->setText( value.toString() );
-		} else if (!strcmp(w->className(),"QLabel")){
-			((QLabel*)w)->setText( value.toString() );
-		} else if (!strcmp(w->className(),"QLineEdit")){
-			((QLineEdit*)w)->setText( value.toString() );
-		} else if (!strcmp(w->className(),"QCheckBox")){
-			((QCheckBox*)w)->setText(value.toString() );
-		} else if (!strcmp(w->className(),"QDateEdit")){
-			((Q3DateEdit*)w)->setDate( value.toDate() );
-		}
-	} else {
-		//debug_message(tr("aForm::SetValue() Error! Can't find widget by name==`%s`\n"),(const char*) name.local8Bit());
-		aLog::print(aLog::Error, tr("aWidget set value: not fount widget with name %1").arg(nameWidget) );
-		rc = err_nowidgetfound;
-	}
-	return rc;
+    w = Widget(nameWidget);
+    if (w) {
+        if (w->inherits("wField")) {
+            ((aWidget*)w)->setValue(value.toString());
+        } else if (qobject_cast<QPushButton*>(w)) {
+            ((QPushButton*)w)->setText(value.toString());
+        } else if (qobject_cast<QLabel*>(w)) {
+            ((QLabel*)w)->setText(value.toString());
+        } else if (qobject_cast<QLineEdit*>(w)) {
+            ((QLineEdit*)w)->setText(value.toString());
+        } else if (qobject_cast<QCheckBox*>(w)) {
+            ((QCheckBox*)w)->setText(value.toString());
+        } else if (qobject_cast<QDateEdit*>(w)) {
+            ((QDateEdit*)w)->setDate(value.toDate());
+        }
+    } else {
+        aLog::print(aLog::Error, tr("aWidget set value: not fount widget with name %1").arg(nameWidget));
+        rc = err_nowidgetfound;
+    }
+    return rc;
 }
 
 
@@ -946,32 +898,29 @@ aWidget::isContainer()
  *\~
  *\param status - \~english New readonly flag.\~russian Новое значение флага только чтение.\~
  */
-void
-aWidget::SetReadOnly ( bool status )
+void aWidget::SetReadOnly(bool status)
 {
-//CHECK_POINT
-	QObjectList l;// = this->queryList( "wField" );
-	QObject *obj;
-	l = this->queryList( "aWidget" );
-	QListIterator<QObject*> itl( l );
-	while ( itl.hasNext() )
-	{
-//	CHECK_POINT
-		obj = itl.next();
-		(( aWidget *)obj)->SetReadOnly( status );
-	}
-	//--delete l; // delete the list, not the objects
-	l = this->queryList( "QFrame" );
-	QListIterator<QObject*> tl( l );
-	while ( tl.hasNext() )
-	{
-		//printf("QFrame classname '%s'\n", (const char*) obj->className() );
-		obj = tl.next();
-		if (obj->inherits("QTable")) (( Q3Table * )obj)->setReadOnly(true);
-		//else (( QFrame *)obj)->setDisabled( status );
-	}
-	//--delete l; // delete the list, not the objects
-	//--l=0;
+    QObject *obj;
+
+    const QList<aWidget*> widgets = this->findChildren<aWidget*>();
+    QList<aWidget*>::const_iterator itl = widgets.begin();
+    while (itl != widgets.end())
+    {
+        obj = *itl;
+        if (obj && obj != this)
+            ((aWidget *)obj)->SetReadOnly(status);
+        ++itl;
+    }
+
+    const QList<QFrame*> frames = this->findChildren<QFrame*>();
+    QList<QFrame*>::const_iterator tl = frames.begin();
+    while (tl != frames.end())
+    {
+        obj = *tl;
+        if (obj->inherits("QTableWidget"))
+            ((QWidget *)obj)->setDisabled(status);
+        ++tl;
+    }
 }
 
 
@@ -1003,7 +952,7 @@ aWidget::widgetName(QWidget *obj)
 		}
 		else
 		{
-			res=obj->name();
+			res = obj->objectName();
 		}
 	}
 	return res;
@@ -1018,23 +967,24 @@ aWidget::widgetName(QWidget *obj)
  *\~russian
  *\~
 */
-QWidget*
-aWidget::Widget( QWidget *owner, QString name )
+QWidget *aWidget::Widget(QWidget *owner, QString name)
 {
-	QWidget *res = 0;
-	QWidget* obj;
-	QObjectList list = owner->queryList("QWidget");
+    QWidget *res = 0;
+    const QList<QWidget*> list = owner->findChildren<QWidget*>();
 
-	QListIterator<QObject*> it(list);
-	while ( it.hasNext() ) {
-			obj = qobject_cast<QWidget*>(it.next());
-			if (!obj) continue;
-			if ( name == aWidget::widgetName( obj ) ) {
-				res = obj;
-				break;
-			}
-	}
-	return res;
+    QList<QWidget*>::const_iterator it = list.begin();
+    while (it != list.end())
+    {
+        QWidget *obj = *it;
+        if (name == aWidget::widgetName(obj))
+        {
+            res = obj;
+            break;
+        }
+        ++it;
+    }
+
+    return res;
 }
 
 

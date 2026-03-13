@@ -29,9 +29,17 @@
 
 #ifndef AMETADATAOIXML_H
 #define AMETADATAIOXML_H
+
+
 #include "ametadataio.h"
 #include <QDomDocument>
 #include <QDomElement>
+
+#include <QDateTime>
+#include <QObject>
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
 
 class AMetaDataIOXML: public AMetaDataIO
 {
