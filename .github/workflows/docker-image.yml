@@ -14,23 +14,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - group: extensions
-            module: aextsql
-          - group: extensions
-            module: example
-          - group: extensions
-            module: meta
-          - group: extensions
-            module: service
-          - group: extensions
-            module: text
-          - group: extensions
-            module: xml
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,7 +37,7 @@ jobs:
               make -j1
             "
 
-      - name: Build lib
+      - name: Build Ananas core library
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
@@ -65,14 +48,13 @@ jobs:
               make -j1
             "
 
-      - name: Build module
+      - name: Build extensions
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
-            -w /workspace \
+            -w /workspace/src/extensions \
             ananas-ci:latest \
             bash -lc "
-              cd src/${{ matrix.group }}/${{ matrix.module }}
               qmake-qt4
               make -j1
             "
