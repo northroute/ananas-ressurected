@@ -84,7 +84,8 @@ cfg_message(int msgtype, const char *msgfmt,...){
 			if (msgtype==1) ts=(char *)"- ";
 			if (msgtype==2) ts=(char *)"! ";
 			if (msgtype==2) ts=(char *)"!!! ";
-			printf("%s%s", ts, (const char *) QString::fromUtf8(msg).local8Bit());
+			QByteArray ba = QString::fromUtf8(msg).toLocal8Bit();
+			printf("%s%s", ts, ba.constData());
 		}
 	}
 }
@@ -106,7 +107,8 @@ debug_message(const char *msgfmt,...){
 		vsnprintf(msg, sizeof(msg)-1, msgfmt, args);
 		va_end(args);
 	 	printf("debug");
-		printf("> %s", (const char *) QString::fromUtf8(msg).local8Bit());
+		QByteArray ba = QString::fromUtf8(msg).toLocal8Bit();
+		printf("> %s", ba.constData());
 	}
 #endif
 }
@@ -137,12 +139,12 @@ aCfgItemContaner::aCfgItemContaner(long newid, aCfgItem newitem)
  *	Конструктор объекта конфигурации АНАНАС.
  *\~
  */
-aCfg::aCfg() : QObject(0, "Metadata"), xml( md_root )
+aCfg::aCfg() : QObject(0), xml(md_root)
 {
-	setCompressed( false );
-	setModified( false );
-	idcache.setAutoDelete( TRUE );
-	createNew();
+    setObjectName("Metadata");
+    setCompressed(false);
+    setModified(false);
+    createNew();
 }
 
 
@@ -219,7 +221,7 @@ int
 aCfg::write(QDomDocument doc, const QString &fname)
 {
     QFile file( fname );
-    QByteArray buf( xml.toString(4).utf8() );
+    QByteArray buf(xml.toString(4).toUtf8());
     if ( file.open( QIODevice::WriteOnly ) ) {
 	QTextStream ts( &file );
 	//--ts.setEncoding(Q3TextStream::UnicodeUTF8);
@@ -538,24 +540,21 @@ aCfg::find(aCfgItem context, const QString &name, int n)
  * 	\return ссылку на элемент метаданных
  * \_ru
  */
-aCfgItem
-aCfg::find(long id)
+aCfgItem aCfg::find(long id)
 {
-	long idl = id;
-	aCfgItem i;
-	aCfgItemContaner *ic;
+    long idl = id;
+    aCfgItem i;
+    aCfgItemContaner *ic = 0;
 
-	if ( id == 0 || id == mdc_metadata ) return md;
-	if ( id == mdc_root ) return rootnode;
-	if ( id == mdc_info ) return cfginfo;
-	if ( id == mdc_interface ) return iface;
-	if ( id == mdc_actions ) return actions;
+    if ( id == 0 || id == mdc_metadata ) return md;
+    if ( id == mdc_root ) return rootnode;
+    if ( id == mdc_info ) return cfginfo;
+    if ( id == mdc_interface ) return iface;
+    if ( id == mdc_actions ) return actions;
 
-	ic = idcache.find( idl );
-	if (ic) i = ic->item;
-//	if (!i.isNull()) printf("!founded id=%li\n", id);
-//	else printf("!NOT founded id=%li\n", id);
-	return i;
+    ic = idcache.value(idl, 0);
+    if (ic) i = ic->item;
+    return i;
 }
 
 /*!
@@ -845,7 +844,7 @@ aCfg::binary( aCfgItem context )
 	bool ok;
 	QString vs = text( context );
 	blen = attr( context, mda_length ).toInt();
-	QByteArray b( blen );
+	QByteArray b(blen, 0);
 	for ( i=0; i < blen; i++ ){
 		d = 0xff & vs.mid( i*2, 2 ).toInt( &ok, 16 );
 		if ( ok ) b.data()[ i ] = d;
@@ -869,7 +868,7 @@ aCfg::setBinary( aCfgItem context, const QByteArray &value, const QString &forma
 	unsigned int i, d;
 	for ( i=0; i<value.count(); i++) {
 		d = ( unsigned char ) value.data()[i];
-		s = QString("00")+QString::number( d, 16 ).upper();
+		s = QString("00")+QString::number( d, 16 ).toUpper();
 		vs += s.right(2);
 	}
 	setText( context, vs );
@@ -1604,7 +1603,7 @@ aCfg::getJournalDocuments( aCfgItem journal )
 					{
 						dobj = find( jobj, md_used_doc, j );
 						QString str = text(dobj);
-						l.remove ( str );
+						l.removeAll( str );
 					}
 				}
 			}

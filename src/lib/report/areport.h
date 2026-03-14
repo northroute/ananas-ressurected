@@ -31,9 +31,24 @@
 #ifndef AREPORT_H
 #define AREPORT_H
 
+
 #include <QMainWindow>
 #include <QTextBrowser>
 #include <QMdiArea>
+#include <QLayout>
+#include <QToolBar>
+#include <QAction>
+#include <QVBoxLayout>
+#include <QTextDocument>
+#include <QPainter>
+#include <QPaintDevice>
+#include <QKeySequence>
+#include <QPrinter>
+#include <QProcess>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QPixmap>
+#include <QPrintDialog>
 
 #include "acfg.h"
 #include "aobject.h"

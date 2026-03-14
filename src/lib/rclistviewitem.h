@@ -26,46 +26,43 @@
 ** not clear to you.
 **
 **********************************************************************/
+
+
 #ifndef RCLISTVIEWITEM_H
 #define RCLISTVIEWITEM_H
 
-//#include <qdir.h>
-//#include <qstring.h>
-#include <q3listview.h>
-//#include <qlineedit.h>
-//#include <qstring.h>
+#include <QPixmap>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
-//#include "deditrc.h"
-//#include "acfgrc.h"
-//#include "atests.h"
+class QTreeWidget;
+class QTreeWidgetItem;
 
-class Q3ListView;
-class Q3ListViewItem;
-
-class rcListViewItem : public Q3ListViewItem
+class rcListViewItem : public QTreeWidgetItem
 {
 public:
-	QString rcfile;
-	bool group;
+    QString rcfile;
+    bool group;
 
-	rcListViewItem( Q3ListView *parent,
-			const QString &name = QString::null,
-			const QString &rc = QString::null,
-			bool fgroup = false );
+    rcListViewItem(QTreeWidget *parent,
+                   const QString &name = QString(),
+                   const QString &rc = QString(),
+                   bool fgroup = false);
 
-	rcListViewItem( Q3ListView *parent,
-			rcListViewItem* after,
-			const QString &name = QString::null,
-			const QString &rc = QString::null,
-			bool fgroup = false );
+    rcListViewItem(QTreeWidget *parent,
+                   rcListViewItem* after,
+                   const QString &name = QString(),
+                   const QString &rc = QString(),
+                   bool fgroup = false);
 
-	rcListViewItem( rcListViewItem *parent,
-			const QString &name = QString::null,
-			const QString &rc = QString::null,
-			bool fgroup = false );
+    rcListViewItem(rcListViewItem *parent,
+                   const QString &name = QString(),
+                   const QString &rc = QString(),
+                   bool fgroup = false);
 
-	virtual ~rcListViewItem();
-	void init( const QString &rc = QString::null, bool fgroup = false );
+    virtual ~rcListViewItem();
+    void init(const QString &rc = QString(), bool fgroup = false);
 };
-#endif
 
+
+#endif

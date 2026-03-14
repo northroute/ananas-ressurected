@@ -28,14 +28,6 @@
 **
 **********************************************************************/
 
-#include <qdatetime.h>
-//#include <qobject.h>
-#include <qfile.h>
-#include <qstringlist.h>
-#include <QTextStream>
-#include <QDomDocument>
-#include <QMutex>
-
 #include "ametaobject.h"
 #include "ametaobjectgroup.h"
 
@@ -75,15 +67,14 @@ AMetaObject::~AMetaObject()
 
 
 
-Q_ULONG 
-AMetaObject::id()
+quint32 AMetaObject::id()
 {
     return v_id;
 }
 
 
 void 
-AMetaObject::setId( Q_ULONG new_id )
+AMetaObject::setId( quint32 new_id )
 {
     v_id = new_id;
 }

@@ -34,6 +34,14 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 
+#include <QObject>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlRecord>
+#include <QtSql/QSqlField>
+#include <QDialog>
+#include <QLineEdit>
+#include <QLabel>
+
 #include "ananas.h"
 
 class QWidget;

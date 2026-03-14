@@ -31,9 +31,6 @@
 #include "acalctemplate.h"
 #include "alog.h"
 
-#include <qdom.h>
-#include <qregexp.h>
-
 
 aCalcTemplate::aCalcTemplate() : aOOTemplate()
 {
@@ -56,39 +53,37 @@ aCalcTemplate::~aCalcTemplate()
  *	\param params - \~english true, if find simple tag and false, if section
  *			\~russian true, если ищется обычный тег и false, если ищется тег секции \~
  */
-bool
-aCalcTemplate::getNodeTags(QDomNode node, const QString &tagname, bool params )
+bool aCalcTemplate::getNodeTags(QDomNode node, const QString &tagname, bool params)
 {
-  	if(node.isText())
-	{
-		QString str = node.nodeValue();
-		QRegExp re;
-	//	printf("n->text=%s\n",str.ascii());
-		if(params)
-		{
-			re.setPattern(QString("%1.*%2").arg(open_token).arg(close_token));
-		}
-		else
-		{
-			re.setPattern(QString("%1.*%2").arg(open_token_section).arg(close_token_section));
-		}
-		re.setMinimal(true);
-		int pos = re.search(str,0);
+    if (node.isText())
+    {
+        QString str = node.nodeValue();
+        QRegExp re;
 
-		while(pos != -1)
-		{
-	//		printf("find string =%s\n",str.mid(pos+2, re.matchedLength()-4).ascii());
-			if(tagname == str.mid(pos+2, re.matchedLength()-4))
-			{
-	//			printf(">>>>>>>>>ok!\n");
-				return true;
-			}
-			pos+= re.matchedLength();
-			pos = re.search(str,pos);
-		}
+        if (params)
+        {
+            re.setPattern(QString("%1.*%2").arg(open_token).arg(close_token));
+        }
+        else
+        {
+            re.setPattern(QString("%1.*%2").arg(open_token_section).arg(close_token_section));
+        }
 
-	}
- return false;
+        re.setMinimal(true);
+        int pos = re.indexIn(str, 0);
+
+        while (pos != -1)
+        {
+            if (tagname == str.mid(pos + 2, re.matchedLength() - 4))
+            {
+                return true;
+            }
+
+            pos += re.matchedLength();
+            pos = re.indexIn(str, pos);
+        }
+    }
+    return false;
 }
 
 

@@ -3,6 +3,10 @@
 
 #include "ui_dlogin.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 
 class ANANAS_EXPORT dLogin : public QDialog, public Ui::dLogin
 {

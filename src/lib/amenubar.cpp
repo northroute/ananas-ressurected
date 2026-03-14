@@ -31,109 +31,127 @@
  ******************************************************************/
 
 #include "amenubar.h"
-//Added by qt3to4:
-#include <Q3PopupMenu>
-#include <QPixmap>
 
 
-AMenuBar::AMenuBar( QWidget* parent , const char* name  )
-	:QMenuBar( parent, name ) {
-
+AMenuBar::AMenuBar(QWidget* parent, const char* name) : QMenuBar(parent)
+{
+    if (name)
+        setObjectName(name);
 }
 
-AMenuBar::AMenuBar( aCfg *cfg, QWidget* parent , const char* name  )
-:QMenuBar( parent, name )
+AMenuBar::AMenuBar(aCfg *cfg, QWidget* parent, const char* name) : QMenuBar(parent)
 {
-	md = cfg;
-	ReadMenu( md->find( md->find( mdc_interface ), md_mainmenu) );
+    if (name)
+        setObjectName(name);
+
+    md = cfg;
+    ReadMenu(md->find(md->find(mdc_interface), md_mainmenu));
 }
 
-void
-AMenuBar::ReadMenu( aCfgItem obj )
+void AMenuBar::ReadMenu(aCfgItem obj)
 {
-	aCfgItem	cobj;
-	Q3PopupMenu	*parent;
-	QString		text, aKey ;
-	long 		id;
+    aCfgItem cobj;
+    QMenu *parent;
+    QString text, aKey;
+    long id;
 
-	if ( !md )
-		return;
-	cobj = md->firstChild ( obj );
-	while ( !cobj.isNull() )
-	{
-		id = md->id( cobj );
-		if ( md->objClass ( cobj ) == md_submenu )
-		{
-			parent = new Q3PopupMenu ();
-			insertItem( md->attr( cobj, mda_name ), parent );
-			ReadMenu( parent, cobj );
-		}
-		if ( md->objClass ( cobj ) == md_command )
-		{
-			text = md->sText ( cobj, md_menutext );
-			if ( text == "" ) text = md->attr( cobj, mda_name );
-			aKey = md->sText ( cobj, md_key );
-			QMenuBar::insertItem( text, this, SLOT(on_Item()), QKeySequence( aKey ), id );
-		}
-		if ( md->objClass ( cobj ) == md_separator )
-		{
-			insertSeparator();
-		}
-		cobj = md->nextSibling ( cobj );
-	}
+    if (!md)
+        return;
 
+    cobj = md->firstChild(obj);
+    while (!cobj.isNull())
+    {
+        id = md->id(cobj);
+
+        if (md->objClass(cobj) == md_submenu)
+        {
+            parent = new QMenu(this);
+            parent->setTitle(md->attr(cobj, mda_name));
+            addMenu(parent);
+            ReadMenu(parent, cobj);
+        }
+
+        if (md->objClass(cobj) == md_command)
+        {
+            text = md->sText(cobj, md_menutext);
+            if (text == "")
+                text = md->attr(cobj, mda_name);
+
+            aKey = md->sText(cobj, md_key);
+
+            QAction *act = addAction(text, this, SLOT(on_Item()));
+            act->setShortcut(QKeySequence(aKey));
+            act->setData(QVariant((int)id));
+        }
+
+        if (md->objClass(cobj) == md_separator)
+        {
+            addSeparator();
+        }
+
+        cobj = md->nextSibling(cobj);
+    }
 }
 
-void
-AMenuBar::ReadMenu( Q3PopupMenu *parent, aCfgItem obj )
+void AMenuBar::ReadMenu(QMenu *parent, aCfgItem obj)
 {
-	aCfgItem	cobj, apix;
-	Q3PopupMenu	*mparent;
-	QString		text, aKey;
-	long id, pid;
-    QPixmap		pix;
+    aCfgItem cobj, apix;
+    QMenu *mparent;
+    QString text, aKey;
+    long id, pid;
+    QPixmap pix;
 
-	if ( !md )
-		return;
+    if (!md)
+        return;
 
-	cobj = md->firstChild ( obj );
-	while ( !cobj.isNull() )
-	{
-		id = md->id( cobj );
-		if ( md->objClass ( cobj ) == md_submenu )
-		{
-			mparent = new Q3PopupMenu ();
-			parent->insertItem( md->attr ( cobj, mda_name ), mparent );
-			ReadMenu( mparent, cobj );
-		}
-		if ( md->objClass ( cobj ) == md_command )
-		{
-			text = md->sText ( cobj, md_menutext );
-			if ( text == "" )
-				text = md->attr( cobj, mda_name );
-			aKey = md->sText ( cobj, md_key );
-			pid = md->text( md->findChild( cobj, md_comaction, 0 ) ).toLong();
-			apix = md->findChild( md->find( pid ), md_active_picture, 0 );
-			pix.loadFromData( md->binary( apix ) );
-			parent->insertItem( pix, text, this, SLOT(on_Item()), QKeySequence( aKey ), id );
-			pix = 0;
-		}
-		if ( md->objClass ( cobj ) == md_separator )
-		{
-			parent->insertSeparator();
-		}
-		cobj = md->nextSibling ( cobj );
-	}
+    cobj = md->firstChild(obj);
+    while (!cobj.isNull())
+    {
+        id = md->id(cobj);
 
+        if (md->objClass(cobj) == md_submenu)
+        {
+            mparent = parent->addMenu(md->attr(cobj, mda_name));
+            ReadMenu(mparent, cobj);
+        }
+
+        if (md->objClass(cobj) == md_command)
+        {
+            text = md->sText(cobj, md_menutext);
+            if (text == "")
+                text = md->attr(cobj, mda_name);
+
+            aKey = md->sText(cobj, md_key);
+            pid = md->text(md->findChild(cobj, md_comaction, 0)).toLong();
+            apix = md->findChild(md->find(pid), md_active_picture, 0);
+            pix.loadFromData(md->binary(apix));
+
+            QAction *act = parent->addAction(pix, text, this, SLOT(on_Item()));
+            act->setShortcut(QKeySequence(aKey));
+            act->setData(QVariant((int)id));
+        }
+
+        if (md->objClass(cobj) == md_separator)
+        {
+            parent->addSeparator();
+        }
+
+        cobj = md->nextSibling(cobj);
+    }
 }
 
 
 AMenuBar::~AMenuBar(){
 }
 
-int AMenuBar::insertItem ( const QString & text, Q3PopupMenu * popup, int id, int index ) {
-	return QMenuBar::insertItem ( text, popup, id, index);
-};
+int AMenuBar::insertItem(const QString &text, QMenu *popup, int id, int index)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(index);
+    popup->setTitle(text);
+    addMenu(popup);
+    return 0;
+}
 
 /*
 int

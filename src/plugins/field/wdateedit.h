@@ -30,10 +30,11 @@
 #ifndef WDATEEDIT_H
 #define WDATEEDIT_H
 
-#include <qlabel.h>
-#include <q3datetimeedit.h>
-//Added by qt3to4:
+
+#include <QLabel>
+#include <QDateTimeEdit>
 #include <QFocusEvent>
+#include <QDateEdit>
 
 /*!
  * \en Unknown field editor. \_en
@@ -46,8 +47,10 @@ class wUnknownField : public QLabel
 {
 	Q_OBJECT
 public:
-    wUnknownField( QWidget *parent = 0, const char *name = 0):QLabel(parent, name){};
-
+    wUnknownField(QWidget *parent = 0, const char *name = 0) : QLabel(parent)
+	{
+		setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+	}
 };
 
 
@@ -60,7 +63,7 @@ public:
  *
  * \_ru
  */
-class wDateEdit : public Q3DateEdit
+class wDateEdit : public QDateEdit
 {
 	Q_OBJECT
 public:

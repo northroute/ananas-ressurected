@@ -31,15 +31,17 @@
 #ifndef QADBFIELD_H
 #define QADBFIELD_H
 
-#include <qwidget.h>
-#include <qwidgetplugin.h>
-#include <qlabel.h>
-#include <qobject.h>
-#include <qlayout.h>
-#include <q3socket.h>
-#include <qeventloop.h>
-//Added by qt3to4:
-#include <Q3ValueList>
+
+#include <cstdlib>
+#include <QListWidget>
+#include <QWidget>
+#include <QLabel>
+#include <QObject>
+#include <QLayout>
+#include <QTcpSocket>
+#include <QEventLoop>
+#include <QList>
+
 #include "adatabase.h"
 #include "acfg.h"
 #include "wfield.h"
@@ -86,7 +88,7 @@ public:
 protected:
 	QStringList	getFields();
 	void		init();
-	Q3ValueList<qulonglong> getBindList();
+	QList<qulonglong> getBindList();
 	void		setEditorType(void);
 
 	QString		FieldName;

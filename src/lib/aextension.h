@@ -33,7 +33,7 @@
 
 #include "ananasglobal.h"
 #include "adatabase.h"
-#include <qobject.h>
+#include <QObject>
 
 /**
  * \en

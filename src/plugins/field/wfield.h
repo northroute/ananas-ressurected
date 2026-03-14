@@ -31,15 +31,27 @@
 #ifndef QAFIELD_H
 #define QAFIELD_H
 
-#include <qwidget.h>
-#include <qwidgetplugin.h>
-#include <qpushbutton.h>
-#include <qlabel.h>
-#include <q3datetimeedit.h>
-#include <qcheckbox.h>
-#include "qlineedit.h"
-//Added by qt3to4:
+
+#include <QLineEdit>
+#include <QLayout>
+#include <QComboBox>
+#include <QMessageBox>
+#include <QDomDocument>
+#include <QValidator>
+#include <QLabel>
+#include <QListWidget>
+#include <QSizePolicy>
+#include <QGroupBox>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QFrame>
 #include <QKeyEvent>
+
+#include <QWidget>
+#include <QtDesigner/QDesignerCustomWidgetInterface>
+#include <QDateTimeEdit>
+#include <QCheckBox>
+
 #include "wdateedit.h"
 #include "adatabase.h"
 #include "ananas.h"

@@ -29,12 +29,6 @@
 #include "aextensionfactory.h"
 #include <aextension.h>
 #include <aextensionplugin.h>
-#include <qapplication.h>
-#include <qobject.h>
-#include <QHash>
-#include <QStringList>
-#include <QDir>
-#include <QPluginLoader>
 
 class AExtensionFactoryPrivate : public QObject
 {
@@ -93,18 +87,17 @@ AExtensionFactoryPrivate::~AExtensionFactoryPrivate()
 
     \sa keys()
 */
-AExtension *AExtensionFactory::create( const QString& key )
+AExtension *AExtensionFactory::create(const QString& key)
 {
     AExtension *ret = 0;
     AExtensionInterface *iface = 0;
-//    QString extension = key;
 
-    if ( !instance ) instance = new AExtensionFactoryPrivate();
-    if ( instance->hash.contains( key ) ){
-        iface = instance->hash.value( key );
-        if ( iface ) ret = iface->create(); 
+    if (!instance) instance = new AExtensionFactoryPrivate();
+    if (instance->hash.contains(key)) {
+        iface = instance->hash.value(key);
+        if (iface) ret = iface->create();
     }
-    if (ret) ret->setName(key);
+    if (ret) ret->setObjectName(key);
     return ret;
 }
 

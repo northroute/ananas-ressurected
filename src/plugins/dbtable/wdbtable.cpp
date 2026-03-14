@@ -30,23 +30,6 @@
 **********************************************************************/
 
 //--#include <qfocusdata.h>
-#include <stdlib.h>
-#include <qpainter.h>
-#include <qmessagebox.h>
-//Added by qt3to4:
-#include <QContextMenuEvent>
-#include <Q3HBoxLayout>
-#include <QKeyEvent>
-#include <Q3SqlPropertyMap>
-#include <Q3ValueList>
-#include <Q3SqlCursor>
-#include <QPixmap>
-#include <Q3Frame>
-#include <q3mimefactory.h>
-#include <Q3PopupMenu>
-#include <QEvent>
-#include <Q3SqlFieldInfo>
-#include <QPointer>
 //--#include "propertyeditor.h"
 //--#include "command.h"
 //--#include "formwindow.h"

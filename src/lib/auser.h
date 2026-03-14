@@ -34,7 +34,7 @@
 #include "adatabase.h"
 #include "acfg.h"
 #include "aobject.h"
-#include <QList>
+#include <QList> // вместо <Q3ValueList>
 
 
 

@@ -28,13 +28,6 @@
 **
 **********************************************************************/
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <qfile.h>
-#include <qdir.h>
-#include <QTextStream>
-
 #include "atemplate.h"
 #include "alog.h"
 
@@ -52,20 +45,22 @@ aTemplate::~aTemplate()
 
 
 
-bool
-aTemplate::open( const QString &fname )
+bool aTemplate::open(const QString &fname)
 {
-	QFile file( QDir::convertSeparators(QDir::currentDirPath()+"/"+templateDir+"/"+fname) );
-    if ( file.open( QIODevice::ReadOnly ) )
+    QString path = QDir::toNativeSeparators(
+        QDir::currentPath() + "/" + templateDir + "/" + fname);
+
+    QFile file(path);
+    if (file.open(QIODevice::ReadOnly))
     {
-        QTextStream stream( &file );
-        tpl = stream.read();
+        QTextStream stream(&file);
+        tpl = stream.readAll();
         file.close();
-	return true;
+        return true;
     }
     else
     {
-	    return false;
+        return false;
     }
 }
 
@@ -79,20 +74,17 @@ aTemplate::close()
 
 
 
-QString
-aTemplate::getValue( const QString &name )
+QString aTemplate::getValue(const QString &name)
 {
-	QString * pStr=values.find( name );
-	return pStr==0?(QString::null):*pStr;
+    return values.value(name);
 }
 
-
-
-void
-aTemplate::setValue( const QString &name, const QString &value )
+void aTemplate::setValue(const QString &name, const QString &value)
 {
-    values.remove( name );
-    if ( !value.isEmpty() ) values.insert( name, new QString( value ) );
+    if (value.isEmpty())
+        values.remove(name);
+    else
+        values.insert(name, value);
 }
 
 
@@ -104,83 +96,85 @@ aTemplate::freeValues()
 }
 
 
-QString
-aTemplate::exec( const QString &sname )
+QString aTemplate::exec(const QString &sname)
 {
     int c = 0, c1 = 0, sec_start = 0, sec_end = 0, sec_len = 0, sfound = 0, l;
     QString token, tname, tparam, sec_buf = "", v;
 
-    if ( tpl.isEmpty() ) return "";
+    if (tpl.isEmpty()) return QString();
 
-    while ( !sfound ) {
-	sec_len = 0;
-	c = tpl.find( token_open, c );
-	if ( c >= 0 ) {
-	    c += strlen( token_open );
-	    c1 = tpl.find( token_close, c );
-	    if ( c1 >= 0 ) {
-		l = c1 - c;
-		token = tpl.mid( c, l );
-		tname = token.section( " ", 0, 0 );
-		tparam = token.section( " ", 1, 1 );
-		if ( tname == "section" && tparam == sname ) {
-		    sec_end = tpl.find( QString(token_open"endsection"token_close), c1 );
-		    if ( sec_end > 0 ) {
-			sfound = 1;
-			sec_start = c1 + QString( token_close ).length();
-			sec_len = sec_end - sec_start;
-		    } else break;
-		}
-	    } else break;
-	} else break;
+    while (!sfound) {
+        sec_len = 0;
+        c = tpl.indexOf(token_open, c);
+        if (c >= 0) {
+            c += strlen(token_open);
+            c1 = tpl.indexOf(token_close, c);
+            if (c1 >= 0) {
+                l = c1 - c;
+                token = tpl.mid(c, l);
+                tname = token.section(" ", 0, 0);
+                tparam = token.section(" ", 1, 1);
+                if (tname == "section" && tparam == sname) {
+                    sec_end = tpl.indexOf(QString(token_open "endsection" token_close), c1);
+                    if (sec_end > 0) {
+                        sfound = 1;
+                        sec_start = c1 + QString(token_close).length();
+                        sec_len = sec_end - sec_start;
+                    } else break;
+                }
+            } else break;
+        } else break;
     }
 
-    if ( sfound && sec_len ) {
-	c = sec_start;
-	while ( c < sec_end ) {
-	    c1 = tpl.find( token_open, c );
-	    l = c1 - c;
-	    if ( l ) sec_buf.append( tpl.mid( c, l ) );
-	    if ( c1 < sec_end ) {
-		c = c1 + QString( token_open ).length();
-		c1 = tpl.find( token_close, c );
-		if ( c1 ) {
-		    l = c1 - c;
-		    token = tpl.mid( c, l );
-    		    tname = token.section( " ", 0, 0 );
-		    tparam = token.section( " ", 1, 1 );
-		    c1 += QString( token_close ).length();
-		    v = getValue( tname );
-		    if ( !v.isEmpty() ) sec_buf.append( v );
-		} else break;
-	    }
-	    c = c1;
-	}
+    if (sfound && sec_len) {
+        c = sec_start;
+        while (c < sec_end) {
+            c1 = tpl.indexOf(token_open, c);
+            l = c1 - c;
+            if (l) sec_buf.append(tpl.mid(c, l));
+            if (c1 < sec_end) {
+                c = c1 + QString(token_open).length();
+                c1 = tpl.indexOf(token_close, c);
+                if (c1 >= 0) {
+                    l = c1 - c;
+                    token = tpl.mid(c, l);
+                    tname = token.section(" ", 0, 0);
+                    tparam = token.section(" ", 1, 1);
+                    c1 += QString(token_close).length();
+                    v = getValue(tname);
+                    if (!v.isEmpty()) sec_buf.append(v);
+                } else break;
+            }
+            c = c1;
+        }
     }
-    buf.append( sec_buf );
-//	printf("%s",( const char *) sec_buf.local8Bit() );
+
+    buf.append(sec_buf);
     return sec_buf;
 }
 
 
 
-bool
-aTemplate::save( const QString & fname)
+bool aTemplate::save(const QString &fname)
 {
-	QFile file( QDir::convertSeparators(QDir::currentDirPath()+"/"+templateDir+"/"+fname) );
-	if ( file.open( QIODevice::WriteOnly ) )
-	{
-		QTextStream stream( &file );
-		stream << result();
-		file.close();
-		aLog::print(aLog::Info, tr("aTemplate save file %1").arg(file.name()));
-		return true;
-	}
-	else
-	{
-		aLog::print(aLog::Error, tr("aTemplate save file %1").arg(file.name()));
-		return false;
-	}
+    QString path = QDir::toNativeSeparators(
+        QDir::currentPath() + "/" + templateDir + "/" + fname);
+
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        QTextStream stream(&file);
+        stream << result();
+        file.close();
+
+        aLog::print(aLog::Info, tr("aTemplate save file %1").arg(file.fileName()));
+        return true;
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("aTemplate save file %1").arg(file.fileName()));
+        return false;
+    }
 }
 
 

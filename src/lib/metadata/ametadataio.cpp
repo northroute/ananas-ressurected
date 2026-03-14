@@ -28,13 +28,6 @@
 **
 **********************************************************************/
 
-#include <qdatetime.h>
-#include <qobject.h>
-#include <qfile.h>
-#include <qstringlist.h>
-#include <QTextStream>
-#include <QDomDocument>
-
 #include "ametadataio.h"
 
 /*!

@@ -93,16 +93,17 @@ aWindowsList::remove( int id, qulonglong ido )
  *	\~
  *	\param window - \~english link to form \~russian ссылка на форму \~
  */
-void
-aWindowsList::remove( QWidget *window )
+void aWindowsList::remove(QWidget *window)
 {
-    Q3DictIterator<QWidget> it( list );
-    for ( ; it.current(); ++it )
+    QMap<QString, QWidget*>::iterator it;
+
+    for (it = list.begin(); it != list.end(); ++it)
     {
-	if ( it.current() == window ) {
-	    list.remove( it.currentKey() );
-	    break;
-	}
+        if (it.value() == window)
+        {
+            list.erase(it);
+            break;
+        }
     }
 }
 
@@ -116,11 +117,9 @@ aWindowsList::remove( QWidget *window )
  *	\param ido - \~english object id (default 0) \~russian идентификатор объекта (по умолчанию 0) \~
  *	\return \~english true, if window found \~russian true, если окно найдено. \~
  */
-bool
-aWindowsList::find( int id, qulonglong ido )
+bool aWindowsList::find(int id, qulonglong ido)
 {
-    if ( !list.find( conv( id, ido ) ) ) return FALSE;
-    return TRUE;
+    return list.contains(conv(id, ido));
 }
 
 /*!
@@ -132,14 +131,18 @@ aWindowsList::find( int id, qulonglong ido )
  *	\param window - \~english link to form \~russian ссылка на форму \~
  *	\return \~english true, if window found \~russian true, если окно найдено. \~
  */
-bool
-aWindowsList::find( QWidget *window )
+bool aWindowsList::find(QWidget *window)
 {
-    Q3DictIterator<QWidget> it( list );
-    for ( ; it.current(); ++it ) if ( it.current() == window ) return TRUE;
-    return FALSE;
-}
+    QMap<QString, QWidget*>::const_iterator it;
 
+    for (it = list.begin(); it != list.end(); ++it)
+    {
+        if (it.value() == window)
+            return true;
+    }
+
+    return false;
+}
 
 /*!
  *	\~english
@@ -151,10 +154,9 @@ aWindowsList::find( QWidget *window )
  *	\param ido - \~english object id (default 0) \~russian идентификатор объекта (по умолчанию 0) \~
  *	\return \~english link to window, or 0 if window not found \~russian ссылка на окно или 0\~
  */
-QWidget *
-aWindowsList::get( int id, qulonglong ido )
+QWidget *aWindowsList::get(int id, qulonglong ido)
 {
-    return list.find( conv( id, ido ) );
+    return list.value(conv(id, ido), 0);
 }
 
 

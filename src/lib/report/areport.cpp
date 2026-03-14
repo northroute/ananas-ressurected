@@ -28,20 +28,7 @@
 **
 **********************************************************************/
 
-#include	<qlayout.h>
-#include	<q3toolbar.h>
-#include	<qaction.h>
-#include	<q3vbox.h>
-#include	<q3simplerichtext.h>
-#include	<qpainter.h>
-#include	<q3paintdevicemetrics.h>
-#include	<qkeysequence.h>
-#include	<qprinter.h>
-#include 	<q3process.h>
-#include 	<qmessagebox.h>
-#include 	<q3filedialog.h>
-//Added by qt3to4:
-#include <QPixmap>
+
 #include	"acfg.h"
 #include	"aobject.h"
 #include	"adatabase.h"
@@ -58,33 +45,32 @@
 *	Создает объект
 *	\_ru
 */
-aReportBrowser::aReportBrowser(  QWidget *parent, const char *name, Qt::WFlags f )
-:Q3MainWindow( parent, name, f )
+aReportBrowser::aReportBrowser(QWidget *parent, const char *name, Qt::WindowFlags f) : QMainWindow(parent, f)
 {
-	QAction *a;
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
 
-	Q3ToolBar *t = new Q3ToolBar( this, "ReportTool" );
-	a = new QAction(
-	//QPixmap::fromMimeSource("print.png"),
-	QPixmap(":/images/print.png"),
-	tr("Print"),
-	QKeySequence("Ctrl+P"),
-	t,
-	tr("Print report")
-	);
-	a->addTo( t );
-	connect( a, SIGNAL( activated() ), this, SLOT( print() ) );
-	t->show();
+    QAction *a;
 
-	textBrowser = new Q3TextBrowser( this, "textBrowser" );
-	textBrowser->setTextFormat( Qt::RichText );
-	textBrowser->setFocus();
-//	textBrowser->showMaximized();
-    	setCentralWidget( textBrowser );
-//	if ( layout() ) delete layout();
-//	QGridLayout *l = new QGridLayout( this );
-//	l->addWidget( textBrowser, 1, 0 );
-	languageChange();
+    QToolBar *t = new QToolBar(tr("ReportTool"), this);
+    addToolBar(t);
+
+    a = new QAction(
+        QPixmap(":/images/print.png"),
+        tr("Print"),
+        this
+    );
+    a->setShortcut(QKeySequence("Ctrl+P"));
+    a->setStatusTip(tr("Print report"));
+
+    t->addAction(a);
+    connect(a, SIGNAL(triggered()), this, SLOT(print()));
+
+    textBrowser = new QTextBrowser(this);
+    textBrowser->setFocus();
+
+    setCentralWidget(textBrowser);
+
+    languageChange();
 }
 
 
@@ -130,39 +116,16 @@ aReportBrowser::clear()
 *	Печатает содержимое браузера.
 *	\_ru
 */
-void
-aReportBrowser::print()
+void aReportBrowser::print()
 {
-	QPrinter printer;
-	QPainter p;
+    QPrinter printer;
+    QPrintDialog dialog(&printer, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
 
-	if (!printer.setup()) return;
-	if ( p.begin( &printer ) ){
-            Q3PaintDeviceMetrics metrics( p.device() );
-            int dpiy = metrics.logicalDpiY();
-            int margin = (int) ( (2/2.54)*dpiy ); // 2 cm margins
-            QRect body( margin, margin, metrics.width() - 2*margin, metrics.height() - 2*margin );
-            Q3SimpleRichText richText( textBrowser->text(),
-                                      QFont(),
-                                      textBrowser->context(),
-                                      textBrowser->styleSheet(),
-                                      textBrowser->mimeSourceFactory(),
-                                      body.height() );
-            richText.setWidth( &p, body.width() );
-            QRect view( body );
-            int page = 1;
-            do {
-                richText.draw( &p, body.left(), body.top(), view, colorGroup() );
-                view.moveBy( 0, body.height() );
-                p.translate( 0 , -body.height() );
-                p.drawText( view.right() - p.fontMetrics().width( QString::number( page ) ),
-                            view.bottom() + p.fontMetrics().ascent() + 5, QString::number( page ) );
-                if ( view.top()  >= richText.height() )
-                    break;
-                printer.newPage();
-                page++;
-            } while (TRUE);
-	}
+    QTextDocument doc;
+    doc.setHtml(textBrowser->toHtml());
+    doc.print(&printer);
 }
 
 
@@ -378,118 +341,126 @@ aReport::exec( const QString &section )
 *	Показывает отчет.
 *	\_ru
 */
-void
-aReport::show()
+void aReport::show()
 {
-	if(type==RT_text)
-	{
-		browser->textBrowser->setText( tpl->result() );
-		browser->show();
-	}
-	if(type==RT_office_writer || type==RT_office_calc)
-	{
-		QString fileName = getName4NewTemplate();
-		tpl->cleanUpTags();
-		tpl->save(fileName);
-		QString startCatalog = "/usr/bin";
-		QString filter;
-		bool sofficeFound = false;
+    if (type == RT_text)
+    {
+        browser->textBrowser->setText(tpl->result());
+        browser->show();
+    }
 
-		bool ok;
-		QString oowriter = aService::readConfigVariable("OpenOfficeExecutable", &ok);
-		if(!ok || oowriter == "" )
-		{
+    if (type == RT_office_writer || type == RT_office_calc)
+    {
+        QString fileName = getName4NewTemplate();
+        tpl->cleanUpTags();
+        tpl->save(fileName);
+
+        QString startCatalog = "/usr/bin";
+        QString filter;
+        bool ok = false;
+        QString oowriter = aService::readConfigVariable("OpenOfficeExecutable", &ok);
+
+        if (!ok || oowriter.isEmpty())
+        {
 #ifdef Q_OS_WIN32
-			aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable not found in registery"));
-			startCatalog = QString("%1\\Program Files\\OpenOffice.org1.1.1\\program").arg(getenv("HOMEDRIVE"));
-			QFile soffice(startCatalog + "\\soffice.exe");
-			if(!soffice.exists())
-			{
-				startCatalog = QString("%1\\Program Files\\OpenOffice.org 2.0\\program").arg(getenv("HOMEDRIVE"));
-			        soffice.setName(startCatalog + "\\soffice.exe");
-				if(!soffice.exists())
-				{
-					startCatalog = QString("%1\\Program Files").arg(getenv("HOMEDRIVE"));
-				}
-				else
-				{
-					aService::writeConfigVariable("OpenOfficeExecutable",startCatalog + "\\soffice.exe");
-					aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "\\soffice.exe"));
-				}
-			}
-			else
-			{
-				aService::writeConfigVariable("OpenOfficeExecutable",startCatalog + "\\soffice.exe");
-				aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "\\soffice.exe"));
-			}
-			filter = "Executable files (*.exe)";
+            aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable not found in registery"));
+            startCatalog = QString("%1\\Program Files\\OpenOffice.org1.1.1\\program").arg(qgetenv("HOMEDRIVE").constData());
+            QFile soffice(startCatalog + "\\soffice.exe");
+
+            if (!soffice.exists())
+            {
+                startCatalog = QString("%1\\Program Files\\OpenOffice.org 2.0\\program").arg(qgetenv("HOMEDRIVE").constData());
+                soffice.setFileName(startCatalog + "\\soffice.exe");
+                if (!soffice.exists())
+                {
+                    startCatalog = QString("%1\\Program Files").arg(qgetenv("HOMEDRIVE").constData());
+                }
+                else
+                {
+                    aService::writeConfigVariable("OpenOfficeExecutable", startCatalog + "\\soffice.exe");
+                    aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "\\soffice.exe"));
+                }
+            }
+            else
+            {
+                aService::writeConfigVariable("OpenOfficeExecutable", startCatalog + "\\soffice.exe");
+                aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "\\soffice.exe"));
+            }
+            filter = "Executable files (*.exe)";
 #else
-			aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable not found in ~/.ananas/configrc"));
-			QFile soffice(startCatalog + "/ooffice");
-			if(!soffice.exists())
-			{
-				soffice.setName(startCatalog + "/ooffice2");
-				if(soffice.exists())
-				{
-					aService::writeConfigVariable("OpenOfficeExecutable",startCatalog + "/ooffice2");
-					aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "/ooffice2"));
-				}
-			}
-			else
-			{
-				aService::writeConfigVariable("OpenOfficeExecutable",startCatalog + "/ooffice");
-				aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "/ooffice"));
-			}
+            aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable not found in ~/.ananas/configrc"));
+            QFile soffice(startCatalog + "/ooffice");
+            if (!soffice.exists())
+            {
+                soffice.setFileName(startCatalog + "/ooffice2");
+                if (soffice.exists())
+                {
+                    aService::writeConfigVariable("OpenOfficeExecutable", startCatalog + "/ooffice2");
+                    aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "/ooffice2"));
+                }
+            }
+            else
+            {
+                aService::writeConfigVariable("OpenOfficeExecutable", startCatalog + "/ooffice");
+                aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable found %1").arg(startCatalog + "/ooffice"));
+            }
 #endif
-		}
-		oowriter = aService::readConfigVariable("OpenOfficeExecutable", &ok);
-		if(!ok || oowriter == "" )
-		{
+        }
 
-			Q3FileDialog dlg(0,"select_file_dialog",true);
-			dlg.addFilter( filter );
-			dlg.setMode(Q3FileDialog::ExistingFile);
-			dlg.setDir(QDir(startCatalog));
-			dlg.setCaption("Для отображения отчета необходим OpenOffice. Укажите исполняемый файл OpenOffice");
-			if(dlg.exec()==QDialog::Accepted)
-			{
-				oowriter = dlg.selectedFile();
-				//printf("select %s", oowriter.ascii());
-				Q3Process process( oowriter );
-				process.addArgument( "-n" );
-				process.addArgument( QDir::convertSeparators( fileName ) );
-				if( !process.start() )
-				{
-					QMessageBox::warning(0, tr("Warning"), tr("Unable to start OpenOffice (%1)").arg(oowriter), QMessageBox::Ok,QMessageBox::NoButton);
-//			 printf("Unable to start OpenOffice Writer\n");
-				}
-				else
-				{
-					aService::writeConfigVariable("OpenOfficeExecutable",oowriter);
-					aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable set to %1").arg(oowriter));
-				}
-			}
-		}
-		else
-		{
+        oowriter = aService::readConfigVariable("OpenOfficeExecutable", &ok);
 
-			Q3Process process( oowriter );
-			process.addArgument( "-n" );
-			process.addArgument( QDir::convertSeparators( fileName ) );
-			if( !process.start() )
-			{
-				QMessageBox::warning(0, tr("Warning"), tr("Unable to start OpenOffice (%1)").arg(oowriter), QMessageBox::Ok,QMessageBox::NoButton);
-//			 printf("Unable to start OpenOffice Writer\n");
-			}
-			else
-			{
-				aService::writeConfigVariable("OpenOfficeExecutable",oowriter);
-				aLog::print(aLog::Info,tr("aReport OpenOfficeExecutable set to %1").arg(oowriter));
-			}
-		}
+        if (!ok || oowriter.isEmpty())
+        {
+            oowriter = QFileDialog::getOpenFileName(
+                0,
+                QString::fromUtf8("Для отображения отчета необходим OpenOffice. Укажите исполняемый файл OpenOffice"),
+                startCatalog,
+                filter);
 
-		//tpl->open( tplName );
-	}
+            if (!oowriter.isEmpty())
+            {
+                bool started = QProcess::startDetached(
+                    oowriter,
+                    QStringList() << "-n" << QDir::toNativeSeparators(fileName));
+
+                if (!started)
+                {
+                    QMessageBox::warning(
+                        0,
+                        tr("Warning"),
+                        tr("Unable to start OpenOffice (%1)").arg(oowriter),
+                        QMessageBox::Ok,
+                        QMessageBox::NoButton);
+                }
+                else
+                {
+                    aService::writeConfigVariable("OpenOfficeExecutable", oowriter);
+                    aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable set to %1").arg(oowriter));
+                }
+            }
+        }
+        else
+        {
+            bool started = QProcess::startDetached(
+                oowriter,
+                QStringList() << "-n" << QDir::toNativeSeparators(fileName));
+
+            if (!started)
+            {
+                QMessageBox::warning(
+                    0,
+                    tr("Warning"),
+                    tr("Unable to start OpenOffice (%1)").arg(oowriter),
+                    QMessageBox::Ok,
+                    QMessageBox::NoButton);
+            }
+            else
+            {
+                aService::writeConfigVariable("OpenOfficeExecutable", oowriter);
+                aLog::print(aLog::Info, tr("aReport OpenOfficeExecutable set to %1").arg(oowriter));
+            }
+        }
+    }
 }
 
 
@@ -545,30 +516,37 @@ aReport::close()
 *	Получение имени для нового шаблона. Нужна из-за блокировок в OpenOffice v2.
 *	\_ru
 */
-QString
-aReport::getName4NewTemplate()
+QString aReport::getName4NewTemplate()
 {
-	uint count=0;
-	QFile tmpf;
-	QString suff = ".odt";
-	QString fname;
-	if(type==RT_office_calc) suff = ".ods";
-	do
-	{
-		// tpl->getDir() должно заканчиваться на /
-		fname =  QDir::convertSeparators(QString(tpl->getDir()+".ananas-report%1%2").arg(count).arg(suff));
-		tmpf.setName(fname);
-		if(tmpf.exists())
-		{
-			if(tmpf.remove()) break;
-			else ++count;
-		}
-		else
-		{
-			break;
-		}
-	}while(count<100);
+    uint count = 0;
+    QFile tmpf;
+    QString suff = ".odt";
+    QString fname;
 
-	aLog::print(aLog::Debug, tr("aReport name for template = %1").arg(fname));
-	return fname;
+    if (type == RT_office_calc) suff = ".ods";
+
+    do
+    {
+        fname = QDir::toNativeSeparators(
+            QString("%1.ananas-report%2%3")
+                .arg(tpl->getDir())
+                .arg(count)
+                .arg(suff));
+
+        tmpf.setFileName(fname);
+
+        if (tmpf.exists())
+        {
+            if (tmpf.remove()) break;
+            else ++count;
+        }
+        else
+        {
+            break;
+        }
+
+    } while (count < 100);
+
+    aLog::print(aLog::Debug, tr("aReport name for template = %1").arg(fname));
+    return fname;
 }

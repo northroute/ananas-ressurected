@@ -29,9 +29,6 @@
 
 #include	"atests.h"
 #include	"alog.h"
-#include 	<qfile.h>
-#include	<qdatetime.h>
-#include 	<qdir.h>
 
 /*!
  *\~english
@@ -44,34 +41,35 @@
  *	\param status - \~english OK, ERROR or SKIP \~russian OK, ОШИБКА или ПРОПУЩЕН \~
  *	\param text - \~english Comment \~russian Комментарий \~
 */
-void
-aTests::print2log(	const QString &log_name,
-			const QString &test_name,
-			const QString &status,
-			const QString &text)
+void aTests::print2log(const QString &log_name,
+                  const QString &test_name,
+                  const QString &status,
+                  const QString &text)
 {
-	QString toWrite = QString("%1::%2::%3::%4\r\n")\
-			  .arg(QDateTime::currentDateTime().toString(Qt::ISODate).replace('T',' '))\
-			  .arg(test_name)\
-			  .arg(status)\
-			  .arg(text);
+    QString toWrite = QString("%1::%2::%3::%4\r\n")
+                      .arg(QDateTime::currentDateTime().toString(Qt::ISODate).replace('T', ' '))
+                      .arg(test_name)
+                      .arg(status)
+                      .arg(text);
 
-	QFile f;
-	if(log_name==QString::null)
-	{
-		f.open( QIODevice::WriteOnly, stdout );
-		f.writeBlock((const char*)toWrite,strlen((const char*)toWrite));
-	}
-	else
-	{
-		f.setName(log_name);
-		f.open( QIODevice::WriteOnly | QIODevice::Append );
-		f.writeBlock((const char*)toWrite,strlen((const char*)toWrite));
-		f.flush();
-	}
-	f.close();
+    QByteArray ba = toWrite.toLocal8Bit();
 
-//	else printf("error write to log\n");
+    if (log_name.isEmpty())
+    {
+        fwrite(ba.constData(), 1, ba.size(), stdout);
+        fflush(stdout);
+    }
+    else
+    {
+        QFile f;
+        f.setFileName(log_name);
+        if (f.open(QIODevice::WriteOnly | QIODevice::Append))
+        {
+            f.write(ba.constData(), ba.size());
+            f.flush();
+            f.close();
+        }
+    }
 }
 
 
@@ -85,45 +83,51 @@ aTests::print2log(	const QString &log_name,
  *	\param log_name - \~english logfile name \~russian Путь к логу (не обязательно) \~
  *	\return - \~english map with config values \~russian map со значениями конфига \~
 */
-QMap<QString,QString>
-aTests::readConfig(const QString &conf_name,const QString &log_name)
+QMap<QString,QString> aTests::readConfig(const QString &conf_name, const QString &log_name)
 {
-	QMap<QString,QString> map;
-	QString str, buff;
-	QStringList list;
-	QFile f(conf_name);
-	if(!f.exists())
-	{
-		aLog::print(aLog::Error, QObject::tr("aTests file %1 not exists").arg(f.name()));
-	}
-	else
-	{
-		if(!f.open( QIODevice::ReadOnly ))
-		{
-			aLog::print(aLog::Error, QObject::tr("aTests file %1 not open for read").arg(f.name()));
-		}
-		else
-		{
-			while(!f.atEnd())
-			{
-				str=f.readLine(1024);
-				if(!str.isEmpty())
-				//--if(f.readLine(str,1024)!=-1)
-				{
-					if(str==QString::null || str[0]=='#' || str[0]=='\n') continue;
-					QString s = str.section("=",0,0);
-					map[s] = (str.right(str.length() - s.length()-1)).stripWhiteSpace();
-					aLog::print(aLog::Debug, QString("map[%1] = %2").arg(s).arg(map[s]));
-				}
-				else
-				{
-					break;
-				}
-			}
-			f.close();
-		}
-	}
-	return map;
+    QMap<QString,QString> map;
+    QString str;
+
+    QFile f(conf_name);
+
+    if (!f.exists())
+    {
+        aLog::print(aLog::Error,
+            QObject::tr("aTests file %1 not exists").arg(f.fileName()));
+    }
+    else
+    {
+        if (!f.open(QIODevice::ReadOnly))
+        {
+            aLog::print(aLog::Error,
+                QObject::tr("aTests file %1 not open for read").arg(f.fileName()));
+        }
+        else
+        {
+            while (!f.atEnd())
+            {
+                str = QString::fromLocal8Bit(f.readLine(1024));
+
+                if (!str.isEmpty())
+                {
+                    if (str.isEmpty() || str[0] == '#' || str[0] == '\n')
+                        continue;
+
+                    QString s = str.section("=", 0, 0);
+                    map[s] = str.right(str.length() - s.length() - 1).trimmed();
+
+                    aLog::print(aLog::Debug,
+                        QString("map[%1] = %2").arg(s).arg(map[s]));
+                }
+                else
+                {
+                    break;
+                }
+            }
+            f.close();
+        }
+    }
+    return map;
 }
 
 
@@ -137,40 +141,46 @@ aTests::readConfig(const QString &conf_name,const QString &log_name)
  *	\param log_name - \~english logfile name \~russian Путь к логу (не обязательно) \~
  *	\return - \~english true, if successful \~russian true - успех \~
 */
-bool
-aTests::writeConfig(const QString &conf_name, QMap<QString,QString> map, const QString &log_name)
+bool aTests::writeConfig(const QString &conf_name, QMap<QString,QString> map, const QString &log_name)
 {
-	QString str;
-	QFile f(conf_name);
-	if(!f.exists())
-	{
-		aLog::print(aLog::Error, QObject::tr("aTests file %1 not exists").arg(f.name()));
-	}
-	//else
-	//{
-		if(f.open( QIODevice::WriteOnly ))
-		{
-			QMap<QString,QString>::Iterator it;
-			for ( it = map.begin(); it != map.end(); ++it )
-			{
-				str= QString("%1=%2\n").arg(it.key()).arg(it.data());
-				f.writeBlock((const char*)str,strlen((const char*)str));
-				f.flush();
-			}
-			f.close();
-			if(log_name!=QString::null)
-			{
-				aTests::print2log(log_name,conf_name,"OK","write config");
-			}
-		}
-		else
-		{
-			aLog::print(aLog::Error, QObject::tr("aTests file %1 not open for read").arg(f.name()));
-			return 0;
-		}
-	//}
-	return 1;
+    QString str;
+    QFile f(conf_name);
+
+    if (!f.exists())
+    {
+        aLog::print(aLog::Error,
+            QObject::tr("aTests file %1 not exists").arg(f.fileName()));
+    }
+
+    if (f.open(QIODevice::WriteOnly))
+    {
+        QMap<QString,QString>::const_iterator it;
+
+        for (it = map.begin(); it != map.end(); ++it)
+        {
+            str = QString("%1=%2\n").arg(it.key()).arg(it.value());
+            QByteArray ba = str.toLocal8Bit();
+            f.write(ba.constData(), ba.size());
+        }
+
+        f.flush();
+        f.close();
+
+        if (!log_name.isEmpty())
+        {
+            aTests::print2log(log_name, conf_name, "OK", "write config");
+        }
+    }
+    else
+    {
+        aLog::print(aLog::Error,
+            QObject::tr("aTests file %1 not open for read").arg(f.fileName()));
+        return false;
+    }
+
+    return true;
 }
+
 /*!
  *\~english
  *	Writes line in log with name \a log_name
@@ -179,26 +189,30 @@ aTests::writeConfig(const QString &conf_name, QMap<QString,QString> map, const Q
  *\~
  *	\param log_name - \~english logfile name \~russian Путь к логу (не обязательно) \~
 */
-void
-aTests::printline2log(const QString &log_name)
+void aTests::printline2log(const QString &log_name)
 {
-	QString toWrite;
-	toWrite.fill('=',60);
-	toWrite+="\n";
-	QFile f;
-	if(log_name==QString::null)
-	{
-		f.open( QIODevice::WriteOnly, stdout );
-		f.writeBlock((const char*)toWrite,strlen((const char*)toWrite));
-	}
-	else
-	{
-		f.setName(log_name);
-		f.open( QIODevice::WriteOnly | QIODevice::Append );
-		f.writeBlock((const char*)toWrite,strlen((const char*)toWrite));
-		f.flush();
-	}
-	f.close();
+    QString toWrite;
+    toWrite.fill('=', 60);
+    toWrite += "\n";
+
+    QByteArray ba = toWrite.toLocal8Bit();
+
+    if (log_name.isEmpty())
+    {
+        fwrite(ba.constData(), 1, ba.size(), stdout);
+        fflush(stdout);
+    }
+    else
+    {
+        QFile f;
+        f.setFileName(log_name);
+        if (f.open(QIODevice::WriteOnly | QIODevice::Append))
+        {
+            f.write(ba.constData(), ba.size());
+            f.flush();
+            f.close();
+        }
+    }
 }
 
 /*!
@@ -213,27 +227,26 @@ aTests::printline2log(const QString &log_name)
  *	\param requestedParam - \~english param for search \~russian параметр для поиска \~
  *	\return - \~english parametr value \~russian значение параметра \~
 */
-QString
-aTests::parseCommandLine(int argc, char** argv, const QString requestedParam)
+QString aTests::parseCommandLine(int argc, char** argv, const QString requestedParam)
 {
+    QString param, value;
 
-	QString param,value;
-	for(int j=1;j<argc;j++)
-	{
-		param = argv[j];
-		if(param.section("=",0,0).lower()==requestedParam)
-		{
-			if(param.section("=",1)!=QString::null)
-			{
-				value = param.section("=",1);
-				if(value[0]=='~')
-				{
-					value = value.mid(1);
-					value = QDir::convertSeparators(QDir::homeDirPath()+value);
-				}
-				return value;
-			}
-		}
-	}
-	return QString::null;
+    for (int j = 1; j < argc; j++)
+    {
+        param = argv[j];
+        if (param.section("=", 0, 0).toLower() == requestedParam)
+        {
+            value = param.section("=", 1);
+            if (!value.isNull() && !value.isEmpty())
+            {
+                if (value[0] == '~')
+                {
+                    value = value.mid(1);
+                    value = QDir::toNativeSeparators(QDir::homePath() + value);
+                }
+                return value;
+            }
+        }
+    }
+    return QString();
 }

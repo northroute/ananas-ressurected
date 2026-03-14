@@ -33,9 +33,6 @@
 #include	"adatabase.h"
 #include	"adocjournal.h"
 #include 	"alog.h"
-#include	<stdlib.h>
-//Added by qt3to4:
-#include <QSqlQuery>
 
 
 /*!
@@ -434,7 +431,7 @@ aARegister::resum( aSQLTable * t, const QDateTime & dd, bool plus )
 	for(uint i=0; i<dims_count; i++)
 	{
 		aCfgItem dim = md->findChild(dims,md_field,i);
-		long dimId = atoi(md->attr(dim,mda_id).ascii());
+		long dimId = md->attr(dim, mda_id).toLong();
 		aSQLTable *t_dim = table(md->attr(dim,mda_name));
 		QVariant v = t->value(md->attr(dim,mda_name));
 		if(v.isValid() && !v.isNull() && v!=QString())
@@ -499,33 +496,40 @@ aARegister::recalculate_saldo(aSQLTable *t_dim, aSQLTable *t, const QDateTime & 
  *\param dimValue - \en dimension value\_en \ru значение поля измерения в метаданных\_ru
  */
 
-int //protected
-aARegister::insert_values(QSqlQuery *q, aSQLTable *t_dim, const QDateTime & dd, bool plus, long dimId, QVariant dimValue)
+int aARegister::insert_values(QSqlQuery *q, aSQLTable *t_dim, const QDateTime &dd, bool plus, long dimId, QVariant dimValue)
 {
-	int res=0;
-	QString ins_col = QString("date,uf%1,").arg(dimId);
-	QString ins_val = QString("'%1','%2',").arg(dd.toString(Qt::ISODate)).arg(dimValue.toString());
-	QMap<QString,QString>::Iterator it;
-	QVariant res_value;
-	for ( it = resSysNames.begin(); it != resSysNames.end(); ++it )
-	{
-		if(q)
-		{
-			res_value = q->value(t_dim->position(it.data()));
-		}
-		else
-		{
-			res_value = 0;
-		}
-		ins_col+=QString("%1,").arg(it.data());
-		ins_val+=QString("%2,").arg(res_value.toString());
-	}
-	ins_col.truncate(ins_col.length()-1);
-	ins_val.truncate(ins_val.length()-1);
-	QString query = QString("insert into %1 (%2) values(%3)").arg(t_dim->tableName).arg(ins_col).arg(ins_val);
-	db->db()->exec(query);
-	t_dim->select();
-	return res;
+    int res = 0;
+    QString ins_col = QString("date,uf%1,").arg(dimId);
+    QString ins_val = QString("'%1','%2',").arg(dd.toString(Qt::ISODate)).arg(dimValue.toString());
+    QMap<QString,QString>::Iterator it;
+    QVariant res_value;
+
+    for (it = resSysNames.begin(); it != resSysNames.end(); ++it)
+    {
+        if (q)
+        {
+            res_value = q->value(t_dim->position(it.value()));
+        }
+        else
+        {
+            res_value = 0;
+        }
+
+        ins_col += QString("%1,").arg(it.value());
+        ins_val += QString("%2,").arg(res_value.toString());
+    }
+
+    ins_col.truncate(ins_col.length() - 1);
+    ins_val.truncate(ins_val.length() - 1);
+
+    QString query = QString("insert into %1 (%2) values(%3)")
+                    .arg(t_dim->tableName)
+                    .arg(ins_col)
+                    .arg(ins_val);
+
+    db->db()->exec(query);
+    t_dim->select();
+    return res;
 }
 
 
@@ -554,7 +558,7 @@ aARegister::update_values(aSQLTable *t_dim, const QDateTime & dd, bool plus, lon
 	{
 		if(t)
 		{
-			res_value = t->value(it.data());
+			res_value = t->value(it.value());
 		}
 		else
 		{

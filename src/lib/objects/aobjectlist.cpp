@@ -28,10 +28,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <qdialog.h>
 #include "adatabase.h"
 #include "aobjectlist.h"
 #include "aform.h"
@@ -53,9 +49,9 @@
  *	сначала проинициализировать его с использованием метаданных, а затем вызвать метод New().
  *	\_ru
  */
-aObjectList::aObjectList( QObject *parent, const char *name )
-:QObject( parent, name )
+aObjectList::aObjectList( QObject *parent, const char *name ) : QObject(parent)
 {
+	setObjectName(name ? QString::fromLocal8Bit(name) : QString());
 	db = 0;
 	vInited = false;
 	filtred = false;
@@ -86,18 +82,18 @@ aObjectList::aObjectList( QObject *parent, const char *name )
  *
  *	\_ru
  */
-aObjectList::aObjectList( const QString &oname, aDatabase *adb, QObject *parent, const char *name )
-:QObject( parent, name )
+aObjectList::aObjectList(const QString &oname, aDatabase *adb, QObject *parent, const char *name) : QObject(parent)
 {
-	vInited = false;
-	filtred = false;
-	selectFlag = false;
-	db = adb;
-	if ( adb )
-	{
-		obj = adb->cfg.find( oname );
-		setObject( obj );
-	}
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+    vInited = false;
+    filtred = false;
+    selectFlag = false;
+    db = adb;
+    if (adb)
+    {
+        obj = adb->cfg.find(oname);
+        setObject(obj);
+    }
 }
 
 
@@ -109,16 +105,17 @@ aObjectList::aObjectList( const QString &oname, aDatabase *adb, QObject *parent,
  *	\param parent - parent object
  *	\param name - name of object
  */
-aObjectList::aObjectList( aCfgItem context, aDatabase *adb, QObject *parent, const char *name )
-:QObject( parent, name )
+aObjectList::aObjectList(aCfgItem context, aDatabase *adb, QObject *parent, const char *name) : QObject(parent)
 {
-	filtred = false;
-	vInited = false;
-	db = adb;
-	if ( adb )
-	{
-		setObject( context );
-	}
+    setObjectName(name ? QString::fromLocal8Bit(name) : QString());
+    filtred = false;
+    vInited = false;
+    selectFlag = false;
+    db = adb;
+    if (adb)
+    {
+        setObject(context);
+    }
 }
 
 

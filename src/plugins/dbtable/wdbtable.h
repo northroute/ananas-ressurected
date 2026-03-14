@@ -31,17 +31,21 @@
 #ifndef WDBTABLE_H
 #define WDBTABLE_H
 
-#include <q3sqlpropertymap.h>
-#include <q3datatable.h>
-//Added by qt3to4:
-#include <Q3SqlEditorFactory>
+
+#include <QItemEditorFactory>
 #include <QContextMenuEvent>
-#include <Q3Frame>
-#include <Q3ValueList>
+#include <QFrame>
+#include <QList>
 #include <QPixmap>
-#include <Q3SqlCursor>
 #include <QKeyEvent>
 #include <QEvent>
+#include <cstdlib>
+#include <QPainter>
+#include <QMessageBox>
+#include <QMenu>
+#include <QPointer>
+#include <QTableWidget>
+
 #include "acfg.h"
 #include "aobject.h"
 #include "awidget.h"
@@ -49,9 +53,9 @@
 
 class aDatabase;
 class wDBTable;
-class Q3DataTable;
+class QTableWidget;
 
-class aSearchWidget : public Q3Frame
+class aSearchWidget : public QFrame
 {
 Q_OBJECT
 public:
@@ -82,7 +86,7 @@ private:
  * \_ru
  *
  */
-class QT_WIDGET_PLUGIN_EXPORT wDBTable : public Q3DataTable
+class QT_WIDGET_PLUGIN_EXPORT wDBTable : public QTableWidget
 {
 	friend class aForm;
 
@@ -106,7 +110,7 @@ public:
 	int		defColWidth;
 	int		tableInd;
 	aCfgItem	tables;
-	Q3SqlCursor*	cur;
+	QSqlQuery* cur;
 	bool		searchMode;
 	QString		searchString;
 	aSearchWidget	*searchWidget;
@@ -155,10 +159,10 @@ public:
 	QPixmap systemIcon();
 	virtual int Select( ANANAS_UID db_uid );
 public slots:
-	Q3ValueList<int> getBindList();
+	QList<int> getBindList();
 	void 	setWFieldEditor();
 	void	setAvailableTables();
-	void 	lineUpdate(QSql::Op mode);
+	void lineUpdate(QSqlTableModel::EditStrategy mode);
 	void	newFilter(const QString & );
 	void	newDataId(const qulonglong );
 	QVariant Value( const QString &colname );
@@ -267,7 +271,7 @@ protected:
 	void EditElement();
 	virtual void activateNextCell();
 	virtual bool beginInsert ();
-	virtual QSql::Confirm confirmEdit( QSql::Op m );
+	virtual QSqlTableModel::EditStrategy confirmEdit(QSqlTableModel::EditStrategy m);
 
 private:
 
@@ -292,7 +296,7 @@ private:
 	bool inEditMode;
 	//aDBTablePrivate impl;
 //	void updateProp(void);
-	Q3ValueList<int> listBindings;
+	QList<int> listBindings;
 	aCfgItem obj;
         QString vName, vEditFormName;
 	QString	vDefineCols;
@@ -307,14 +311,14 @@ private:
  * 	Наследует QSqlEditorFactory.
  * \_ru
  */
-class aEditorFactory: public Q3SqlEditorFactory
+class aEditorFactory : public QItemEditorFactory
 {
 public:
 /*!
  * \~english	Constructor
  * \~russian 	Конструктор \~
  */
-	aEditorFactory(QObject * parent = 0, const char * name = 0):Q3SqlEditorFactory(parent/*--,name*/) {};
+	aEditorFactory(QObject *parent = 0) : QItemEditorFactory() {}
 	QWidget * createEditor (QWidget * parent, const QSqlField * field);
 	void setMd(aCfg *md);
 private:

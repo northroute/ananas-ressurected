@@ -32,7 +32,6 @@
 #define ADATABASE_H
 
 #include <QObject>
-#include <QStringList>       // Qt4 QStringList
 #include <QSqlDatabase>      // Qt4 SQL
 #include <QSqlError>         // Qt4 SQL ошибки
 #include <QWidget>           // Qt4 QWidget
@@ -40,6 +39,16 @@
 #include "acfg.h"            // твой проектный include
 #include <qdataschema.h>     // если это Qt4-compatible
 #include <QtGlobal>   // для quint64
+
+
+#include <QFile>          // вместо <qfile.h>
+#include <QDomDocument>   // вместо <qdom.h>
+#include <QStringList>    // вместо <qstringlist.h>
+#include <QTextStream>    // вместо <q3textstream.h>
+#include <QSqlRecord>     // вместо <qsqlrecord.h>
+
+#include <QSqlQuery>      // оставить
+#include <QMessageBox>    // оставить
 
 
 /**

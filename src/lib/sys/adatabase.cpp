@@ -35,19 +35,7 @@ for mysql server set variable in /var/lib/mysql/my.cnf
 default-character-set=utf8
 
 */
-#include <QObject>
-#include <qfile.h>
-#include <qdom.h>
-#include <qstringlist.h>
-#include <q3textstream.h>
-#include <qsqlrecord.h>
-#include <qstringlist.h>
-//Added by qt3to4:
-#include <QSqlQuery>
-#include <Q3SqlCursor>
-#include <QSqlError>
-#include <Q3SqlRecordInfo>
-#include <QMessageBox>
+
 
 #include "alog.h"
 
@@ -64,53 +52,56 @@ static aDatabase aDatabase_default;
 /*!
  *
  */
-QString
-qds_field ( const QString fname, const QString &tdef, const QString &descr = "" )
+QString qds_field(const QString fname, const QString &tdef, const QString &descr = "")
 {
-        int n1, n2;
-        bool notnull, serial;
-        char t=' ';
-        QString st, dt="F="+fname+"|"+descr+"|";
+    int n1 = 0, n2 = 0;
+    bool notnull = false, serial = false;
+    char t = ' ';
+    QString st, dt = "F=" + fname + "|" + descr + "|";
 
-        if ( tdef.isEmpty() ) return "";
-        n1=0; n2=0;
-        st = tdef.section ( " ", 0, 0 ).lower();
-        n1 = tdef.section ( " ", 1, 1 ).toInt();
-        n2 = tdef.section ( " ", 2, 2 ).toInt();
-        if ( !st.isEmpty() ) t = ( ( const char * ) st ) [0];
-        serial = ( st.mid ( 1 ).contains ( 's' ) > 0 );
-        notnull = ( st.mid ( 1 ).contains ( 'n' ) > 0 );
-//      if ( serial && t=='l') t='i';
-        switch ( t )
-        {
-                case 'i':
-                        dt.append ( "I|0|0|" );
-                        break;
-                case 'l':
-                        dt.append ( "L|0|0|" );
-                        break;
-                case 'c':
-                        dt.append ( QString ( "S|%1|0|" ).arg ( n1 ) );
-                        break;
-                case 'n':
-                        dt.append ( QString ( "N|%1|%2|" ).arg ( n1 ).arg ( n2 ) );
-                        break;
-                case 'd':
-                        dt.append ( "D|0|0|" );
-                        break;
-                case 'o':
-                        dt.append ( "L|0|0|" );
-                        break;
-                case 'b':
-                        dt.append ( "C|1|0|" );
-                        break;
-                default:
-                        dt.append ( "I|0|0|" );
-                        break;
-        }
-        if ( !serial && notnull ) dt.append ( "N" );
-        if ( serial ) dt.append ( "PS" );
-        return dt;
+    if (tdef.isEmpty()) return QString();
+
+    st = tdef.section(" ", 0, 0).toLower();
+    n1 = tdef.section(" ", 1, 1).toInt();
+    n2 = tdef.section(" ", 2, 2).toInt();
+
+    if (!st.isEmpty()) t = st.at(0).toLatin1();
+
+    serial = st.mid(1).contains('s');
+    notnull = st.mid(1).contains('n');
+
+    switch (t)
+    {
+        case 'i':
+            dt.append("I|0|0|");
+            break;
+        case 'l':
+            dt.append("L|0|0|");
+            break;
+        case 'c':
+            dt.append(QString("S|%1|0|").arg(n1));
+            break;
+        case 'n':
+            dt.append(QString("N|%1|%2|").arg(n1).arg(n2));
+            break;
+        case 'd':
+            dt.append("D|0|0|");
+            break;
+        case 'o':
+            dt.append("L|0|0|");
+            break;
+        case 'b':
+            dt.append("C|1|0|");
+            break;
+        default:
+            dt.append("I|0|0|");
+            break;
+    }
+
+    if (!serial && notnull) dt.append("N");
+    if (serial) dt.append("PS");
+
+    return dt;
 }
 
 
@@ -152,7 +143,7 @@ qds_fields ( aCfg &cfg, aCfgItem context )
                                 if ( t[0]!=' ' )
                                 {
                                         dd<<qds_field ( QString ( "uf%1" ).arg ( id ), t, cfg.attr ( item, mda_name ) );
-                                        if ( t.section ( " ", 3, 3 ).lower() =="i" )
+                                        if ( t.section ( " ", 3, 3 ).toLower() =="i" )
                                         {
                                                 dd<<QString ( "I=IDX_uf%1||uf%2|" ).arg ( id ).arg ( id );
                                         };
@@ -536,7 +527,7 @@ aDatabase::init ( aCfgRc *rc, const QString &dbname )
         }
         else
         {
-                cfg_message ( 3, ( const char * ) tr ( "Can't open database connection\n" ).utf8() );
+                cfg_message ( 3, ( const char * ) tr ( "Can't open database connection\n" ).toUtf8() );
                 aLog::print ( aLog::Error,tr ( "aDatabase open connection to %1" ).arg ( rc->value ( "dbname" ) ) );
         };
         QSqlQuery q = db()->exec ( QString ( "SELECT * FROM %1" ).arg ( qds->tableName ( "netusers" ) ) );
@@ -683,40 +674,38 @@ aDatabase::create()
         return createdb ( false );
 }
 
-bool
-aDatabase::drop ( const QString& dbname )
+bool aDatabase::drop(const QString &dbname)
 {
+    QString query = QString("drop database %1").arg(dbname);
+    if (!dataBase) return true;
 
-        QString query = QString ( "drop database %1" ).arg ( dbname );
-        if ( !dataBase ) return true;
-        if ( dataBase->exec ( query ).lastError().type() ==QSqlError::None )
-        {
-                aLog::print ( aLog::Error,tr ( "aDatabase drop database %1" ).arg ( dbname ) );
-        }
-        query = QString ( "create database %1 %2" ).arg ( dbname ).arg ( feature ( "encoding" ) );
-        //if ( driverName() == "QPSQL7" ) query.append( " with encoding='UTF-8'" );
-//#ifdef MYSQL_UTF8
-        //if ( driverName() == "QMYSQL3" ) query.append( " character set utf8" );
-//#endif
-        //printf("query = %s\n",query.ascii());
-        QSqlQuery q = db()->exec ( query );
-        if ( db()->lastError().type() !=QSqlError::None )
-        {
-                reportError ( db()->lastError(),query );
-        }
-        dataBase->setDatabaseName ( dbname );
-        if ( !dataBase->open() )
-        {
-                cfg_message ( 3, ( const char * ) tr ( "Can't open database connection\n" ).utf8() );
-                aLog::print ( aLog::Error,tr ( "aDatabase open connection to %1" ).arg ( dbname ) );
-                return false;
-        }
-        else
-        {
-                aLog::print ( aLog::Info,tr ( "aDatabase open connection to %1" ).arg ( dbname ) );
+    if (!dataBase->exec(query).lastError().isValid())
+    {
+        aLog::print(aLog::Error, tr("aDatabase drop database %1").arg(dbname));
+    }
 
-        }
+    query = QString("create database %1 %2").arg(dbname).arg(feature("encoding"));
+    QSqlQuery q = db()->exec(query);
+
+    if (db()->lastError().isValid())
+    {
+        reportError(db()->lastError(), query);
+    }
+
+    dataBase->setDatabaseName(dbname);
+
+    if (!dataBase->open())
+    {
+        cfg_message(3, tr("Can't open database connection\n").toUtf8().constData());
+        aLog::print(aLog::Error, tr("aDatabase open connection to %1").arg(dbname));
         return false;
+    }
+    else
+    {
+        aLog::print(aLog::Info, tr("aDatabase open connection to %1").arg(dbname));
+    }
+
+    return false;
 }
 
 
@@ -868,36 +857,37 @@ aDatabase::tableDbName ( aCfg &md, aCfgItem context, long * tid )
  *      \param otype (in) - \~english object type (e.g. document, catalog, journal etc.) \~russian тип объекта \~
  *      \return \~english newly generated unique id. \~russian новый сгенерированный номер \~
  */
-Q_ULLONG
-aDatabase::uid ( int otype )
+quint64 aDatabase::uid(int otype)
 {
-        Q_ULLONG uid = 0;
-        QString query;
-        QString drv = driverName();
-//      printf("driver name =%s\n",drv.ascii());
-        query.sprintf ( "insert into uniques (otype) values (%d)", otype );
-        QSqlQuery q = db()->exec ( query );
-        if ( db()->lastError().type() !=QSqlError::None )
-        {
-                reportError ( db()->lastError(),query );
-        }
-        query = feature ( "autoincrement" );
-        q = db()->exec ( query );
-        if ( db()->lastError().type() !=QSqlError::None )
-        {
-                reportError ( db()->lastError(),query );
-        }
-        if ( q.first() )
-        {
-                uid = q.value ( 0 ).toULongLong();
-        }
-        else
-        {
-                aLog::print ( aLog::Error,tr ( "aDatabase generate new unique number for object type %1" ).arg ( otype ) );
-        }
-//      printf("uid=%llu, otype=%d\n",uid,otype);
-        aLog::print ( aLog::Debug,tr ( "aDatabase generate new unique number %1 for objecttype %2" ).arg ( uid ).arg ( otype ) );
-        return uid;
+    quint64 uid = 0;
+    QString query;
+    QString drv = driverName();
+
+    query = QString("insert into uniques (otype) values (%1)").arg(otype);
+    QSqlQuery q = db()->exec(query);
+    if (db()->lastError().isValid())
+    {
+        reportError(db()->lastError(), query);
+    }
+
+    query = feature("autoincrement");
+    q = db()->exec(query);
+    if (db()->lastError().isValid())
+    {
+        reportError(db()->lastError(), query);
+    }
+
+    if (q.first())
+    {
+        uid = q.value(0).toULongLong();
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("aDatabase generate new unique number for object type %1").arg(otype));
+    }
+
+    aLog::print(aLog::Debug, tr("aDatabase generate new unique number %1 for objecttype %2").arg(uid).arg(otype));
+    return uid;
 }
 
 
@@ -913,7 +903,7 @@ aDatabase::uid ( int otype )
  *      \return \~english object's type \~russian тип объекта \~
  */
 int
-aDatabase::uidType ( Q_ULLONG uid )
+aDatabase::uidType ( quint64 uid )
 {
         QSqlQuery q = db()->exec ( QString ( "SELECT otype FROM uniques WHERE id=%1" ).arg ( uid ) );
         if ( q.first() )
@@ -944,33 +934,34 @@ aDatabase::tableExists ( const QString & name )
 /*!
  *
  */
-bool
-aDatabase::createdb ( bool update )
+bool aDatabase::createdb(bool update)
 {
-        bool rc = false;
+    bool rc = false;
 
-        if ( qds )
+    if (qds)
+    {
+        qds_dd(cfg);
+        qds->setDataDictionary(dd);
+
+        if (qds->verifyStructure())
         {
-                qds_dd ( cfg );
-                qds->setDataDictionary ( dd );
-                if ( qds->verifyStructure() )
-                {
-                        // need to update
-                        printf ( "verify log:\n%s\n", ( const char * ) qds->verifyLog().join ( "\n" ) );
-                        printf ( "update structure query:\n%s\n", ( const char * ) qds->updateStructureQuery().join ( "\n" ) );
-                        if ( qds->updateStructure() !=0 )
-                        {
-                                rc = false;
-                                cfg_message ( 2, ( const char * ) tr ( "Data base update error\n" ) );
-                        }
-                        else
-                        {
-                                rc = true;
-                                cfg_message ( 0, ( const char * ) tr ( "Data base update successfull\n" ) );
-                        }
-                }
+            printf("verify log:\n%s\n", qPrintable(qds->verifyLog().join("\n")));
+            printf("update structure query:\n%s\n", qPrintable(qds->updateStructureQuery().join("\n")));
+
+            if (qds->updateStructure() != 0)
+            {
+                rc = false;
+                cfg_message(2, tr("Data base update error\n").toUtf8().constData());
+            }
+            else
+            {
+                rc = true;
+                cfg_message(0, tr("Data base update successfull\n").toUtf8().constData());
+            }
         }
-        return rc;
+    }
+
+    return rc;
 }
 
 
@@ -985,7 +976,7 @@ aDatabase::createdb ( bool update )
  *      \param uid - \~english id for mark deleted \~russian id для пометки на удаление \~
  */
 void
-aDatabase::markDeleted ( Q_ULLONG uid )
+aDatabase::markDeleted ( quint64 uid )
 {
         db()->exec ( QString ( "UPDATE uniques SET df='1' WHERE id=%1" ).arg ( uid ) );
 }
@@ -1060,119 +1051,107 @@ aDatabase::exchangeDataUniques ( QDomDocument &xml, bool import )
         return res;
 }
 
-bool
-aDatabase::exchangeDataCatalogues ( QDomDocument &xml, bool import )
+bool aDatabase::exchangeDataCatalogues(QDomDocument &xml, bool import)
 {
-        aCfgItem gcont, cont, item;
-        long id;
-        int n, i;
-        bool rc = false;
+    aCfgItem gcont, cont, item;
+    long id;
+    int n, i;
+    bool rc = false;
 
-        gcont = cfg.find ( cfg.find ( mdc_metadata ), md_catalogues, 0 );
-        n = cfg.count ( gcont, md_catalogue );
-        for ( i = 0; i<n; i++ )
+    gcont = cfg.find(cfg.find(mdc_metadata), md_catalogues, 0);
+    n = cfg.count(gcont, md_catalogue);
+
+    for (i = 0; i < n; i++)
+    {
+        item = cfg.find(gcont, md_catalogue, i);
+        if (!item.isNull())
         {
-                item = cfg.find ( gcont, md_catalogue, i );
-                if ( !item.isNull() )
-                {
-//                      printf("cat = %s\n", (const char *) cfg.attr( item, mda_name ) );
-                        id = cfg.id ( item );
-                        cont = cfg.findChild ( item, md_element, 0 );
-                        if ( !cont.isNull() )
-                        {
-                                if ( import )
-                                {
-                                        rc |= importTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                                else
-                                {
-                                        rc|= exportTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                        }
-                        cont = cfg.findChild ( item, md_group, 0 );
-                        if ( !cont.isNull() )
-                        {
-                                if ( import )
-                                {
-                                        rc |= importTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                                else
-                                {
-                                        rc|= exportTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                        }
-                        cfg_message ( 0, ( const char * ) tr ( "Catalogue %s processed\n" ).utf8(), ( const char * ) cfg.attr ( item, mda_name ).utf8() );
-                        if ( import )
-                        {
-                                aLog::print ( aLog::Info,tr ( "aDatabase catalogue %1 import" ).arg ( cfg.attr ( item, mda_name ) ) );
-                        }
-                        else
-                        {
-                                aLog::print ( aLog::Info,tr ( "aDatabase catalogue %1 export" ).arg ( cfg.attr ( item, mda_name ) ) );
-                        }
-                }
+            id = cfg.id(item);
+
+            cont = cfg.findChild(item, md_element, 0);
+            if (!cont.isNull())
+            {
+                if (import)
+                    rc |= importTableData(xml, tableDbName(cfg, cont));
+                else
+                    rc |= exportTableData(xml, tableDbName(cfg, cont));
+            }
+
+            cont = cfg.findChild(item, md_group, 0);
+            if (!cont.isNull())
+            {
+                if (import)
+                    rc |= importTableData(xml, tableDbName(cfg, cont));
+                else
+                    rc |= exportTableData(xml, tableDbName(cfg, cont));
+            }
+
+            cfg_message(0,
+                        tr("Catalogue %1 processed\n")
+                            .arg(cfg.attr(item, mda_name))
+                            .toUtf8().constData());
+
+            if (import)
+                aLog::print(aLog::Info, tr("aDatabase catalogue %1 import").arg(cfg.attr(item, mda_name)));
+            else
+                aLog::print(aLog::Info, tr("aDatabase catalogue %1 export").arg(cfg.attr(item, mda_name)));
         }
-        return rc;
-//      return true;
+    }
+
+    return rc;
 }
 
 
-bool
-aDatabase::exchangeDataDocuments ( QDomDocument &xml, bool import )
+bool aDatabase::exchangeDataDocuments(QDomDocument &xml, bool import)
 {
-        aCfgItem rcont, cont, item, tcont;
-        int n, i, tn, ti;
-        bool rc = false;
+    aCfgItem rcont, cont, item, tcont;
+    int n, i, tn, ti;
+    bool rc = false;
 
-        rcont = cfg.find ( cfg.find ( mdc_metadata ), md_documents, 0 );
-        n = cfg.count ( rcont, md_document );
-        for ( i = 0; i<n; i++ )
+    rcont = cfg.find(cfg.find(mdc_metadata), md_documents, 0);
+    n = cfg.count(rcont, md_document);
+
+    for (i = 0; i < n; i++)
+    {
+        item = cfg.find(rcont, md_document, i);
+        if (!item.isNull())
         {
-                item = cfg.find ( rcont, md_document, i );
-                if ( !item.isNull() )
-                {
-                        //      printf("doc = %s\n", (const char *) cfg.attr( item, mda_name ) );
-                        cont = cfg.findChild ( item, md_header, 0 );
-                        if ( !cont.isNull() )
-                        {
-                                if ( import )
-                                {
-                                        rc |= importTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                                else
-                                {
-                                        rc|= exportTableData ( xml, tableDbName ( cfg, cont ) );
-                                }
-                        }
-                        tcont = cfg.find ( item, md_tables, 0 );
-                        tn = cfg.count ( tcont, md_table );
-                        for ( ti = 0; ti < tn; ti++ )
-                        {
-                                cont = cfg.findChild ( tcont, md_table, ti );
-                                if ( !cont.isNull() )
-                                {
-                                        if ( import )
-                                        {
-                                                rc |= importTableData ( xml, tableDbName ( cfg, cont ) );
-                                        }
-                                        else
-                                        {
-                                                rc|= exportTableData ( xml, tableDbName ( cfg, cont ) );
-                                        }
-                                }
-                        }
-                }
-                cfg_message ( 0, ( const char * ) tr ( "Document %s processed\n" ).utf8(), ( const char * ) cfg.attr ( item, mda_name ).utf8() );
-                if ( import )
-                {
-                        aLog::print ( aLog::Info,tr ( "aDatabase document %1 import" ).arg ( cfg.attr ( item, mda_name ) ) );
-                }
+            cont = cfg.findChild(item, md_header, 0);
+            if (!cont.isNull())
+            {
+                if (import)
+                    rc |= importTableData(xml, tableDbName(cfg, cont));
                 else
+                    rc |= exportTableData(xml, tableDbName(cfg, cont));
+            }
+
+            tcont = cfg.find(item, md_tables, 0);
+            tn = cfg.count(tcont, md_table);
+            for (ti = 0; ti < tn; ti++)
+            {
+                cont = cfg.findChild(tcont, md_table, ti);
+                if (!cont.isNull())
                 {
-                        aLog::print ( aLog::Info,tr ( "aDatabase document %1 export" ).arg ( cfg.attr ( item, mda_name ) ) );
+                    if (import)
+                        rc |= importTableData(xml, tableDbName(cfg, cont));
+                    else
+                        rc |= exportTableData(xml, tableDbName(cfg, cont));
                 }
+            }
         }
-        return rc;
+
+        cfg_message(0,
+                    tr("Document %1 processed\n")
+                        .arg(cfg.attr(item, mda_name))
+                        .toUtf8().constData());
+
+        if (import)
+            aLog::print(aLog::Info, tr("aDatabase document %1 import").arg(cfg.attr(item, mda_name)));
+        else
+            aLog::print(aLog::Info, tr("aDatabase document %1 export").arg(cfg.attr(item, mda_name)));
+    }
+
+    return rc;
 }
 
 
@@ -1183,226 +1162,222 @@ aDatabase::exchangeDataJournals ( QDomDocument &xml, bool import )
 }
 
 
-bool
-aDatabase::exchangeDataInfoRegisters ( QDomDocument &xml, bool import )
+bool aDatabase::exchangeDataInfoRegisters(QDomDocument &xml, bool import)
 {
-        aCfgItem rcont, cont, item;
-        int n, i;
-        bool rc = false;
-        QString filds;
+    aCfgItem rcont, cont, item;
+    int n, i;
+    bool rc = false;
+    QString filds;
 
-        rcont = cfg.find ( cfg.find ( mdc_metadata ), md_iregisters, 0 );
-        n = cfg.count ( rcont, md_iregister );
-        for ( i = 0; i<n; i++ )
+    rcont = cfg.find(cfg.find(mdc_metadata), md_iregisters, 0);
+    n = cfg.count(rcont, md_iregister);
+
+    for (i = 0; i < n; i++)
+    {
+        item = cfg.find(rcont, md_iregister, i);
+        if (!item.isNull())
         {
-                item = cfg.find ( rcont, md_iregister, i );
-                if ( !item.isNull() )
-                {
+            cont = item;
 
-                        if ( import )
-                        {
-                                rc |= importTableData ( xml, tableDbName ( cfg, cont ) );
-                        }
-                        else
-                        {
-                                rc|= exportTableData ( xml, tableDbName ( cfg, cont ) );
-                        }
-                }
-                cfg_message ( 0, ( const char * ) tr ( "Information registers %s processed\n" ).utf8(), ( const char * ) cfg.attr ( item, mda_name ).utf8() );
-                if ( import )
+            if (import)
+                rc |= importTableData(xml, tableDbName(cfg, cont));
+            else
+                rc |= exportTableData(xml, tableDbName(cfg, cont));
+        }
+
+        cfg_message(0,
+                    tr("Information registers %1 processed\n")
+                        .arg(cfg.attr(item, mda_name))
+                        .toUtf8().constData());
+
+        if (import)
+            aLog::print(aLog::Info, tr("aDatabase information register %1 import").arg(cfg.attr(item, mda_name)));
+        else
+            aLog::print(aLog::Info, tr("aDatabase information register %1 export").arg(cfg.attr(item, mda_name)));
+    }
+
+    return rc;
+}
+
+
+bool aDatabase::exchangeDataAccumulationRegisters(QDomDocument &xml, bool import)
+{
+    aCfgItem rcont, cont, item, res, dim;
+    int n, i;
+    bool rc = false;
+    QString filds;
+
+    rcont = cfg.find(cfg.find(mdc_metadata), md_aregisters, 0);
+    n = cfg.count(rcont, md_aregister);
+
+    for (i = 0; i < n; i++)
+    {
+        item = cfg.find(rcont, md_aregister, i);
+        if (!item.isNull())
+        {
+            if (import)
+                rc |= importTableData(xml, tableDbName(cfg, item));
+            else
+                rc |= exportTableData(xml, tableDbName(cfg, item));
+
+            res = cfg.find(item, md_resources);
+            dim = cfg.find(item, md_dimensions);
+
+            if (!res.isNull() && !dim.isNull())
+            {
+                aCfgItem d;
+                for (uint k = 0; k < cfg.count(dim, md_field); k++)
                 {
-                        aLog::print ( aLog::Info,tr ( "aDatabase information register %1 import" ).arg ( cfg.attr ( item, mda_name ) ) );
+                    d = cfg.findChild(dim, md_field, k);
+                    if (import)
+                        rc |= importTableData(xml, tableDbName(cfg, d));
+                    else
+                        rc |= exportTableData(xml, tableDbName(cfg, d));
+                }
+            }
+        }
+
+        cfg_message(0,
+                    tr("Accumulation registers %1 processed\n")
+                        .arg(cfg.attr(item, mda_name))
+                        .toUtf8().constData());
+
+        if (import)
+            aLog::print(aLog::Info, tr("aDatabase accumulation register %1 import").arg(cfg.attr(item, mda_name)));
+        else
+            aLog::print(aLog::Info, tr("aDatabase accumulation register %1 export").arg(cfg.attr(item, mda_name)));
+    }
+
+    return rc;
+}
+
+
+bool aDatabase::exportTableData(QDomDocument &xml, const QString &tableName)
+{
+    aDataTable *dataTable = table(tableName);
+    if (!dataTable)
+        return true;
+
+    dataTable->select();
+
+    QDomElement xml_root = xml.documentElement();
+    if (xml_root.isNull())
+    {
+        aLog::print(aLog::Error, tr("aDatabase export table: invalid XML file"));
+        return true;
+    }
+
+    QDomElement table = xml.createElement("table");
+    table.setAttribute("name", tableName);
+    xml_root.appendChild(table);
+
+    QDomElement row;
+    QDomElement field;
+
+    if (!dataTable->first())
+        return false;
+
+    QSqlRecord *rec = dataTable->primeInsert();
+    if (!rec)
+        return true;
+
+    do
+    {
+        int countField = rec->count();
+
+        row = xml.createElement("row");
+        table.appendChild(row);
+
+        for (int i = 0; i < countField; i++)
+        {
+            QVariant val = dataTable->value(i);
+            if (val.isValid())
+            {
+                field = xml.createElement("field");
+                field.setAttribute("name", rec->fieldName(i));
+                field.appendChild(xml.createTextNode(val.toString()));
+                row.appendChild(field);
+            }
+        }
+    }
+    while (dataTable->next());
+
+    return false;
+}
+
+
+bool aDatabase::importTableData(QDomDocument &xml, const QString &tableName)
+{
+    QDomElement root = xml.documentElement();
+    if (root.nodeName() != "AnanasDump")
+    {
+        aLog::print(aLog::Error, tr("aDatabase import table: invalid XML file"));
+        return true;
+    }
+
+    QDomNodeList tables = root.childNodes();
+    uint countTables = tables.count();
+    for (uint i = 0; i < countTables; i++)
+    {
+        if (tables.item(i).toElement().attribute("name") == tableName)
+        {
+            aDataTable *tbl;
+            if (!tableExists(tableName))
+            {
+                aLog::print(aLog::Error, tr("aDatabase import table: table %1 not exists").arg(tableName));
+                return true;
+            }
+
+            tbl = table(tableName);
+            if (!tbl)
+            {
+                aLog::print(aLog::Error, tr("aDatabase import table: get table %1").arg(tableName));
+                return true;
+            }
+
+            QDomNodeList rows = tables.item(i).childNodes();
+            uint countRows = rows.count();
+            QString query = "delete from uniques";
+
+            if (tableName == "uniques")
+            {
+                db()->exec(query);
+            }
+
+            for (uint j = 0; j < countRows; j++)
+            {
+                QDomNodeList fields = rows.item(j).childNodes();
+                uint countFields = fields.count();
+
+                if (tableName == "uniques")
+                {
+                    if (fields.item(0).toElement().hasChildNodes() && fields.item(1).toElement().hasChildNodes())
+                    {
+                        query = QString("INSERT INTO %1 (id,otype) values(%2,%3)")
+                                .arg(tableName)
+                                .arg(fields.item(0).toElement().text())
+                                .arg(fields.item(1).toElement().text());
+                        db()->exec(query);
+                    }
                 }
                 else
                 {
-                        aLog::print ( aLog::Info,tr ( "aDatabase information register %1 export" ).arg ( cfg.attr ( item, mda_name ) ) );
+                    QSqlRecord *buffer = tbl->primeInsert();
+                    for (uint k = 0; k < countFields; k++)
+                    {
+                        QDomElement field = fields.item(k).toElement();
+                        if (field.hasChildNodes())
+                        {
+                            buffer->setValue(field.attribute("name"), field.text());
+                        }
+                    }
+                    tbl->New();
                 }
+            }
+            break;
         }
-        return rc;
-}
-
-
-bool
-aDatabase::exchangeDataAccumulationRegisters ( QDomDocument &xml, bool import )
-{
-        aCfgItem rcont, cont, item, res, dim;
-        int n, i;
-        bool rc = false;
-        QString filds;
-        rcont = cfg.find ( cfg.find ( mdc_metadata ), md_aregisters, 0 );
-        n = cfg.count ( rcont, md_aregister );
-        for ( i = 0; i<n; i++ )
-        {
-                item = cfg.find ( rcont, md_aregister, i );
-                if ( !item.isNull() )
-                {
-                        if ( import )
-                        {
-                                rc |= importTableData ( xml, tableDbName ( cfg, item ) );
-                        }
-                        else
-                        {
-                                rc|= exportTableData ( xml, tableDbName ( cfg, item ) );
-                        }
-                        res = cfg.find ( item, md_resources );
-                        dim = cfg.find ( item, md_dimensions );
-                        if ( !res.isNull() && !dim.isNull() )
-                        {
-                                aCfgItem d;
-                                for ( uint k=0; k<cfg.count ( dim,md_field );k++ )
-                                {
-                                        d = cfg.findChild ( dim,md_field,k );
-                                        if ( import )
-                                        {
-                                                rc |= importTableData ( xml, tableDbName ( cfg, d ) );
-                                        }
-                                        else
-                                        {
-                                                rc|= exportTableData ( xml, tableDbName ( cfg, d ) );
-                                        }
-                                }
-                        }
-                }
-                cfg_message ( 0, ( const char * ) tr ( "Accumulation registers %s processed\n" ).utf8(), ( const char * ) cfg.attr ( item, mda_name ).utf8() );
-                if ( import )
-                {
-                        aLog::print ( aLog::Info,tr ( "aDatabase accumulation register %1 import" ).arg ( cfg.attr ( item, mda_name ) ) );
-                }
-                else
-                {
-                        aLog::print ( aLog::Info,tr ( "aDatabase accumulation register %1 export" ).arg ( cfg.attr ( item, mda_name ) ) );
-                }
-        }
-        return rc;
-}
-
-
-bool
-aDatabase::exportTableData ( QDomDocument& xml, const QString &tableName )
-{
-        aDataTable *dataTable = table ( tableName );
-        dataTable->select();
-        QDomElement xml_root = xml.documentElement();
-        if ( xml_root.isNull() )
-        {
-                aLog::print ( aLog::Error,tr ( "aDatabase export table: invalid XML file" ) );
-//              printf("xml has no root element");
-                return true;
-        }
-        QDomElement table = xml.createElement ( "table" );
-        table.setAttribute ( "name",tableName );
-        QDomElement row;
-        QDomElement field;
-        xml_root.appendChild ( table );
-        if ( !dataTable->first() ) return false;
-        do
-        {
-                uint countField = dataTable->count();
-                QVariant val;
-                row = xml.createElement ( "row" );
-                table.appendChild ( row );
-                for ( uint i=0; i<countField; i++ )
-                {
-                        val = dataTable->value ( i );
-                        if ( val.isValid() )
-                        {
-                                field = xml.createElement ( "field" );
-                                field.setAttribute ( "name",dataTable->fieldName ( i ) );
-                                field.appendChild ( xml.createTextNode ( val.toString() ) );
-                                row.appendChild ( field );
-                        }
-                }
-        }
-        while ( dataTable->next() );
-        return false;
-}
-
-
-bool
-aDatabase::importTableData ( QDomDocument &xml, const QString &tableName )
-{
-//      printf("import table data %s\n",tableName.ascii());
-        QDomElement root = xml.documentElement();
-        if ( root.nodeName() != "AnanasDump" )
-        {
-
-                aLog::print ( aLog::Error,tr ( "aDatabase import table: invalid XML file" ) );
-                //printf("uncnown data format\n");
-                return true;
-        }
-        QDomNodeList tables = root.childNodes();
-        uint countTables = tables.count();
-        for ( uint i=0; i<countTables; i++ )
-        {
-                //      printf("tableName==%s\n", tables.item(i).toElement().attribute("name").ascii());
-                if ( tables.item ( i ).toElement().attribute ( "name" ) == tableName )
-                {
-                        // found table
-                        aDataTable *tbl;
-                        if ( !tableExists ( tableName ) )
-                        {
-                                aLog::print ( aLog::Error,tr ( "aDatabase import table: table %1 not exists" ).arg ( tableName ) );
-                                //printf("table %s not exists\n",tableName.ascii());
-                                return true;
-                        }
-                        //printf("table exists\n");
-                        tbl = table ( tableName );
-                        if ( !tbl )
-                        {
-                                aLog::print ( aLog::Error,tr ( "aDatabase import table: get table %1" ).arg ( tableName ) );
-                                //printf("table is NULL\n");
-                                return true;
-                        }
-                        QDomNodeList rows = tables.item ( i ).childNodes();
-                        QDomNodeList fields;
-                        uint countRows = rows.count();
-                        uint countFields;
-                        QSqlRecord *buffer;
-                        QDomElement field;
-                        QString query = "delete from uniques";
-                        if ( tableName=="uniques" )
-                        {
-                                db()->exec ( query );
-                        }
-                        for ( uint j=0; j<countRows; j++ )
-                        {
-                                fields = rows.item ( j ).childNodes();
-                                countFields = fields.count();
-                                if ( tableName=="uniques" )
-                                {
-                                        // удаляем все строки в таблице
-                                        if ( fields.item ( 0 ).toElement().hasChildNodes() && fields.item ( 1 ).toElement().hasChildNodes() )
-                                        {
-                                                query = QString ( "INSERT INTO %1 (id,otype) values(%2,%3)" )
-                                                        .arg ( tableName )
-                                                        .arg ( fields.item ( 0 ).toElement().toElement().text() )
-                                                        .arg ( fields.item ( 1 ).toElement().toElement().text() );
-                                                //              printf("query = %s\n",query.ascii());
-                                                // добавляем записи с правильными идентификатораи
-                                                db()->exec ( query );
-
-                                        }
-                                }
-                                else
-                                {
-                                        buffer = tbl->primeInsert();
-                                        for ( uint k=0; k<countFields; k++ )
-                                        {
-                                                field = fields.item ( k ).toElement();
-                                                if ( field.hasChildNodes() )
-                                                {
-                                                        //      printf("node have child\n");
-
-                                                        buffer->setValue ( field.attribute ( "name" ),field.toElement().text() );
-                                                }
-                                        }
-                                        tbl->insert();
-                                }
-                        }
-                        break;
-                }
-        }
-        return false;
+    }
+    return false;
 }
 
 void
@@ -1460,75 +1435,98 @@ aDatabase::loginUsersCount()
 }
 
 
-bool
-aDatabase::login ( const QString &username, const QString &password, int applicationId )
+bool aDatabase::login(const QString &username, const QString &password, int applicationId)
 {
-        QSqlQuery q, q1;
-        int count = 0, role_id, md_id, perm, isActive = 0;
-        bool userOk = false;
+    QSqlQuery q, q1;
+    int count = 0, role_id, md_id, perm, isActive = 0;
+    bool userOk = false;
 
-        v_user_id = 0;
-        v_app_id = applicationId;
+    v_user_id = 0;
+    v_app_id = applicationId;
 
-        if ( applicationId < 0 || applicationId > 3 ) applicationId = 0;
-        q = db()->exec ( QString ( "SELECT count(*) FROM %1" ).arg ( qds->tableName ( db_users ) ) );
-        if ( q.first() ) count = q.value ( 0 ).toInt();
-        if ( !count )
+    if (applicationId < 0 || applicationId > 3) applicationId = 0;
+
+    q = db()->exec(QString("SELECT count(*) FROM %1").arg(qds->tableName(db_users)));
+    if (q.first()) count = q.value(0).toInt();
+
+    if (!count)
+    {
+        userOk = true;
+    }
+    else
+    {
+        q = db()->exec(QString("SELECT id,active%4 FROM %1 WHERE login='%2' AND password='%3'")
+                       .arg(qds->tableName(db_users))
+                       .arg(username)
+                       .arg(password)
+                       .arg(applicationId));
+
+        if (q.first())
         {
-                userOk = true;
+            v_user_id = q.value(0).toInt();
+            isActive = q.value(1).toInt();
+            userOk = true;
         }
         else
         {
-                q = db()->exec ( QString ( "SELECT id,active%4 FROM %1 WHERE login='%2' AND password='%3'" ).arg ( qds->tableName ( db_users ) ).arg ( username ).arg ( password ).arg ( applicationId ) );
-                if ( q.first() )
-                {
-                        v_user_id = q.value ( 0 ).toInt();
-                        isActive = q.value ( 1 ).toInt();
-                        userOk = true;
-                }
-                else aLog::print ( aLog::Error,tr ( "aDatabase get users count" ) );
+            aLog::print(aLog::Error, tr("aDatabase get users count"));
         }
-        if ( userOk )
+    }
+
+    if (userOk)
+    {
+        if (isActive != 0 && applicationId != AApplication::Administrator)
         {
-            if ( isActive !=0 && applicationId !=AApplication::Administrator ){
-                QMessageBox::information ( 0, "Ananas",tr ( "User already logged in" ), 0, 0, 0 );
-//                return false;
-            }
-                db()->exec ( QString ( "UPDATE %1 SET users=users+1" ).arg ( qds->tableName ( "netusers" ) ) );
-                if ( count )
-                {
-                        db()->exec ( QString ( "UPDATE %1 SET active%2=1 WHERE id=%3" ).arg ( qds->tableName ( db_users ) ).arg ( applicationId ).arg ( v_user_id ) );
-                }
-                printf ( "login user id = %i OK\n", v_user_id );
-
-// Считаем набор прав пользователя
-                q = db()->exec ( QString ( "SELECT idr FROM %1 WHERE id=%2" ).arg ( qds->tableName ( db_user_roles ) ).arg ( v_user_id ) );
-                while ( q.next() )
-                {
-                        role_id = q.value ( 0 ).toInt();
-                        q1 = db()->exec ( QString ( "SELECT object,permission FROM %1 WHERE id=%2" ).arg ( qds->tableName ( db_right_roles ) ).arg ( role_id ) );
-                        while ( q1.next() )
-                        {
-                                md_id = q1.value ( 0 ).toInt();
-                                perm  = q1.value ( 1 ).toInt();
-                                if ( accessRights.contains ( md_id ) )
-                                {
-                                        accessRights[ md_id ] |= perm;
-                                }
-                                else accessRights[ md_id ] = perm;
-                        }
-                }
-                QMap<int,int>::Iterator it;
-                for ( it = accessRights.begin(); it != accessRights.end(); ++it )
-                {
-                        printf ( "P %i:%04x\n",
-                                 it.key(),
-                                 it.data() );
-                }
-
-                return true;
+            QMessageBox::information(0, "Ananas", tr("User already logged in"), QMessageBox::Ok, QMessageBox::NoButton);
         }
-        return false;
+
+        db()->exec(QString("UPDATE %1 SET users=users+1").arg(qds->tableName("netusers")));
+
+        if (count)
+        {
+            db()->exec(QString("UPDATE %1 SET active%2=1 WHERE id=%3")
+                       .arg(qds->tableName(db_users))
+                       .arg(applicationId)
+                       .arg(v_user_id));
+        }
+
+        printf("login user id = %i OK\n", v_user_id);
+
+        q = db()->exec(QString("SELECT idr FROM %1 WHERE id=%2")
+                       .arg(qds->tableName(db_user_roles))
+                       .arg(v_user_id));
+
+        while (q.next())
+        {
+            role_id = q.value(0).toInt();
+            q1 = db()->exec(QString("SELECT object,permission FROM %1 WHERE id=%2")
+                            .arg(qds->tableName(db_right_roles))
+                            .arg(role_id));
+
+            while (q1.next())
+            {
+                md_id = q1.value(0).toInt();
+                perm  = q1.value(1).toInt();
+
+                if (accessRights.contains(md_id))
+                    accessRights[md_id] |= perm;
+                else
+                    accessRights[md_id] = perm;
+            }
+        }
+
+        QMap<int, int>::iterator it;
+        for (it = accessRights.begin(); it != accessRights.end(); ++it)
+        {
+            printf("P %i:%04x\n",
+                   it.key(),
+                   it.value());
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -1556,7 +1554,7 @@ aDatabase::netupdate()
 
 
 bool
-aDatabase::isObjectLocked ( Q_ULLONG id )
+aDatabase::isObjectLocked ( quint64 id )
 {
         if ( !id ) return false;
         QSqlQuery q = db()->exec ( QString ( "SELECT id FROM %1 WHERE userid=%2 AND id=%3" ).arg ( qds->tableName ( "locks" ) ).arg ( v_user_id ).arg ( id ) );
@@ -1570,7 +1568,7 @@ aDatabase::isObjectLocked ( Q_ULLONG id )
 
 
 bool
-aDatabase::objectLock ( Q_ULLONG id )
+aDatabase::objectLock ( quint64 id )
 {
         if ( !id ) return true;
 //    printf("LOCK user=%i obj=%Lu\n", v_user_id, id);
@@ -1581,7 +1579,7 @@ aDatabase::objectLock ( Q_ULLONG id )
 }
 
 void
-aDatabase::objectUnlock ( Q_ULLONG id )
+aDatabase::objectUnlock ( quint64 id )
 {
 //    printf("UNLOCK user=%i obj=%Lu\n", v_user_id, id);
         QString query ( QString ( "DELETE FROM %1 WHERE userid=%2" ).arg ( qds->tableName ( "locks" ) ).arg ( v_user_id ) );
@@ -1624,7 +1622,7 @@ aDatabase::timerEvent ( QTimerEvent * )
 
 
 bool
-aDatabase::isAccessRights ( int md_type, Q_ULLONG obj_id, DBPermission req_operation )
+aDatabase::isAccessRights ( int md_type, quint64 obj_id, DBPermission req_operation )
 {
         bool res = false;
 
@@ -1653,16 +1651,35 @@ aDatabase::rolePermission ( int role_id, int md_id )
 }
 
 
-void
-aDatabase::setRolePermission ( int role_id, int md_id, int new_permission )
+void aDatabase::setRolePermission(int role_id, int md_id, int new_permission)
 {
-        QString query;
+    QString query;
 
-        printf ( "SET PERMISSIONS role = %i, obj_id=%i perm=%08x\n", role_id, md_id, new_permission );
+    printf("SET PERMISSIONS role = %i, obj_id=%i perm=%08x\n", role_id, md_id, new_permission);
 
-        QSqlQuery q = db()->exec ( QString ( "SELECT permission FROM %1 WHERE id=%2 AND object=%3" ).arg ( qds->tableName ( db_right_roles ) ).arg ( role_id ).arg ( md_id ) );
-        if ( q.first() ) query = QString ( "UPDATE %1 SET permission=%4 WHERE id=%2 AND object=%3" ).arg ( qds->tableName ( db_right_roles ) ).arg ( role_id ).arg ( md_id ).arg ( new_permission );
-        else query = QString ( "INSERT INTO %1 (id,object,permission) VALUES (%2,%3,%4)" ).arg ( qds->tableName ( db_right_roles ) ).arg ( role_id ).arg ( md_id ).arg ( new_permission );
-        q = db()->exec ( query );
-        if ( db()->lastError().type() !=0 ) printf ( "error query %s\n", ( const char* ) query );
+    QSqlQuery q = db()->exec(QString(
+        "SELECT permission FROM %1 WHERE id=%2 AND object=%3")
+        .arg(qds->tableName(db_right_roles))
+        .arg(role_id)
+        .arg(md_id));
+
+    if (q.first())
+        query = QString(
+            "UPDATE %1 SET permission=%4 WHERE id=%2 AND object=%3")
+            .arg(qds->tableName(db_right_roles))
+            .arg(role_id)
+            .arg(md_id)
+            .arg(new_permission);
+    else
+        query = QString(
+            "INSERT INTO %1 (id,object,permission) VALUES (%2,%3,%4)")
+            .arg(qds->tableName(db_right_roles))
+            .arg(role_id)
+            .arg(md_id)
+            .arg(new_permission);
+
+    q = db()->exec(query);
+
+    if (db()->lastError().isValid())
+        printf("error query %s\n", query.toLocal8Bit().constData());
 }

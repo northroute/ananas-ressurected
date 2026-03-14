@@ -30,7 +30,9 @@
 #ifndef ASERVICE_H
 #define ASERVICE_H
 
-//#include	<qmainwindow.h>
+#include	<QSettings>
+#include 	<QDir>
+#include	<math.h>
 #include	"ananas.h"
 
 /*!

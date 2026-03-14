@@ -32,12 +32,13 @@
 #define afilter_h
 
 #include <QString>
-#include <QList>
+#include <QList> // вместо <Q3ValueList>
 #include <QDateTime>
 #include <QtGlobal>
 
 #include "ananasglobal.h"
 
+#include <stdio.h>
 
 ANANAS_EXPORT enum OperationEnum{
 		OperationEnumEquals,

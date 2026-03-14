@@ -30,7 +30,6 @@
 #include "aapplication.h"
 #include "dselectdb.h"
 #include "dlogin.h"
-#include "QTextCodec"
 
 
 AApplication::AApplication(  int & argc, char ** argv, AApplicationType aat )
@@ -66,13 +65,11 @@ AApplication::langDir()
 }
 
 
-QString
-AApplication::lang()
+QString AApplication::lang()
 {
-    char *s, locale[50]="en";
-
-    strncpy( locale, QTextCodec::locale(), sizeof( locale ) );
-    s = strchr( locale, '_' );
-    if ( s ) *s = 0;
-    return QString( locale );
+    QString locale = QLocale::system().name();   // e.g. "en_US"
+    int pos = locale.indexOf('_');
+    if (pos > 0)
+        locale = locale.left(pos);
+    return locale;
 }

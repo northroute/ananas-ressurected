@@ -13,6 +13,8 @@ INCLUDEPATH += ../lib ../plugins
 LIBS += -L../../lib
 LIBS +=-lqt4-qdataschema
 
+QT += network
+
 shared {
     win32:DEFINES += ANANAS_DLL
 } else {
@@ -24,7 +26,7 @@ win32 {
 #  CONFIG += dll
 }
 
-#LIBS += -L$(QTDIR)/plugins/designer -lqsa  # Why? -L../designer -lformdesigner
+#LIBS += -L$(QTDIR)/plugins/designer  # Why? -L../designer -lformdesigner
 unix{
     LIBS        +=  -L/usr/X11R6/lib/
 }

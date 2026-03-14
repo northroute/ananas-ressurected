@@ -29,7 +29,10 @@
 
 #ifndef ASQLFIELD_H
 #define ASQLFIELD_H
-#include <qsqlfield.h>
+
+
+#include <QSqlField>   // вместо <qsqlfield.h>
+#include <QObject>     // вместо <qobject.h>
 #include "acfg.h"
 
 /*

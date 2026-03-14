@@ -1,12 +1,7 @@
 #include "deditrc.h"
 
-#include <q3filedialog.h>
-//#include <qstring.h>
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "atests.h"
+
 /*
  *  Constructs a dEditRC as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -14,11 +9,12 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-dEditRC::dEditRC(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+dEditRC::dEditRC(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
-    setupUi(this);
+    setObjectName(name);
+    setModal(modal);
 
+    setupUi(this);
 }
 
 /*
@@ -42,47 +38,50 @@ void dEditRC::languageChange()
 
 void dEditRC::setdata(QString nameRC, rcListViewItem *item)
 {
-//	QFile f;
-//	QString s, sv, sn;
-//	char buf[1025];
-	it = item;
-	QMap<QString,QString> cfg;
+    it = item;
+    QMap<QString,QString> cfg;
 
-	cfg = aTests::readConfig(QDir::convertSeparators(nameRC));
-	eRCFile->setText(QDir::convertSeparators(nameRC));
-	eDBType->setCurrentItem(0);
+    cfg = aTests::readConfig(QDir::toNativeSeparators(nameRC));
 
-	eDBTitle->setText(cfg["dbtitle"]);
-	eDBName->setText(cfg["dbname"]);
-	eDBUserName->setText(cfg["dbuser"]);
-	ePass->setText(cfg["dbpass"]);
-	eDBHost->setText(cfg["dbhost"]);
-	eDBPort->setText(cfg["dbport"]);
-	eCfgName->setText(QDir::convertSeparators(cfg["configfile"]));
-	if(cfg["dbtype"]=="postgres") eDBType->setCurrentItem(3);
-	if(cfg["dbtype"]=="mysql") eDBType->setCurrentItem(2);
-	if(cfg["dbtype"]=="internal") eDBType->setCurrentItem(1);
-	eWorkDir->setText(QDir::convertSeparators(cfg["workdir"]));
+    eRCFile->setText(QDir::toNativeSeparators(nameRC));
+    eDBType->setCurrentIndex(0);
+
+    eDBTitle->setText(cfg["dbtitle"]);
+    eDBName->setText(cfg["dbname"]);
+    eDBUserName->setText(cfg["dbuser"]);
+    ePass->setText(cfg["dbpass"]);
+    eDBHost->setText(cfg["dbhost"]);
+    eDBPort->setText(cfg["dbport"]);
+    eCfgName->setText(QDir::toNativeSeparators(cfg["configfile"]));
+
+    if(cfg["dbtype"]=="postgres") eDBType->setCurrentIndex(3);
+    if(cfg["dbtype"]=="mysql") eDBType->setCurrentIndex(2);
+    if(cfg["dbtype"]=="internal") eDBType->setCurrentIndex(1);
+
+    eWorkDir->setText(QDir::toNativeSeparators(cfg["workdir"]));
 }
 
 
 void dEditRC::updatecfg()
 {
-	QMap<QString,QString> cfg;
+    QMap<QString,QString> cfg;
 
-	cfg["dbtitle"]	= eDBTitle->text();
-	cfg["dbname"]	= eDBName->text();
-	if(eDBType->currentItem()==1) cfg["dbtype"] ="internal";
-	if(eDBType->currentItem()==2) cfg["dbtype"] ="mysql";
-	if(eDBType->currentItem()==3) cfg["dbtype"]= "postgres";
-	cfg["dbuser"]	= eDBUserName->text();
-	cfg["dbpass"]	= ePass->text();
-	cfg["dbhost"]	= eDBHost->text();
-	cfg["dbport"]	= eDBPort->text();
-	cfg["workdir"]	= QDir::convertSeparators(eWorkDir->text());
-	cfg["configfile"]= QDir::convertSeparators(eCfgName->text());
+    cfg["dbtitle"] = eDBTitle->text();
+    cfg["dbname"]  = eDBName->text();
 
-	aTests::writeConfig(QDir::convertSeparators(eRCFile->text()),cfg);
+    if(eDBType->currentIndex()==1) cfg["dbtype"] ="internal";
+    if(eDBType->currentIndex()==2) cfg["dbtype"] ="mysql";
+    if(eDBType->currentIndex()==3) cfg["dbtype"]= "postgres";
+
+    cfg["dbuser"] = eDBUserName->text();
+    cfg["dbpass"] = ePass->text();
+    cfg["dbhost"] = eDBHost->text();
+    cfg["dbport"] = eDBPort->text();
+
+    cfg["workdir"] = QDir::toNativeSeparators(eWorkDir->text());
+    cfg["configfile"] = QDir::toNativeSeparators(eCfgName->text());
+
+    aTests::writeConfig(QDir::toNativeSeparators(eRCFile->text()), cfg);
 }
 
 
@@ -98,30 +97,31 @@ void dEditRC::onOK()
 
 void dEditRC::onRCFile()
 {
-		Q3FileDialog fd( QString::null,
-  			tr("ananas config resource (*.rc)"),
-			0, 0, TRUE );
-		fd. setMode ( Q3FileDialog::AnyFile );
-		fd.setSelection( QDir::convertSeparators(eRCFile->text()));
-		if ( fd.exec() == QDialog::Accepted ) {
-			eRCFile->setText(QDir::convertSeparators(fd.selectedFile()));
-			setdata(eRCFile->text(),it);
-		} else {
-			return;
-		}
-}
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        tr("ananas config resource (*.rc)"),
+        QDir::toNativeSeparators(eRCFile->text()),
+        tr("ananas config resource (*.rc)")
+    );
 
+    if (fileName.isEmpty())
+        return;
+
+    eRCFile->setText(QDir::toNativeSeparators(fileName));
+    setdata(eRCFile->text(), it);
+}
 
 void dEditRC::onCFGFile()
 {
-		Q3FileDialog fd( QString::null,
-  			tr("ananas config file (*.cfg)"),
-			0, 0, TRUE );
-		fd. setMode ( Q3FileDialog::AnyFile );
-		fd.setSelection( QDir::convertSeparators(eCfgName->text()));
-		if ( fd.exec() == QDialog::Accepted ) {
-			eCfgName->setText(QDir::convertSeparators(fd.selectedFile()));
-		} else {
-			return;
-		}
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        tr("ananas config file (*.cfg)"),
+        QDir::toNativeSeparators(eCfgName->text()),
+        tr("ananas config file (*.cfg)")
+    );
+
+    if (fileName.isEmpty())
+        return;
+
+    eCfgName->setText(QDir::toNativeSeparators(fileName));
 }

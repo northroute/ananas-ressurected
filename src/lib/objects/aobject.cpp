@@ -28,10 +28,7 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <qdialog.h>
+
 #include "adatabase.h"
 #include "aobject.h"
 #include "aform.h"
@@ -53,9 +50,11 @@
  *	сначала проинициализировать его с использованием метаданных, а затем вызвать метод New().
  *	\_ru
  */
-aObject::aObject( QObject *parent, const char *name )
-:QObject( parent, name )
+aObject::aObject( QObject *parent, const char *name ) : QObject(parent)
 {
+	if (name)
+        setObjectName(name);
+
 	db = 0;
 	vInited = false;
 	filtred = false;
@@ -86,41 +85,22 @@ aObject::aObject( QObject *parent, const char *name )
  *
  *	\_ru
  */
-aObject::aObject( const QString &oname, aDatabase *adb, QObject *parent, const char *name )
-:QObject( parent, name )
+aObject::aObject(const QString &oname, aDatabase *adb, QObject *parent, const char *name) : QObject(parent)
 {
-	vInited = false;
-	filtred = false;
-	selectFlag = false;
-	db = adb;
-	if ( adb )
-	{
-		obj = adb->cfg.find( oname );
-		setObject( obj );
-	}
+    if (name)
+        setObjectName(name);
+
+    vInited = false;
+    filtred = false;
+    selectFlag = false;
+    db = adb;
+
+    if (adb)
+    {
+        obj = adb->cfg.find(oname);
+        setObject(obj);
+    }
 }
-
-
-
-/*!
- *	Create aObject, inited by md object.
- *	\param context - hi leve md object
- *	\param adb - link on object aDataBase used for work
- *	\param parent - parent object
- *	\param name - name of object
- */
-aObject::aObject( aCfgItem context, aDatabase *adb, QObject *parent, const char *name )
-:QObject( parent, name )
-{
-	filtred = false;
-	vInited = false;
-	db = adb;
-	if ( adb )
-	{
-		setObject( context );
-	}
-}
-
 
 
 /*!
@@ -214,8 +194,7 @@ aObject::table( const QString &name )
 	{
 		if (name!="" && !name.isEmpty())
 		{
-			aLog::print(aLog::Error, tr("aObject table with name %1 not found").arg(name));
-			cfg_message(1, tr("Table `%s' not found.\n").utf8(),(const char*) name);
+			cfg_message(1, tr("Table `%s' not found.\n").toUtf8().constData(), name.toLocal8Bit().constData());
 		}
 	//	else
 	//	{
@@ -1046,25 +1025,24 @@ aObject::TableClearFilter( const QString & tname )
  * 	\return возвращает код ошибки или 0 в случае успеха.
  * \_ru
  */
-int
-aObject::TableUpdate( const QString & tablename )
+int aObject::TableUpdate(const QString &tablename)
 {
-	aDataTable *t = table( tablename );
-	if ( !t )
-	{
+    aDataTable *t = table(tablename);
+    if (!t)
+    {
+        aLog::print(aLog::Error, tr("aObject table update: no table found with name %1").arg(tablename));
+        return err_notable;
+    }
 
-		aLog::print(aLog::Error, tr("aObject table update: no table found with name %1").arg(tablename));
-		return err_notable;
-	}
-//	t->primeUpdate();
-	t->Update();
-	if (t->lastError().type())
-	{
+    t->Update();
 
-		aLog::print(aLog::Error, tr("aObject update error. Driver message: %1").arg(t->lastError().text()));
-		return err_updateerror;
-	}
-	return err_noerror;
+    if (t->lastError().type() != QSqlError::NoError)
+    {
+        aLog::print(aLog::Error, tr("aObject update error. Driver message: %1").arg(t->lastError().text()));
+        return err_updateerror;
+    }
+
+    return err_noerror;
 }
 
 
