@@ -43,6 +43,28 @@ jobs:
         run: |
           docker run --rm ananas-ci:latest bash -lc "qmake-qt4 -v"
 
+      - name: Build qdataschema
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace/third-party/qdataschema/src \
+            ananas-ci:latest \
+            bash -lc "
+              qmake-qt4
+              make -j1
+            "
+
+      - name: Build lib
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace/src/lib \
+            ananas-ci:latest \
+            bash -lc "
+              qmake-qt4
+              make -j1
+            "
+
       - name: Build module
         run: |
           docker run --rm \
