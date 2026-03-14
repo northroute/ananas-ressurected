@@ -1,6 +1,12 @@
 #ifndef USERSFORM_H
 #define USERSFORM_H
+
+
 #include <QPointer>
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QLayout>
 
 #include "ui_usersform.h"
 

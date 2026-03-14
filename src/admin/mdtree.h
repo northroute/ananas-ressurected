@@ -29,16 +29,22 @@
 
 #ifndef MDTREE_H
 #define MDTREE_H
-#include <Qt3Support>
+
+#include <QCursor>
+#include <QLabel>
+#include <QApplication>
+#include <QTreeWidgetItem>
+#include <QHash>
+#include <QTreeWidget>
+#include <QIcon>
+
 //#include <qlistview.h>
 //#include <qintdict.h>
+
 #include "acfg.h"
 #include "atreeitems.h"
 #include "auser.h"
 #include "arole.h"
-
-#define QIntDict Q3IntDict
-#define QValueList Q3ValueList
 
 //#include "usersform.h"
 //#include "rolesform.h"
@@ -68,10 +74,10 @@ public:
 			aUser *usr = NULL,
 			aRole *rl = NULL);
 //	aListViewItem(QListViewItem *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
-	aListViewItem(	QListView *parent, 
-			aCfg * cfgmd,
-			aCfgItem obj,
-			const QString &name = QString::null);
+	aListViewItem(QTreeWidget *parent,
+              aCfg *cfgmd,
+              aCfgItem obj,
+              const QString &name = QString());
 	
 	~aListViewItem();
 	QString text( int column ) const;
@@ -104,7 +110,7 @@ public:
 
 protected:
 //	virtual void okRename( int col );
-	virtual int compare( Q3ListViewItem *i, int col, bool accending ) const;
+	virtual int compare( QTreeWidgetItem *i, int col, bool accending ) const;
 private:
 //	void loadDocument ();
 //	void loadJournal ();
@@ -150,9 +156,9 @@ public slots:
 	void itemDelete();
 	void itemSetPermission();
 private slots:
-	void on_collapsed( Q3ListViewItem *item );
+	void on_collapsed(QTreeWidgetItem *item);
 private:
-	QIntDict<QWidget> editors;
+	QHash<int, QWidget*> editors;
 };
 
 #endif

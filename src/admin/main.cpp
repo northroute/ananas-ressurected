@@ -27,17 +27,24 @@
 **
 **********************************************************************/
 
-#include <aapplication.h>
-#include <qmessagebox.h>
-#include <qtranslator.h>
-#include <qsplashscreen.h>
-#include <qtextcodec.h>
+#include <QMessageBox>
+#include <QTranslator>
+#include <QSplashScreen>
+#include <QTextCodec>
+
 #include "mainform.h"
 #include "ananas.h"
+#include <aapplication.h>
 
 //QApplication *application = 0;
 //MainForm *mainform = 0;
-QTranslator *translator = 0, tr_app(0), tr_lib(0), tr_plugins(0);
+
+
+QTranslator translator;
+QTranslator tr_app;
+QTranslator tr_lib;
+QTranslator tr_plugins;
+
 QString lang="en", 
 	rcfile="", 
 	username="", 
@@ -51,105 +58,120 @@ int setTranslator(QString langdir, QString lang)
 	return 0;
 }
 
-int 
-parseCommandLine(  AApplication *a )
+int parseCommandLine(AApplication *a)
 {
-	QString param, name, value;
-	int i, argc;
-	char **argv;
-	
-	argc = a->argc(); 
-	argv = a->argv();
-        setTranslator( a->langDir(), a->lang() );
-//	printf("locale=%s\n", locale );	
-	QString str_ru=QString::null, str_en=QString::null;
-	bool lang_setted = false;
-	bool help_setted = false;
-	for ( i=1; i<argc; i++)
-	{
-	    param = argv[i];
-	    name = param.section("=",0,0).lower();
-	    value = param.section("=",1);
-	    if (param == "--help")
-	    {
-		    str_ru = "Использование: ananas-administrator [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
-		    str_ru+= "LANG=ru|en\n";
-		    str_ru+= "RC_PATH=путь к *.rc файлу описания бизнес схемы\n";
-			    
-	    	    str_en = "Usage: ananas-administrator [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
-		    str_en+= "LANG=ru|en\n";
-		    str_en+= "RC_PATH=path to *.rc file of paticular business scheme\n";
-		    help_setted = true;
-			    
-	    }
-	    if (name == "--lang") {
-		lang = value;
-		lang_setted = true;
-	        setTranslator( a->langDir(), lang );
-	    }
-	    if (name == "--rc") rcfile = value;
-	}
-	if(help_setted)
-	{
-		if(lang == "ru")
-		{
-			printf("%s",(const char*)str_ru.local8Bit());
-		}
-		else
-		{
-			printf("%s",str_en.ascii());
-		}
-		return 1;
-	}
-	return 0;
+    QString param, name, value;
+    int i, argc;
+    char **argv;
+
+    argc = a->argc();
+    argv = a->argv();
+
+    setTranslator(a->langDir(), a->lang());
+
+    QString str_ru, str_en;
+    bool lang_setted = false;
+    bool help_setted = false;
+
+    for (i = 1; i < argc; i++)
+    {
+        param = argv[i];
+        name = param.section("=", 0, 0).toLower();
+        value = param.section("=", 1);
+
+        if (param == "--help")
+        {
+            str_ru = "Использование: ananas-administrator [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
+            str_ru += "LANG=ru|en\n";
+            str_ru += "RC_PATH=путь к *.rc файлу описания бизнес схемы\n";
+
+            str_en = "Usage: ananas-administrator [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
+            str_en += "LANG=ru|en\n";
+            str_en += "RC_PATH=path to *.rc file of paticular business scheme\n";
+
+            help_setted = true;
+        }
+
+        if (name == "--lang")
+        {
+            lang = value;
+            lang_setted = true;
+            setTranslator(a->langDir(), lang);
+        }
+
+        if (name == "--rc")
+            rcfile = value;
+    }
+
+    if (help_setted)
+    {
+        if (lang == "ru")
+            printf("%s", str_ru.toLocal8Bit().constData());
+        else
+            printf("%s", str_en.toLocal8Bit().constData());
+
+        return 1;
+    }
+
+    return 0;
 }
 
-int main( int argc, char ** argv )
+int main(int argc, char **argv)
 {
+    AApplication a(argc, argv, AApplication::Administrator);
+    int rc = 1;
+    bool ok;
+    QPixmap pixmap;
 
-	AApplication a( argc, argv, AApplication::Administrator );
-	//dSelectDB dselectdb;
-	int rc = 1;
-	bool ok;
-	QPixmap pixmap;
+    qApp->addLibraryPath(qApp->applicationDirPath());
 
-	QTextCodec::setCodecForCStrings( QTextCodec::codecForName("UTF8") );
-	qApp->addLibraryPath( qApp->applicationDirPath() );
-	if ( parseCommandLine( &a ) ) return 1;
-//	qApp->installTranslator( &tr_app );
-//	qApp->installTranslator( &tr_lib );
-//	qApp->installTranslator( &tr_plugins );
-	pixmap = QPixmap(":/images/administrator-splash-"+lang+".png" );
-	if ( pixmap.isNull() )
+    if (parseCommandLine(&a))
+        return 1;
+
+    pixmap = QPixmap(":/images/administrator-splash-" + lang + ".png");
+
+    if (pixmap.isNull())
 #ifdef _Windows
-	pixmap = QPixmap( qApp->applicationDirPath()+"/administrator-splash-"+lang+".png" );
+        pixmap = QPixmap(qApp->applicationDirPath() + "/administrator-splash-" + lang + ".png");
 #else
-	pixmap = QPixmap( "/usr/share/ananas/administrator/locale/administrator-splash-"+lang+".png" );
+        pixmap = QPixmap("/usr/share/ananas/administrator/locale/administrator-splash-" + lang + ".png");
 #endif
-	if ( pixmap.isNull() ) pixmap = QPixmap(":/images/administrator-splash-en.png" );
-	QSplashScreen *splash = new QSplashScreen( pixmap );
-	if ( ananas_login( rcfile, username, userpassword, 0, AApplication::Administrator ) ){
-	       	splash->show();
-		splash->message( QObject::tr("Init application"), Qt::AlignBottom, Qt::white );
-		MainForm *w = new MainForm( 0, "MainForm");
-		//mainform = w;
-//		mainformws = mainform->ws;
-//		mainformwl = mainform->wl;
-		qApp->setMainWidget( w );
-		w->rcfile = rcfile;
-//		printf( "rcfile = %s\n", rcfile.ascii() );
-		w->show();
-		ok = w->init();
-		splash->clear();
-       		splash->finish( w );
-       		delete splash;
-		if ( ok ) {
-			a.connect( &a, SIGNAL( lastWindowClosed() ), &a, SLOT( quit() ) );
-			rc = a.exec();
-		} else {
-			QMessageBox::critical(0, "error","Error init Ananas engine");
-		}
-		ananas_logout();
-		return rc;
-	} else return 0;
+
+    if (pixmap.isNull())
+        pixmap = QPixmap(":/images/administrator-splash-en.png");
+
+    QSplashScreen *splash = new QSplashScreen(pixmap);
+
+    if (ananas_login(rcfile, username, userpassword, 0, AApplication::Administrator))
+    {
+        splash->show();
+        splash->showMessage(QObject::tr("Init application"), Qt::AlignBottom, Qt::white);
+
+        MainForm *w = new MainForm(0, 0, Qt::Window);
+        w->rcfile = rcfile;
+        w->show();
+
+        ok = w->init();
+
+        splash->clearMessage();
+        splash->finish(w);
+        delete splash;
+
+        if (ok)
+        {
+            QObject::connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+            rc = a.exec();
+        }
+        else
+        {
+            QMessageBox::critical(0, "error", "Error init Ananas engine");
+        }
+
+        ananas_logout();
+        return rc;
+    }
+    else
+    {
+        return 0;
+    }
 }

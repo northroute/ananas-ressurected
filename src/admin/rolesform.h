@@ -1,6 +1,10 @@
 #ifndef ROLESFORM_H
 #define ROLESFORM_H
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 #include "ui_rolesform.h"
 
 class RolesForm : public QWidget, public Ui::RolesForm

@@ -1,6 +1,11 @@
 #ifndef DEDITROLE_H
 #define DEDITROLE_H
 
+
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 #include "ui_deditrole.h"
 
 class dEditRole : public QDialog, public Ui::dEditRole
