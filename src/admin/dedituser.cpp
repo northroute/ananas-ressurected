@@ -1,9 +1,5 @@
 #include "dedituser.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a dEditUser as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -12,10 +8,15 @@
  *  true to construct a modal dialog.
  */
 dEditUser::dEditUser(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+    : QDialog(parent, fl)
 {
     setupUi(this);
 
+    if (modal)
+        setModal(true);
+
+    if (name)
+        setObjectName(name);
 }
 
 /*
@@ -71,20 +72,24 @@ void dEditUser::setData( aUser *user, bool isNew )
 
 void dEditUser::onOk()
 {
-    if(check(lineEdit1->text()))
+    if (!check(lineEdit1->text()))
+        return;
+
+    if (newUser)
     {
- if(newUser)
- {
-    usr->New(lineEdit1->text(), lineEdit2->text(),lineEdit3->text(),lineEdit4->text());
- }
- else
- {
- usr->setSysValue("login",lineEdit1->text());
- usr->setSysValue("password",lineEdit2->text());
-  usr->setSysValue("fname",lineEdit3->text());
-  usr->setSysValue("lname",lineEdit4->text());
-  usr->Update();
-}
- this->accept();
-   }
+        usr->New(lineEdit1->text(),
+                 lineEdit2->text(),
+                 lineEdit3->text(),
+                 lineEdit4->text());
+    }
+    else
+    {
+        usr->setSysValue("login",    lineEdit1->text());
+        usr->setSysValue("password", lineEdit2->text());
+        usr->setSysValue("fname",    lineEdit3->text());
+        usr->setSysValue("lname",    lineEdit4->text());
+        usr->Update();
+    }
+
+    accept();
 }

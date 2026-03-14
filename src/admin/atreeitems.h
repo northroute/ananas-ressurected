@@ -30,20 +30,22 @@
 
 #ifndef ATREEITEMS_H
 #define ATREEITEMS_H
-#include <Qt3Support>
-//#include <qpopupmenu.h>
-#include <qlistview.h>
-//#include <qintdict.h>
+
+
+#include <QListView>
+#include <QLabel>
+#include <QCursor>
+
 #include "acfg.h"
 
-#define QListView Q3ListView
-#define QListViewItem Q3ListViewItem
-#define QPopupMenu Q3PopupMenu
-#define QHeader Q3Header
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QMenu>
+#include <QHeaderView>
 
 class QWidget;
 
-class ananasListViewItem : public Q3ListViewItem
+class ananasListViewItem : public QTreeWidgetItem
 {
 public:
 	int id;
@@ -51,8 +53,8 @@ public:
 	QWidget *editor;
 	aCfg *md;
 
-	ananasListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
-	ananasListViewItem( Q3ListView *parent, Q3ListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
+	ananasListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
+	ananasListViewItem( QTreeWidget *parent, QTreeWidgetItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
 	ananasListViewItem( ananasListViewItem *parent, ananasListViewItem *after, aCfg * cfgmd,
 						aCfgItem cfgobj, const QString &name = QString::null );
 
@@ -68,8 +70,7 @@ protected:
 //	virtual void okRename( int col );
 };
 
-class ananasTreeView
-: public Q3ListView
+class ananasTreeView : public QTreeWidget
 {
     Q_OBJECT
 public:
@@ -77,7 +78,7 @@ public:
 
 	ananasTreeView( QWidget *parent, aCfg *cfgmd );
 
-	void ContextMenuAdd(  QPopupMenu * m );
+	void ContextMenuAdd(QMenu *m);
 //	void deleteItem();
 //	void moveUpItem ();
 //	void moveDownItem ();

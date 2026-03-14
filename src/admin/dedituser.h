@@ -1,5 +1,11 @@
 #ifndef DEDITUSER_H
 #define DEDITUSER_H
+
+
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 #include "ui_dedituser.h"
 
 class dEditUser : public QDialog, public Ui::dEditUser

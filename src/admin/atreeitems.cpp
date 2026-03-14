@@ -31,56 +31,76 @@
 //#include <qlistview.h>
 //#include <qheader.h>
 //#include <qpopupmenu.h>
-#include <qlabel.h>
-#include <qcursor.h>
 
 #include "atreeitems.h"
 
-ananasListViewItem::ananasListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj,
-										 const QString &name )
-: Q3ListViewItem( parent )
+ananasListViewItem::ananasListViewItem(QTreeWidget *parent,
+                                       aCfg *cfgmd,
+                                       aCfgItem cfgobj,
+                                       const QString &name)
+    : QTreeWidgetItem(parent)
 {
-	obj = cfgobj;
-	md = cfgmd;
-	if ( name.isNull() ) setText( 0, md->attr( obj, mda_name ) );
-	else setText( 0, name );
-	id = md->id(obj);
+    obj = cfgobj;
+    md = cfgmd;
+
+    if (name.isNull())
+        setText(0, md->attr(obj, mda_name));
+    else
+        setText(0, name);
+
+    id = md->id(obj);
 }
 
-ananasListViewItem::ananasListViewItem( ananasListViewItem *parent, ananasListViewItem *after,
-										 aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: Q3ListViewItem( parent, after )
+ananasListViewItem::ananasListViewItem(ananasListViewItem *parent,
+                                       ananasListViewItem *after,
+                                       aCfg *cfgmd,
+                                       aCfgItem cfgobj,
+                                       const QString &name)
+    : QTreeWidgetItem(parent)
 {
-	obj = cfgobj;
-	md = cfgmd;
-	if ( name.isNull() ) setText( 0, md->attr( obj, mda_name ) );
-	else setText( 0, name );
-	id = md->id(obj);
+    obj = cfgobj;
+    md = cfgmd;
+
+    if (name.isNull())
+        setText(0, md->attr(obj, mda_name));
+    else
+        setText(0, name);
+
+    id = md->id(obj);
+
+    if (after)
+    {
+        QTreeWidgetItem *p = parent;
+        int idx = p->indexOfChild(after);
+        p->insertChild(idx + 1, this);
+    }
 }
 
-ananasListViewItem::ananasListViewItem( Q3ListView *parent, Q3ListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: Q3ListViewItem( parent, after )
+ananasListViewItem::ananasListViewItem(QTreeWidget *parent, QTreeWidgetItem *after,
+                                       aCfg *cfgmd, aCfgItem cfgobj, const QString &name)
+    : QTreeWidgetItem(parent)
 {
-	obj = cfgobj;
-	md = cfgmd;
-	if ( name.isNull() ) setText( 0, md->attr( obj, mda_name ) );
-	else setText( 0, name );
-	id = md->id(obj);
+    obj = cfgobj;
+    md = cfgmd;
+
+    if (name.isNull())
+        setText(0, md->attr(obj, mda_name));
+    else
+        setText(0, name);
+
+    id = md->id(obj);
+
+    if (after) {
+        QTreeWidgetItem *p = parent->invisibleRootItem();
+        int idx = p->indexOfChild(after);
+        p->insertChild(idx + 1, this);
+    }
 }
 
-void
-ananasListViewItem::clearTree()
+void ananasListViewItem::clearTree()
 {
-	QListViewItem	*item, *nextitem;
-
-	// clear tree
-	item = firstChild();
-	while( item )
-	{
-		nextitem = item->nextSibling();
-		delete item;
-		item = nextitem;
-	}
+    while (childCount() > 0)
+        delete child(0);
 }
 
 /*
@@ -95,59 +115,53 @@ CHECK_POINT
 }
 */
 
-ananasListViewItem *
-ananasListViewItem::previousSibling()
+ananasListViewItem *ananasListViewItem::previousSibling()
 {
-	if ( !this ) return 0;
-	QListViewItem *parent, *item;
-	parent = this->parent();
-	item = parent->firstChild();
-	while ( item )
-		if ( (ananasListViewItem *)item->nextSibling() == this )
-			return (ananasListViewItem *) item;
-		else item = item->nextSibling();
-	return 0;
+    QTreeWidgetItem *p = parent();
+    if (!p) return 0;
+
+    int idx = p->indexOfChild(this);
+    if (idx <= 0) return 0;
+
+    return (ananasListViewItem*) p->child(idx - 1);
 }
 
-ananasListViewItem*
-ananasListViewItem::nextSibling()
+ananasListViewItem *ananasListViewItem::nextSibling()
 {
-	return (ananasListViewItem *)QListViewItem::nextSibling();
+    QTreeWidgetItem *p = parent();
+    if (!p) return 0;
+
+    int idx = p->indexOfChild(this);
+    if (idx < 0 || idx + 1 >= p->childCount()) return 0;
+
+    return (ananasListViewItem*) p->child(idx + 1);
 }
 
 
-
-
-ananasListViewItem*
-ananasListViewItem::getLastChild()
+ananasListViewItem *ananasListViewItem::getLastChild()
 {
-	QListViewItem *item, *nextitem;
-	item = firstChild();
-	while( item )
-	{
-		nextitem = item->nextSibling();
-		if ( nextitem )
-			item = nextitem;
-		else
-			return (ananasListViewItem*) item;
-	}
-	return 0;
-};
+    int n = childCount();
+    if (n == 0)
+        return 0;
+
+    return (ananasListViewItem*) child(n - 1);
+}
 
 
-ananasTreeView::ananasTreeView ( QWidget *parent, aCfg *cfgmd )
-:Q3ListView ( parent )
+ananasTreeView::ananasTreeView(QWidget *parent, aCfg *cfgmd) : QTreeWidget(parent)
 {
-	md = cfgmd;
-	addColumn( "" );
-	header()->hide();
-	setSorting ( -1 );
-	setSelectionMode( Single );
-};
+    md = cfgmd;
+
+    setColumnCount(1);
+    header()->hide();
+
+    setSortingEnabled(false);
+    setSelectionMode(QAbstractItemView::SingleSelection);
+}
 
 
 void
-ananasTreeView::ContextMenuAdd( QPopupMenu * m )
+ananasTreeView::ContextMenuAdd( QMenu * m )
 {
 	//m->insertSeparator();
 };

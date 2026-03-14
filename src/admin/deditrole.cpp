@@ -1,8 +1,5 @@
 #include "deditrole.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
 
 /*
  *  Constructs a dEditRole as a child of 'parent', with the
@@ -12,10 +9,15 @@
  *  true to construct a modal dialog.
  */
 dEditRole::dEditRole(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+    : QDialog(parent, fl)
 {
     setupUi(this);
 
+    if (modal)
+        setModal(true);
+
+    if (name)
+        setObjectName(name);
 }
 
 /*
