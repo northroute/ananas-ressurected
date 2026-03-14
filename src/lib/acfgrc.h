@@ -34,7 +34,14 @@
 
 #include <QObject>     // Qt4 QObject
 #include <QMap>        // вместо Q3Dict
-#include <QPixmap>     // Qt4 pixmap
+#include <stdlib.h>          // оставить
+#include <QFile>             // вместо <qfile.h>
+#include <QStringList>       // вместо <qstringlist.h>
+#include <QTextStream>       // вместо <q3textstream.h>
+#include <QPixmap>           // вместо <qpixmap.h>
+#include <QDrag>             // вместо <q3dragobject.h>, если нужен drag
+#include <QMimeData>         // вместо <Q3MimeSourceFactory>, если нужна mime data
+#include <QPixmapCache>      // иногда нужно вместо фабрики, если там хранилище картинок
 
 
 QPixmap ANANAS_EXPORT rcIcon(const char *name);

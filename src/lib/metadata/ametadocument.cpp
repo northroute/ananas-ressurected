@@ -33,15 +33,13 @@
  * \class AMetaDocument
  *
  */
-AMetaDocument::AMetaDocument( AMetaObject *parent )
-:AMetaObject("Document", "", parent )
+AMetaDocument::AMetaDocument(AMetaObject *parent) : AMetaObject("Document", "", parent)
 {
-    setId( lastId() );
-    setName( QString("%1_%2").arg( tr("Document") ).arg( id() ) );
-    addChild( &v_fields );
-    addChild( &v_tables );
-    addChild( &v_forms );
-
+    setId(lastId());
+    setObjectName(QString("%1_%2").arg(tr("Document")).arg(id()));
+    addChild(&v_fields);
+    addChild(&v_tables);
+    addChild(&v_forms);
 }
 
 

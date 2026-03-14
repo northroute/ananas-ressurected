@@ -32,6 +32,12 @@
 #include <QObject>
 #include "ametadata.h"
 
+#include <QDateTime>
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
+#include <QDomDocument>
+
 class AMetaDataIO: public QObject
 {
 Q_OBJECT

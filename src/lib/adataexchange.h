@@ -31,10 +31,18 @@
 #ifndef ADATEXCHANGE_H
 #define ADATEXCHANGE_H
 
-#include "qdom.h"
-#include "qstringlist.h"
+#include <QDomDocument>
+#include <QStringList>
 #include "ananas.h"
-#include <qobject.h>
+#include <QObject>
+
+#include <QApplication>   // вместо <qapplication.h>
+#include <QFile>          // вместо <qfile.h>
+#include <QDir>           // вместо <qdir.h>
+#include <QProcess>       // вместо <q3process.h>
+#include <QTextStream>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 class aDatabase;

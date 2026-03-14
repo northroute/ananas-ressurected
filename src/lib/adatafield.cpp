@@ -27,8 +27,7 @@
 **
 **********************************************************************/
 
-//#include <qobject.h>
-//#include "acfg.h"
+
 #include "adatafield.h"
 
 /*!
@@ -50,27 +49,27 @@ aDataField::aDataField(aCfg *newmd, aCfgItem newcontext )
 /*!
  * Create Ananas field contaner.
  */
-aDataField::aDataField( QObject *parent, const QString &name, const QString &type )
-:QObject( parent, "aField" )
+aDataField::aDataField(QObject *parent, const QString &name, const QString &type) : QObject(parent)
 {
-	init( name, type );
+    setObjectName("aField");
+    init(name, type);
 }
 
 
 /*!
  * Create Ananas field contaner.
  */
-aDataField::aDataField(const QString &name, const QString &type )
-:QObject( 0, "aField" )
+aDataField::aDataField(const QString &name, const QString &type ) : QObject(0)
 {
-	init( name, type );
+    setObjectName("aField");
+    init(name, type);
 }
 
 
-aDataField::aDataField( const aDataField &field )
-:QObject( 0, "aField" )
+aDataField::aDataField(const aDataField &field) : QObject(0)
 {
-	init( field.fieldName(), field.fType );
+    setObjectName("aField");
+    init(field.fieldName(), field.fType);
 }
 
 /*!
@@ -128,7 +127,7 @@ aDataField::init( const QString &name, const QString &type )
 	fType = type;
 	Type = QVariant::Invalid;
 	if ( !type.isNull() ) {
-		aType = ( (const char *) type.section(" ",0,0).upper() )[0];
+		aType = type.section(" ", 0, 0).toUpper().at(0).toLatin1();
 		Width = type.section(" ",1,1).toInt();
 		Dec = type.section(" ",2,2).toInt();
 		switch ( aType ){

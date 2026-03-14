@@ -37,7 +37,7 @@ AMetaJournal::AMetaJournal( AMetaObject *parent )
 :AMetaObject("Journal", "", parent )
 {
     setId( lastId() );
-    setName( QString("%1_%2").arg( tr("Journal") ).arg( id() ) );
+    setObjectName( QString("%1_%2").arg( tr("Journal") ).arg( id() ) );
     addChild( &v_fields );
     addChild( &v_tables );
     addChild( &v_forms );

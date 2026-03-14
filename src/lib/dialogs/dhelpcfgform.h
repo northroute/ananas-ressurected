@@ -4,6 +4,10 @@
 #include "ui_dhelpcfgform.h"
 
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 class HelpCfgForm : public QDialog, public Ui::HelpCfgForm
 {
     Q_OBJECT

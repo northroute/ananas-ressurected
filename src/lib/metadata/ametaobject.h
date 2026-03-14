@@ -33,6 +33,12 @@
 
 #include <QObject>
 #include <QDate>
+#include <QDateTime>
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
+#include <QDomDocument>
+#include <QMutex>
 
 #ifdef __BORLANDC__
 #define CHECK_POINT 	printf("%s:%i %s()\n",__FILE__,__LINE__,__FUNC__);

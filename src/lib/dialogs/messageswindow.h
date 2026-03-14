@@ -37,6 +37,12 @@
 #include <QDockWidget>
 #include <QHideEvent>
 
+#include <QTextBrowser>   // вместо <q3textbrowser.h>
+#include <QLayout>        // вместо <qlayout.h>
+#include <QMdiArea>       // вместо <qworkspace.h>
+#include <QImage>         // вместо <qimage.h>
+#include <QPixmap>        // вместо <qpixmap.h>
+
 class QTextBrowser;
 
 

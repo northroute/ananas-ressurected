@@ -21,4 +21,7 @@ win32 {
 #    LIBS	+= -L..\..\plugins -lananasplugin
 }
 
-INCLUDEPATH +=../../../third-party/qdataschema/src/lib
+ANANAS_ROOT = $$PWD/..
+QDATASCHEMA_ROOT = $$ANANAS_ROOT/third-party/qdataschema
+
+INCLUDEPATH += $$QDATASCHEMA_ROOT/src/lib

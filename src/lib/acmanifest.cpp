@@ -30,8 +30,6 @@
 
 #include "alog.h"
 #include "acmanifest.h"
-#include <qfile.h>
-#include <QTextStream>
 
 //#define ERROR true
 
@@ -69,7 +67,7 @@ bool
 aCManifest::write(const QString& fname)
 {
 	QFile file(fname);
-	QByteArray buf( manifest.toString(4).utf8() );
+	QByteArray buf(manifest.toString(4).toUtf8());
 	if ( file.open( QIODevice::WriteOnly ) )
 	{
 		QTextStream ts( &file );
@@ -152,41 +150,41 @@ aCManifest::addEntry( const QString &fname, int type)
 	}
 }
 
-bool
-aCManifest::removeEntry( const QString &fname, bool withChilds )
+bool aCManifest::removeEntry(const QString &fname, bool withChilds)
 {
+    bool res = false;
+    if (isValid())
+    {
+        QDomElement root = manifest.documentElement().firstChild().toElement();
+        QDomElement el = root.firstChild().toElement();
+        QString attr;
 
-	bool res = false;
-	if(isValid())
-	{
-		QDomElement root = manifest.documentElement().firstChild().toElement();
-		QDomElement el = root.firstChild().toElement();
-		QString attr;
-		while(!el.isNull())
-		{
-			printf("element is %s\n",el.nodeName().ascii());
-			attr = el.attribute("manifest:full-path");
-			if(withChilds)
-			{
-				if(attr.find(fname)!=0) // only if attr begining from fname
-				{
-					printf("remove entry %s\n",attr.ascii());
-				}
-			}
-			else
-			{
-				if(attr==fname)
-				{
-					printf("remove entry %s\n",attr.ascii());
-					root.removeChild(el);
-					res = true;
-				}
-			}
-			el = root.nextSibling().toElement();
+        while (!el.isNull())
+        {
+            printf("element is %s\n", el.nodeName().toLocal8Bit().constData());
+            attr = el.attribute("manifest:full-path");
 
-		}
-	}
-	return res;
+            if (withChilds)
+            {
+                if (attr.indexOf(fname) == 0)
+                {
+                    printf("remove entry %s\n", attr.toLocal8Bit().constData());
+                }
+            }
+            else
+            {
+                if (attr == fname)
+                {
+                    printf("remove entry %s\n", attr.toLocal8Bit().constData());
+                    root.removeChild(el);
+                    res = true;
+                }
+            }
+
+            el = el.nextSibling().toElement();
+        }
+    }
+    return res;
 }
 
 bool

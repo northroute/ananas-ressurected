@@ -31,11 +31,13 @@
 #ifndef ACMANIFEST_H
 #define ACMANIFEST_H
 
-#include "qdom.h"
-#include "qstringlist.h"
-#include "ananas.h"
-#include <qobject.h>
+#include <QDomDocument>   // вместо "qdom.h"
+#include <QStringList>    // вместо "qstringlist.h"
+#include <QObject>        // вместо <qobject.h>
+#include <QFile>          // вместо <qfile.h>
+#include <QTextStream>
 
+#include "ananas.h"
 
 
 /**

@@ -1,9 +1,5 @@
 #include "dlogin.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a dLogin as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -11,11 +7,12 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-dLogin::dLogin(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+dLogin::dLogin(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
-    setupUi(this);
+    setObjectName(name);
+    setModal(modal);
 
+    setupUi(this);
     init();
 }
 

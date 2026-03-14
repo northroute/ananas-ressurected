@@ -40,7 +40,12 @@
 #include <QObject>
 #include <QMap>
 #include <QStringList>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <cstdlib>
+#include <QFile>
+#include <QDir>
+#include <QTextStream>
 
 /**
  * \en

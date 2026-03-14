@@ -27,10 +27,6 @@
 **
 **********************************************************************/
 
-#include	<qdatetime.h>
-//Added by qt3to4:
-#include <QSqlQuery>
-
 #include	"acfg.h"
 #include	"aobject.h"
 #include	"adatabase.h"
@@ -269,7 +265,7 @@ aDocJournal::New( qulonglong idd, const QString & docPrefix, int type )
 	rec->setValue("pnum",docPrefix);
 	rec->setValue("ddate",QDateTime::currentDateTime());
 
-	t->insert(); // insert edit buffer as new line in table
+	t->New(); // insert edit buffer as new line in table
 //TODO: error handle
 	aLog::print(aLog::Info, tr("aDocJournal new document with idd=%1").arg(idd));
 	/*

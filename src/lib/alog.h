@@ -32,8 +32,10 @@
 
 //#include	"ananas.h"
 #include	"ananasglobal.h"
-#include 	<qstring.h>
-#include 	<qfile.h>
+#include 	<QString>
+#include 	<QFile>
+#include	<QDir>
+#include	<QDateTime>
 
 
 // for bcc32.exe compatibility 

@@ -28,9 +28,6 @@
 **********************************************************************/
 
 #include	"auser.h"
-//Added by qt3to4:
-#include <Q3ValueList>
-//#include 	"ananas.h"
 
 
 /*!\en Constructor for concrete object class creating
@@ -85,27 +82,31 @@ aUser::initObject()
  * \param assibned 	\en true for return assigned roles, false for retun unassigned roles\_en
  * 			\ru true для возврата назначенных ролей, false для возврата неназначенных ролей \_ru
  */
-Q3ValueList< aRole *>
-aUser::getRoles(bool assigned)
+QList<aRole *> aUser::getRoles(bool assigned)
 {
-	Q3ValueList<aRole*> list;
-	qulonglong rid;
-	aRole *rl = new aRole(db);
-	rl->Select();
-	if(rl->First())
-	{
-		do
-		{
-			rid = rl->sysValue("id").toULongLong();
-			if(!(hasRole(rid) ^ assigned))// !XOR
-			{
-				aRole *r = new aRole(rid,db);
-				list.insert(list.end(),r);
-			}
-		}while(rl->Next());
-	}
-	delete rl;
-	return list;
+    QList<aRole*> list;
+
+    qulonglong rid;
+    aRole *rl = new aRole(db);
+
+    rl->Select();
+    if (rl->First())
+    {
+        do
+        {
+            rid = rl->sysValue("id").toULongLong();
+
+            if (!(hasRole(rid) ^ assigned)) // !XOR
+            {
+                aRole *r = new aRole(rid, db);
+                list.append(r);
+            }
+
+        } while (rl->Next());
+    }
+
+    delete rl;
+    return list;
 }
 
 /*!\en Gets user id
@@ -221,7 +222,7 @@ aUser::addRole( qulonglong roleId )
 	//printf( "idg=%lu\n", idg );
 	rec->setValue("id",idg );
 	rec->setValue("idr",roleId );
-	tg->insert(); // insert record
+	tg->New(); // insert record
 	//tg->update();
 return  err_noerror;
 }
@@ -244,8 +245,7 @@ aUser::delRole( qulonglong roleId )
 	if ( t->first() )
 	{
 		//printf("del usr_role \n");
-		t->primeDelete();
-		t->del();
+		t->Delete();
 //		setSelected( false );
 	}
 	else return err_notselected;
@@ -304,7 +304,7 @@ aUser::New(const QString &login,
 	rec->setValue( "password", password );
 	rec->setValue( "fname", firstName );
 	rec->setValue( "lname", lastName );
-	te->insert(); // insert edit buffer as new line in table
+	te->New(); // insert edit buffer as new line in table
 	te->select(QString("id=%1").arg(ide),false); // set cursor to inserted record
 	te->first();
 	setSelected(true);
@@ -331,8 +331,7 @@ aUser::Delete()
 	if ( ide )
 	{
 	//	printf("ide=" LLU_SPEC "\n",ide);
-		t->primeDelete();
-		t->del();
+		t->Delete();
 //TODO: clear roles, assigned to user
 		setSelected( false );
 	}

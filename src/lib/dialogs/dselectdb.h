@@ -3,6 +3,14 @@
 
 #include "ui_dselectdb.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QDir>          // вместо <qdir.h>
+#include <QString>       // вместо <qstring.h>
+#include <QFileDialog>   // вместо <q3filedialog.h>
+#include <QLineEdit>     // вместо <qlineedit.h>
+#include <QDomDocument>  // вместо <qdom.h>
 
 class ANANAS_EXPORT dSelectDB : public QDialog, public Ui::dSelectDB
 {
@@ -19,10 +27,12 @@ public slots:
     void editItem();
     void deleteItem();
     void onCancel();
-    void ItemRenamed( Q3ListViewItem * item, int col );
+    void ItemRenamed(QTreeWidgetItem *item, int col);
     void onHelp();
     void createMenu();
-    virtual void onDblClick(Q3ListViewItem *);
+    void onDblClick(QTreeWidgetItem *item, int col);
+    void itemSelect(QTreeWidgetItem *item, int col);
+    void onOK();
 
 protected:
     QSettings settings;
@@ -42,10 +52,8 @@ private:
 private slots:
     void init();
     void readSettings( QStringList entryGroup );
-    void itemSelect( Q3ListViewItem * item );
     void newGroup();
     void saveRC();
-    void onOK();
     void importItem();
     void exportItem();
 

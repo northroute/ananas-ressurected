@@ -30,7 +30,9 @@
 #ifndef ADOCUMENT_H
 #define ADOCUMENT_H
 
-#include	<qdatetime.h>
+#include	<QDateTime>
+#include <QSqlQuery>
+
 #include	"acfg.h"
 #include 	"aobject.h"
 //#include	"adocjournal.h"
