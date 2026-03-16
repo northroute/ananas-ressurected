@@ -40,7 +40,7 @@
  *\~
  *	\param rubli - \~english Value to convertions \~russian  Значение для конвертации \~
  *	\return - \~english Converted value \~russian Сконвертированное значение \~
- *	\see parts2money(Q_ULLONG rubli, unsigned int kopeyki, bool positive)
+ *	\see parts2money(qulonglong rubli, unsigned int kopeyki, bool positive)
  *	\see part2string(unsigned int st3, unsigned int st2, unsigned int st1, int stepen)
  *	\see convertNumber2MoneyFormat(double number)
 */
@@ -189,7 +189,7 @@ aService::parts2money(qulonglong rubli,
  *\~
  *	\return - \~english Converted value \~russian Сконвертированное значение для переданных чисел\~
  *	\see number2money(double rubli)
- *	\see parts2money(Q_ULLONG rubli, unsigned int kopeyki, bool positive)
+ *	\see parts2money(qulonglong rubli, unsigned int kopeyki, bool positive)
 */
 QString
 aService::part2string(unsigned int st3,

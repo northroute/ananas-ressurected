@@ -27,18 +27,18 @@
 **
 **********************************************************************/
 
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <q3header.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qlabel.h>
 #include <qcursor.h>
 
 #include "atreeitems.h"
 #include "alog.h"
 
-ananasListViewItem::ananasListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj,
+ananasListViewItem::ananasListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj,
 										 const QString &name )
-: Q3ListViewItem( parent )
+: QTreeWidgetItem( parent )
 {
 	obj = cfgobj;
 	md = cfgmd;
@@ -49,7 +49,7 @@ ananasListViewItem::ananasListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgIt
 
 ananasListViewItem::ananasListViewItem( ananasListViewItem *parent, ananasListViewItem *after,
 										 aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: Q3ListViewItem( parent, after )
+: QTreeWidgetItem( parent, after )
 {
 	obj = cfgobj;
 	md = cfgmd;
@@ -58,8 +58,8 @@ ananasListViewItem::ananasListViewItem( ananasListViewItem *parent, ananasListVi
 	id = md->id(obj);
 }
 
-ananasListViewItem::ananasListViewItem( Q3ListView *parent, Q3ListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: Q3ListViewItem( parent, after )
+ananasListViewItem::ananasListViewItem( QTreeWidget *parent, QTreeWidgetItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
+: QTreeWidgetItem( parent, after )
 {
 	obj = cfgobj;
 	md = cfgmd;
@@ -71,7 +71,7 @@ ananasListViewItem::ananasListViewItem( Q3ListView *parent, Q3ListViewItem *afte
 void
 ananasListViewItem::clearTree()
 {
-	Q3ListViewItem	*item, *nextitem;
+	QTreeWidgetItem	*item, *nextitem;
 
 	// clear tree
 	item = firstChild();
@@ -140,7 +140,7 @@ ananasListViewItem::moveDown ()
 ananasListViewItem *
 ananasListViewItem::previousSibling() // becose QListViewItem not have function previousSibling();
 {
-	Q3ListViewItem *parent, *item;
+	QTreeWidgetItem *parent, *item;
 	parent = this->parent();
 	item = parent->firstChild();
 	while ( item )
@@ -153,14 +153,14 @@ ananasListViewItem::previousSibling() // becose QListViewItem not have function 
 ananasListViewItem*
 ananasListViewItem::nextSibling()
 {
-	return (ananasListViewItem *)Q3ListViewItem::nextSibling();
+	return (ananasListViewItem *)QTreeWidgetItem::nextSibling();
 }
 
 
 void
 ananasListViewItem::okRename( int col )
 {
-	Q3ListViewItem::okRename( col );
+	QTreeWidgetItem::okRename( col );
 	if ( id && !obj.isNull() && col == 0 ) {
 		setText( 0, text( 0 ).stripWhiteSpace() );
 		md->setAttr( obj, mda_name, text( 0 ) );
@@ -188,7 +188,7 @@ ananasListViewItem::getLastChild( QListViewItem * parent )
 ananasListViewItem*
 ananasListViewItem::getLastChild()
 {
-	Q3ListViewItem *item, *nextitem;
+	QTreeWidgetItem *item, *nextitem;
 	item = firstChild();
 	while( item )
 	{
@@ -203,7 +203,7 @@ ananasListViewItem::getLastChild()
 
 
 ananasTreeView::ananasTreeView ( QWidget *parent, aCfg *cfgmd )
-:Q3ListView ( parent )
+:QTreeWidget ( parent )
 {
 	md = cfgmd;
 	addColumn( "" );
@@ -214,7 +214,7 @@ ananasTreeView::ananasTreeView ( QWidget *parent, aCfg *cfgmd )
 
 
 void
-ananasTreeView::ContextMenuAdd( Q3PopupMenu * m )
+ananasTreeView::ContextMenuAdd( QMenu * m )
 {
 	//--QLabel *caption = new QLabel( tr("<font color=darkblue><u><b>" "Context Menu</b></u></font>"), this );
 	//--caption->setAlignment( Qt::AlignCenter );

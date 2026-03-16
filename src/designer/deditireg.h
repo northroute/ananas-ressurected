@@ -4,7 +4,7 @@
 #include "ui_deditireg.h"
 
 
-class dEditIReg : public Q3MainWindow, public Ui::dEditIReg
+class dEditIReg : public QMainWindow, public Ui::dEditIReg
 {
     Q_OBJECT
 

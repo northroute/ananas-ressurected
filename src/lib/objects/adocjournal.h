@@ -96,7 +96,7 @@ public:
 	virtual ERR_Code New ( qulonglong idd, const QString & docPrefix, int type );
 	virtual ERR_Code deleteDocument ( qulonglong idd );
 	qulonglong findDocument( qulonglong idd );
-//	Q_ULLONG docId( Q_ULLONG id );
+//	qulonglong docId( qulonglong id );
 	qulonglong findDoc( const QString & num, int type );
 	QString getPrefix();
 	QString selectionFilter( QDateTime from, QDateTime to, const QString & mdName = "",

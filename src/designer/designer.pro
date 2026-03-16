@@ -22,8 +22,8 @@ MOC_DIR = ../../tmp/moc/$$TARGET
 OBJECTS_DIR = ../../tmp/obj/$$TARGET
 UI_DIR = ../../tmp/ui/$$TARGET
 
-#LIBS	+= -L../lib -L../plugins -lananas -lananasplugin -lqsa -ldesignercore -lqassistantclient
-#LIBS	+= -L. -L../lib -L../plugins -lananas -lananasplugin -lqsa -lformdesigner -lqassistantclient
+#LIBS	+= -L../lib -L../plugins -lananas -lananasplugin -ldesignercore -lqassistantclient
+#LIBS	+= -L. -L../lib -L../plugins -lananas -lananasplugin -lformdesigner -lqassistantclient
 #INCLUDEPATH	+= ../lib ../lib/tmp/ui ../lib/.ui $(QTDIR)/tools/designer/designer ../../qt-headers/tools/designer/designer /usr/lib
 #INCLUDEPATH	+= ../lib ../lib/tmp/ui ../lib/.ui ./formdesigner /usr/lib
 

@@ -1,9 +1,7 @@
 #include "addfdialog.h"
 
-#include <qvariant.h>
 #include "wdbfield.h"
 
-#include <Q3ValueList>
 /*
  *  Constructs a addfdialog as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -11,11 +9,12 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-addfdialog::addfdialog(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+addfdialog::addfdialog(QWidget *parent, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
-    setupUi(this);
+	setObjectName("eDocument");
+    setModal(true);
 
+    setupUi(this);
     init();
 }
 
@@ -43,15 +42,19 @@ void addfdialog::languageChange()
 
 void addfdialog::doOk()
 {
-	int idx;
-	idx = ListBox->currentItem();
-	if(idx>=0)
-	{
-	        id = idlist[idx];
-		field = list[idx];
-	}
-	else id="0";
-	accept();
+    int idx = ListBox->currentRow();
+
+    if (idx >= 0)
+    {
+        id = idlist[idx];
+        field = list[idx];
+    }
+    else
+    {
+        id = "0";
+    }
+
+    accept();
 }
 
 
@@ -83,44 +86,57 @@ const QString addfdialog::getData(bool name)
  * \param flst (in) - list of field name
  * \param ilst (in) - list of field id
  */
-void addfdialog::setData( QStringList displst, QStringList flst, QStringList ilds)
+void addfdialog::setData(QStringList displst, QStringList flst, QStringList ilds)
 {
-	list = flst;
-	ListBox->insertStringList(displst);
-	idlist = ilds;
+    list = flst;
+    ListBox->addItems(displst);
+    idlist = ilds;
+}
+
+void addfdialog::setData(QWidget *o, aCfg *md)
+{
+    Q_UNUSED(md);
+
+    wDBField *w = qobject_cast<wDBField *>(o);
+    if (!w)
+        return;
+
+    w->getFields();
+
+    setData(w->defDisplayFields, w->defFields, w->defId);
+
+    int row = list.indexOf(w->getFieldName());
+    if (row >= 0)
+        ListBox->setCurrentRow(row);
 }
 
 
-
-
-void addfdialog::setData( QWidget *o, aCfg *md )
+void addfdialog::getData(QWidget *o)
 {
+    QString s;
+    wDBField *w = qobject_cast<wDBField *>(o);
+    if (!w)
+        return;
 
-	wDBField *w = (wDBField *)o;
-	w->getFields();
-	setData( w->defDisplayFields, w->defFields,w->defId);
-	ListBox->setCurrentItem(ListBox->findItem(w->getFieldName()));
-}
+    QList<qulonglong> bindList = w->getBindList();
 
+    s = getData(true);
+    if (s.isEmpty())
+        return;
 
-void addfdialog::getData( QWidget *o )
-{
-	QString s;
-	wDBField *w = (wDBField *)o;
-	Q3ValueList<qulonglong> bindList = w->getBindList();
-		s = getData(true);
-		if(s.isEmpty()) return;
-		w->setFieldName(s);
-		s = getData(false);
-		if(s=="0") return;
-		// if select binding field
-		if(bindList.find(s.toULongLong()) != bindList.end())
-		{
-			cfg_message(0, tr("field already binding, please select another field."));
-			return;
-		}
-		w->setId(s.toInt());
-		w->setEditorType();
-    		//w->updateProp();
+    w->setFieldName(s);
 
+    s = getData(false);
+    if (s == "0")
+        return;
+
+    // if select binding field
+    if (bindList.contains(s.toULongLong()))
+    {
+        cfg_message(0, tr("field already binding, please select another field.").toLocal8Bit().constData());
+        return;
+    }
+
+    w->setId(s.toInt());
+    w->setEditorType();
 }

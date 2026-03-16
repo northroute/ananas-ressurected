@@ -3,6 +3,11 @@
 
 #include <QMainWindow>
 #include <QPointer>
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QTableView>
+#include <QMdiSubWindow>
 
 #include "ui_mainform.h"
 
@@ -11,7 +16,7 @@ class MainForm : public QMainWindow, public Ui::MainForm
     Q_OBJECT
 
 public:
-    MainForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    MainForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::Window);
     ~MainForm();
 
     aWindowsList *wl;

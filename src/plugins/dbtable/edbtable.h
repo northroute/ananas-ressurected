@@ -3,19 +3,26 @@
 
 #include "ui_edbtable.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
+#include <QList>
+
+#include <cstdlib>
 
 class eDBTable : public QDialog, public Ui::eDBTable
 {
     Q_OBJECT
 
 public:
-    eDBTable(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WindowFlags fl = 0);
+    eDBTable(QWidget *parent, Qt::WindowFlags fl);
     ~eDBTable();
 
     QStringList deletedFields, deletedFieldsId;
     wDBTable *table;
 
-    virtual QStringList findDeletedFields( int t_num, QStringList idls );
+    virtual QStringList findDeletedFields(int t_num, const QStringList &idls);
 
 public slots:
     virtual void ColumnDel();

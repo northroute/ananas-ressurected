@@ -3,6 +3,12 @@
 
 #include "ui_eactionbutton.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
+#include <cstdlib>
+
 
 class eActionButton : public QDialog, public Ui::eActionButton
 {

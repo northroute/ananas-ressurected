@@ -1,20 +1,16 @@
 #include "eaddobj.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a eAddObj as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
  *
  */
-eAddObj::eAddObj(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+eAddObj::eAddObj(QWidget* parent, Qt::WindowFlags fl) : QMainWindow(parent, fl)
 {
+    setObjectName("eAddObj");
     setupUi(this);
 
-    (void)statusBar();
+    statusBar();
     init();
 }
 

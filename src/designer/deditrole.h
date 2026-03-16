@@ -4,7 +4,7 @@
 #include "ui_deditrole.h"
 
 
-class dEditRole : public Q3MainWindow, public Ui::dEditRole
+class dEditRole : public QMainWindow, public Ui::dEditRole
 {
     Q_OBJECT
 

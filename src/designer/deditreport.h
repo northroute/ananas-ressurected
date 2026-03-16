@@ -4,7 +4,7 @@
 #include "ui_deditreport.h"
 
 
-class dEditReport : public Q3MainWindow, public Ui::dEditReport
+class dEditReport : public QMainWindow, public Ui::dEditReport
 {
     Q_OBJECT
 

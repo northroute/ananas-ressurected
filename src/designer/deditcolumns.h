@@ -4,7 +4,7 @@
 #include "ui_deditcolumns.h"
 
 
-class dEditColumns : public Q3MainWindow, public Ui::dEditColumns
+class dEditColumns : public QMainWindow, public Ui::dEditColumns
 {
     Q_OBJECT
 

@@ -7,7 +7,7 @@
 #include <qstatusbar.h>
 #include <q3header.h>
 //Added by qt3to4:
-#include <Q3GridLayout>
+#include <QGridLayout>
 #include <QPixmap>
 #include "acfg.h"
 
@@ -17,7 +17,7 @@
  *
  */
 dEditColumns::dEditColumns(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+    : QMainWindow(parent, name, fl)
 {
     setupUi(this);
 
@@ -53,10 +53,10 @@ void dEditColumns::setData( ananasListViewItem * o )
 
 
 	usedFields = new ananasTreeView( gbFields,  md );
-	Q3GridLayout *l = new Q3GridLayout( gbFields );
+	QGridLayout *l = new QGridLayout( gbFields );
 	l->addWidget( usedFields, 0, 0);
 	availableFields = new ananasTreeView( frmFields,  md );
-	l = new Q3GridLayout( frmFields );
+	l = new QGridLayout( frmFields );
 	l->addWidget( availableFields, 0, 0);
 
 	aCfgItem	cobj, fobj, dobj, pobj, tobj;
@@ -213,7 +213,7 @@ void dEditColumns::bRemoveAction_clicked()
 
 void dEditColumns::bMoveUp_clicked()
 {
-    Q3ListViewItem *aitem, *after;
+    QTreeWidgetItem *aitem, *after;
 
     aitem =  usedFields->selectedItem();
     if ( aitem )
@@ -227,7 +227,7 @@ void dEditColumns::bMoveUp_clicked()
 
 void dEditColumns::bMoveDown_clicked()
 {
-	Q3ListViewItem *aitem, *after;
+	QTreeWidgetItem *aitem, *after;
 	aitem = usedFields->selectedItem();
 	if ( aitem )
 	{

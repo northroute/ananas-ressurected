@@ -4,6 +4,10 @@
 #include "ui_ecatalogue.h"
 
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 class eCatalogue : public QDialog, public Ui::eCatalogue
 {
     Q_OBJECT

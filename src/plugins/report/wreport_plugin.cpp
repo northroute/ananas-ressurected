@@ -19,10 +19,6 @@
 
 #include "wreport_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wreport_taskmenu.h"
 #include "wreport.h"
 

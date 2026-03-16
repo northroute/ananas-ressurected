@@ -3,6 +3,9 @@
 
 #include "ui_edbfield.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
 
 class eDBField : public QDialog, public Ui::eDBField
 {

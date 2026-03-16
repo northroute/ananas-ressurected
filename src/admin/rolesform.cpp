@@ -1,21 +1,24 @@
 #include "rolesform.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a RolesForm as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
  */
 RolesForm::RolesForm(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QWidget(parent, name, fl)
+    : QWidget(parent, fl)
 {
     setupUi(this);
-    new QVBoxLayout( this );
-    mdtree = new aMetadataTreeView( this, &aDatabase::database()->cfg ); // metadata tree creation
-    mdtree->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    layout()->add( mdtree );
+
+    new QVBoxLayout(this);
+
+    mdtree = new aMetadataTreeView(this, &aDatabase::database()->cfg);
+    mdtree->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    layout()->addWidget(mdtree);
+
+    if (name)
+        setObjectName(name);
+
     updateGeometry();
 }
 

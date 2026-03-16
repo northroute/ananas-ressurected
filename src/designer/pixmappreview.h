@@ -31,7 +31,7 @@
 
 #include <qlabel.h>
 #include <qpixmap.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
 #include <qinputdialog.h>
 
 class PixmapPreview : public QLabel, public Q3FilePreview

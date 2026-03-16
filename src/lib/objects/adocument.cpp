@@ -1324,7 +1324,7 @@ aDocument::SignOut()
 	if ( !IsConducted() ) return err_docunconducted;
 	ERR_Code err = setConduct(false);
 	if ( err ) return err;
-	//Q_ULLONG uid = getUid();
+	//qulonglong uid = getUid();
 	aIRegister * reg = new aIRegister("",db);
 	reg->deleteDocument(this);
 	delete reg;
@@ -1501,7 +1501,7 @@ aDocument::GetDocumentValue(QVariant docId, const QString &fname)
  *	Возвращает значения поля с именем = \a name основг\ной таблицы объекта.
  *	\_ru
  *	\param name - \en field name \_en \ru имя поля \_ru
- *	\return \en field value \_en \ru значение поля. Поля типа Q_ULLONG и DateTime переводятся в строки. \_ru
+ *	\return \en field value \_en \ru значение поля. Поля типа qulonglong и DateTime переводятся в строки. \_ru
  */
 QVariant
 aDocument::Value( const QString & name, const QString &tableName )

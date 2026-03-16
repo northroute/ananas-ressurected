@@ -3,13 +3,16 @@
 
 #include "ui_eselectdoctype.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
 
 class eSelectDocType : public QDialog, public Ui::eSelectDocType
 {
     Q_OBJECT
 
 public:
-    eSelectDocType(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WindowFlags fl = 0);
+    eSelectDocType(QWidget *parent, Qt::WindowFlags fl);
     ~eSelectDocType();
 
     QStringList dlist;

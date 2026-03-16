@@ -21,6 +21,7 @@
 #define AWIDGETS_PLUGIN_H
 
 #include <QDesignerCustomWidgetCollectionInterface>
+#include <QtPlugin>
 
 #include "qwidgetplugin.h"
 

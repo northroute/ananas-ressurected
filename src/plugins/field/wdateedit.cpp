@@ -27,17 +27,17 @@
 **
 **********************************************************************/
 
-
 #include "wdateedit.h"
-
-
 
 /*!
  * \en	Constructor. \_en
  * \ru	Конструктор. \_ru
  */
-wDateEdit::wDateEdit(QWidget* parent, const char* name ):Q3DateEdit(parent,name)
-{}
+wDateEdit::wDateEdit(QWidget *parent, const char *name) : QDateEdit(parent)
+{
+    if (name)
+        setObjectName(name);
+}
 
 
 /*!
@@ -46,9 +46,13 @@ wDateEdit::wDateEdit(QWidget* parent, const char* name ):Q3DateEdit(parent,name)
  * \param date - \en date for set \_en \ru Дата для установки \_ru
  */
 wDateEdit::wDateEdit(const QDate &date,
-		     QWidget* parent,
-		     const char* name) : Q3DateEdit(date,parent,name)
-{}
+                     QWidget *parent,
+                     const char *name)
+    : QDateEdit(date, parent)
+{
+    if (name)
+        setObjectName(name);
+}
 
 
 

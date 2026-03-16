@@ -74,7 +74,7 @@ public:
 	void setSelected( bool sel );
 	ERR_Code select(const QString & query );
 
-//	virtual Q_ULLONG docId();
+//	virtual qulonglong docId();
 
 
 public slots:

@@ -1,9 +1,5 @@
 #include "dselectrole.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a dSelectRole as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -12,10 +8,15 @@
  *  true to construct a modal dialog.
  */
 dSelectRole::dSelectRole(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+    : QDialog(parent, fl)
 {
     setupUi(this);
 
+    if (modal)
+        setModal(true);
+
+    if (name)
+        setObjectName(name);
 }
 
 /*
@@ -35,46 +36,45 @@ void dSelectRole::languageChange()
     retranslateUi(this);
 }
 
-void
-dSelectRole::setData( aUser *user )
+void dSelectRole::setData(aUser *user)
 {
- usr = user;
- listBox1->clear();
- listId.clear();
- Q3ValueList<aRole*> list = user->getRoles(false);
- Q3ValueList<aRole*>::iterator it;
- for ( it = list.begin(); it != list.end(); ++it )
- {
-  listBox1->insertItem( (*it)->sysValue("name").toString() );
-  listId.append((*it)->sysValue("id").toString());
-  delete (*it);
- }
-// delete list;
+    usr = user;
+
+    listBox1->clear();
+    listId.clear();
+
+    QList<aRole*> list = user->getRoles(false);
+
+    for (QList<aRole*>::iterator it = list.begin(); it != list.end(); ++it)
+    {
+        listBox1->addItem((*it)->sysValue("name").toString());
+        listId.append((*it)->sysValue("id").toString());
+        delete (*it);
+    }
 }
 
 
-void
-dSelectRole::onSelect()
+void dSelectRole::onSelect()
 {
- if(listBox1->currentItem()!=-1)
- {
-  printf("add role\n");
- 
-  //emit( addRole(listId[listBox1->currentItem()].toULongLong()) );
-  roleId =  listId[listBox1->currentItem()].toULongLong();
-   usr->addRole(roleId);
-  listBox1->removeItem(listBox1->currentItem());
-  accept();
- // new aListViewItem(p_item,
- }
- else
- {
-  printf("not selected\n");
- }
+    int row = listBox1->currentRow();
+    if (row != -1)
+    {
+        printf("add role\n");
+
+        roleId = listId[row].toULongLong();
+        usr->addRole(roleId);
+
+        delete listBox1->takeItem(row);
+        accept();
+    }
+    else
+    {
+        printf("not selected\n");
+    }
 }
 
 
-Q_ULLONG dSelectRole::getData()
+quint64 dSelectRole::getData()
 {
     return roleId;
 }

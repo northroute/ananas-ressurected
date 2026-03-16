@@ -8,14 +8,14 @@
 
 #include <qapplication.h>
 #include <qsettings.h>
-#include "q3filedialog.h"
+#include "QFileDialog"
 #include "qstatusbar.h"
 #include "qmessagebox.h"
 #include <qapplication.h>
 //Added by qt3to4:
 #include <QCloseEvent>
-#include <Q3Frame>
-#include <Q3PopupMenu>
+#include <QFrame>
+#include <QMenu>
 
 #include "ananas.h"
 //#include "adatabase.h"
@@ -37,7 +37,7 @@ extern void messageproc(int n, const char *msg);
  *
  */
 MainForm::MainForm(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+    : QMainWindow(parent, name, fl)
 {
     setupUi(this);
 
@@ -136,14 +136,14 @@ void MainForm::init()
 
     setName("ananas-designer_mainwindow");
     rcfile="";
-    windowsMenu = new Q3PopupMenu( this );
+    windowsMenu = new QMenu( this );
     windowsMenu->setCheckable( TRUE );
     connect( windowsMenu, SIGNAL( aboutToShow() ),
 	     this, SLOT( windowsMenuAboutToShow() ) );
     menuBar()->insertItem( tr("&Windows"), windowsMenu );
 
     menuBar()->insertSeparator();
-    Q3PopupMenu * help = new Q3PopupMenu( this );
+    QMenu * help = new QMenu( this );
     menuBar()->insertItem( tr("&Help"), help );
 
     help->insertItem( tr("&About"), this, SLOT(helpAbout()), Qt::Key_F1);
@@ -174,8 +174,8 @@ void MainForm::init()
 
     setIcon( rcIcon("a-system.png"));
     setCaption(tr("Ananas: Designer"));
-    Q3VBox* vb = new Q3VBox( this );
-    vb->setFrameStyle( Q3Frame::StyledPanel | Q3Frame::Sunken );
+    QVBoxLayout* vb = new QVBoxLayout( this );
+    vb->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
     ws = new QWorkspace( vb );
     wl = new aWindowsList();
     ws->setScrollBarsEnabled( TRUE );
@@ -345,7 +345,7 @@ void MainForm::closeEvent( QCloseEvent *e )
 	designer_settings.writeEntry( "/geometry/y", pos().y() );
 	designer_settings.endGroup();
 	//aLog::print(aLog::Debug,"exit");
-    Q3MainWindow::closeEvent( e );
+    QMainWindow::closeEvent( e );
 }
 
 

@@ -140,7 +140,7 @@ public:
 	bool drop( const QString &);
 	bool update();
 	quint64 uid( int otype );
-//	int otype( Q_ULLONG uid );
+//	int otype( qulonglong uid );
 	int uidType ( quint64 uid );
 	aDataTable *table( const QString & name = QString::null );
 	bool tableExists( const QString & name );

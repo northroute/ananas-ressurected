@@ -1,9 +1,5 @@
 #include "mainform.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a MainForm as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -96,27 +92,23 @@ void MainForm::adminUsers()
 bool MainForm::init()
 {
     ws = new QMdiArea;
-    setCentralWidget( ws );
-    db = aDatabase::database();
-//    usersForm = new UsersForm;
-//    usersForm->hide();
-//    rolesForm = new RolesForm;
-//    rolesForm->init(db);
-//    rolesForm->createTree();
-//    rolesForm->hide();
-//    ws->addSubWindow( usersForm );
-//    ws->addSubWindow( rolesForm );
-    QSqlTableModel *t = new QSqlTableModel( this, *db->db() );
-    t->setTable( db_users );
-    t->setEditStrategy(QSqlTableModel::OnFieldChange );
-    t->select();
-    QTableView *dt = new QTableView;
-    dt->setModel( t );
-    ws->addSubWindow( dt );
-    dt->show();
-    return true;
-} 
+    setCentralWidget(ws);
 
+    db = aDatabase::database();
+
+    QSqlTableModel *t = new QSqlTableModel(this, *db->db());
+    t->setTable(db_users);
+    t->setEditStrategy(QSqlTableModel::OnFieldChange);
+    t->select();
+
+    QTableView *dt = new QTableView;
+    dt->setModel(t);
+
+    QMdiSubWindow *sub = ws->addSubWindow(dt);
+    sub->show();
+
+    return true;
+}
 
 
 void MainForm::adminRoles()

@@ -1,6 +1,11 @@
 #ifndef DSELECTUSER_H
 #define DSELECTUSER_H
 
+
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 #include "ui_dselectuser.h"
 
 class dSelectUser : public QDialog, public Ui::dSelectUser
@@ -13,13 +18,13 @@ public:
 
 public slots:
     virtual void setData( aRole * i );
-    virtual Q_ULLONG getData();
+    virtual quint64 getData();
 
 protected slots:
     virtual void languageChange();
 
 private:
-    Q_ULLONG userId;
+    quint64 userId;
     QStringList listId;
     aRole *role;
 

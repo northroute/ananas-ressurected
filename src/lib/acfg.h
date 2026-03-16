@@ -40,7 +40,7 @@ Ananas configuration objects.
 
 #include <QDomDocument>
 #include <QDomElement>
-#include <QMap>           // вместо Q3IntDict
+#include <QMap>
 #include "acfgrc.h"
 
 

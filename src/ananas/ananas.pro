@@ -9,8 +9,8 @@ DESTDIR = ../../bin
 
 INCLUDEPATH += ../lib ../../tmp/ui/ananas ../plugins
 LIBS += -L../../lib -lananas4 -L../../lib/designer -lananasplugin4 -lqt4-qdataschema 
-#-L$(QTDIR)/lib -lqsa1
-#LIBS += -L$(QTDIR)/lib -lqsa1  -L../lib -lananas -L../plugins -lananasplugin # -lqui
+#-L$(QTDIR)/lib
+#LIBS += -L$(QTDIR)/lib  -L../lib -lananas -L../plugins -lananasplugin # -lqui
 
 #MOC_DIR = ../../tmp/moc/$$TARGET
 #OBJECTS_DIR = ../../tmp/obj/$$TARGET

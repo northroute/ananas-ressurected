@@ -32,11 +32,20 @@
 #define WCATALOGEDITOR_H
 
 #include "ananasglobal.h"
-
-#include <qwidget.h>
 #include <qwidgetplugin.h>
-#include <qlabel.h>
-#include <qworkspace.h>
+
+#include <QWidget>
+#include <QLabel>
+#include <QMdiArea>
+#include <QLineEdit>
+#include <QLayout>
+#include <QValidator>
+#include <QTreeWidget>
+#include <QSizePolicy>
+#include <QFrame>
+#include <QPixmap>
+#include <QWorkspace>
+
 //#include <qobjectlist.h>
 //#include <qlayout.h>
 //#include <qsocket.h>
@@ -61,7 +70,7 @@ class QT_WIDGET_PLUGIN_EXPORT wCatalogEditor : public QWidget
 	Q_PROPERTY( QString value READ value WRITE setValue)
 public:
 	QLabel* label;
-    	wCatalogEditor( wField* parent = 0, const char *name = 0, const char* catname=0);
+    	wCatalogEditor(wField *parent, const char *name, const char *catname);
     	wCatalogEditor( QWidget* w, int cat);
     	~wCatalogEditor();
     	QString value() const;

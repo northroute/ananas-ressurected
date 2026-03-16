@@ -43,6 +43,28 @@
 
 #include <QtGlobal>
 
+#include <QFormBuilder>
+#include <QDesignerCustomWidgetInterface>
+#include <QCoreApplication>
+
+#include <QDialog>
+#include <QBuffer>
+#include <QIODevice>
+#include <QString>
+#include <QFile>
+#include <QDir>
+
+#include <QPushButton>
+#include <QLabel>
+#include <QMainWindow>
+#include <QDateTimeEdit>
+#include <QStatusBar>
+#include <QLineEdit>
+#include <QLayout>
+#include <QMessageBox>
+#include <QWidget>
+#include <QKeyEvent>
+
 #include "engine.h"
 #include "adatabase.h"
 #include "adocument.h"
@@ -82,9 +104,9 @@ public:
 	bool		closeAfterSelect;
 
 	aForm();
-	aForm( QWidget *parent, aEngine *eng );
-	aForm( QWidget *parent,  aEngine *eng,  quint32 form_mid = 0, aWidget* caller = NULL);
-	aForm( QWidget *parent,  aEngine *eng, QString oftype, QObject *aobj = NULL);
+	aForm(QWidget *parent, aEngine *eng);
+	aForm(QWidget *parent, aEngine *eng, qulonglong form_mid, aWidget* caller);
+	aForm(QWidget *parent, aEngine *eng, QString oftype, QObject *aobj);
 	~aForm();
 	QWidget *form;
 	void		init();

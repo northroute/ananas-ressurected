@@ -3,13 +3,16 @@
 
 #include "ui_edocument.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
 
 class eDocument : public QDialog, public Ui::eDocument
 {
     Q_OBJECT
 
 public:
-    eDocument(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WindowFlags fl = 0);
+    eDocument(QWidget *parent, Qt::WindowFlags fl);
     ~eDocument();
 
     QStringList otypes;

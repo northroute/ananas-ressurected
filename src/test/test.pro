@@ -16,5 +16,5 @@ CONFIG +=qtestlib
 FORMS	= 
 TEMPLATE	=app
 INCLUDEPATH	+= ../lib ../plugins
-LIBS	+= -L$(QTDIR)/lib -lqsa -L../../lib -lananas4
+LIBS	+= -L$(QTDIR)/lib -L../../lib -lananas4
 LIBS	+= -L../../lib/designer -lananasplugin4 -lqt4-qdataschema

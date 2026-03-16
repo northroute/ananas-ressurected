@@ -21,6 +21,9 @@
 #define WACTIONBUTTON_PLUGIN_H
 
 #include <QDesignerCustomWidgetInterface>
+#include <QtPlugin>
+#include <QDesignerFormEditorInterface>
+#include <QExtensionManager>
 
 #include "qwidgetplugin.h"
 

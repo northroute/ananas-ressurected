@@ -1,9 +1,5 @@
 #include "ejournal.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "acfg.h"
 
 /*
@@ -13,11 +9,12 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-eJournal::eJournal(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+eJournal::eJournal(QWidget *parent, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
-    setupUi(this);
+    setObjectName("eJournal");
+    setModal(true);
 
+    setupUi(this);
     init();
 }
 
@@ -129,73 +126,64 @@ void eJournal::init()
 }
 */
 
-void
-eJournal::setData( QWidget *o, aCfg *md )
+void eJournal::setData(QWidget *o, aCfg *md)
 {
-//    const QObject *o = sender();
-    if ( o ) {
-	if ( o->className() != QString("wJournal") || !md ) {
-	    reject();
-	    return;
-	}
+    if (!o || !md)
+    {
+        reject();
+        return;
     }
-    else {
-	reject();
-	return;
+
+    wJournal *f = qobject_cast<wJournal *>(o);
+    if (!f)
+    {
+        reject();
+        return;
     }
-    wJournal *f = ( wJournal*) o;
-    int w=0, d=0, idx=0;
-    unsigned int i;
-    long oid , id;
 
-    id = f->getId();
+    int idx = 0;
+    long oid = 0;
+    long id = f->getId();
 
-    QStringList tlist = md->types( md_journal );
+    QStringList tlist = md->types(md_journal);
     otypes.clear();
     eType->clear();
-    for ( QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it ) {
-	otypes.append( (*it).section( "\t", 0, 0 ) );
-	eType->insertItem( (*it).section("\t", 1, 1 ), idx++ );
+
+    for (QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it)
+    {
+        otypes.append((*it).section("\t", 0, 0));
+        eType->insertItem(idx++, (*it).section("\t", 1, 1));
     }
-    for ( i = 0 ; i < otypes.count(); i++ ) {
-	oid = 0;
-	if( otypes[i][0] == 'O' ) {
-	    sscanf( (const char *)otypes[ i ], "O %d", &oid );
-	    if ( oid == id ) {
-		eType->setCurrentItem( i );
-		break;
-	    }
-	}
+
+    for (int i = 0; i < otypes.count(); ++i)
+    {
+        if (!otypes[i].isEmpty() && otypes[i].at(0) == 'O')
+        {
+            oid = otypes[i].section(' ', 1, 1).toLong();
+            if (oid == id)
+            {
+                eType->setCurrentIndex(i);
+                break;
+            }
+        }
     }
 }
 
-
-void eJournal::getData( QWidget * o )
+void eJournal::getData(QWidget *o)
 {
+    if (!o)
+        return;
 
-/*	int idx=eType->currentItem();
-	long oid = 0;
+    wJournal *f = qobject_cast<wJournal *>(o);
+    if (!f)
+        return;
 
-	if (f) {
-		if( otypes[idx][0] == 'O' ) {
-			sscanf( (const char *)otypes[ idx ], "O %d", &oid );
-			f->setId( oid );
-		}
-	}
-*/
-//    const QObject *o = sender();
-    if ( !o ) return;
-    if ( o->className() != QString("wJournal") ) return;
-    wJournal *f = ( wJournal*) o;
-
-    int idx=eType->currentItem();
+    int idx = eType->currentIndex();
     long oid = 0;
 
-    if (f) {
-	if( otypes[idx][0] == 'O' ) {
-	    sscanf( (const char *)otypes[ idx ], "O %d", &oid );
-	    f->setId( oid );
-	}
+    if (!otypes[idx].isEmpty() && otypes[idx].at(0) == 'O')
+    {
+        oid = otypes[idx].section(' ', 1, 1).toLong();
+        f->setId(oid);
     }
-
 }

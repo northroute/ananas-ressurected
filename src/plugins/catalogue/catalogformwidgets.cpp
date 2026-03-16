@@ -27,33 +27,27 @@
 **
 **********************************************************************/
 
-#include <q3popupmenu.h>
-#include <qtimer.h>
-#include <qmessagebox.h>
-//Added by qt3to4:
-#include <Q3Frame>
-#include <QKeyEvent>
-#include <QFocusEvent>
 
 #include "catalogformwidgets.h"
+
+
 /*!
  * Constructor
  */
-aListBox::aListBox(QWidget* parent, const char * name, Qt::WFlags f):Q3ListBox(parent,name,f)
+aListBox::aListBox(QWidget* parent, const char *name, Qt::WindowFlags f) : QListWidget(parent)
 {
+	Q_UNUSED(f)
+	setObjectName(name ? name : "aListBox");
 
-	listPrivate = new Q3ListBox(parent);
+	listPrivate = new QListWidget(parent);
 	listPrivate->hide();
-	setFocusPolicy (Qt::StrongFocus);
-	connect(this, 	SIGNAL	( doubleClicked( Q3ListBoxItem * ) ),
-		this,	SLOT	( doubleClickHandler( Q3ListBoxItem * ) ));
-//	layout1 = new QVBoxLayout();
-//	statusBar = new QLabel(this,"statusBar");
-//	statusBar->
-//	layout1->addWidget(this,0);
-//	layout1->addWidget(statusBar,1);
 
+	setFocusPolicy(Qt::StrongFocus);
+
+	connect(this, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+		this, SLOT(doubleClickHandler(QListWidgetItem*)));
 }
+
 /*!
  * Destructor
  */
@@ -62,13 +56,14 @@ aListBox::~aListBox()
 //	delete statusBar;
 	delete listPrivate;
 }
+
 /*!
  * Function move and resize frame and list box.
  *\param wd (in) - widget for pattern geometry.
  * \param fr (in, out) - status frame.
  */
 void
-aListBox::show(QWidget *wd, Q3Frame *fr)//, QLabel *lb)
+aListBox::show(QWidget *wd, QFrame *fr)//, QLabel *lb)
 {
  	setGeometry(wd->x(),
 		    wd->y()+wd->size().height()+1,
@@ -87,53 +82,60 @@ aListBox::show(QWidget *wd, Q3Frame *fr)//, QLabel *lb)
 	emit(sendMessage(tr("Press arrow down for go to drop down list")));
 //	lb->move(fr->x()+2,fr->y()+2);
 }
+
 /*!
  * Key press event handler.
  * Emit signals keyArrowLRPressed if press arrow left or arrow rigth.
  * \param e (in) - key press event.
  */
-void
-aListBox::keyPressEvent(QKeyEvent *e)
+void aListBox::keyPressEvent(QKeyEvent *e)
 {
-	if(e->key()==Qt::Key_Left || e->key()==Qt::Key_Right)
+	if (e->key() == Qt::Key_Left || e->key() == Qt::Key_Right)
 	{
-		emit(keyArrowLRPressed());
-		emit(keyArrowLRPressed(currentText()));
-		//printf("emit key pressed\n");
-	}
-	if(e->key() == Qt::Key_Return)
-	{
-		//printf("enter !!!\n");// return;
-		emit(keyArrowLRPressed());
-		emit(keyArrowLRPressed(currentText()));
-		emit(keyEnterPressed());
-		//printf("enter !!!\n");// return;
-	}
-	if(e->key() == Qt::Key_Escape)
-	{
-		this->clearFocus();
+		emit keyArrowLRPressed();
 
-//		emit(lostFocus());
-//		printf("Esc!\n");
+		QListWidgetItem *it = currentItem();
+		emit keyArrowLRPressed(it ? it->text() : QString());
+	}
+	else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter)
+	{
+		emit keyArrowLRPressed();
+
+		QListWidgetItem *it = currentItem();
+		emit keyArrowLRPressed(it ? it->text() : QString());
+
+		emit keyEnterPressed();
+	}
+	else if (e->key() == Qt::Key_Escape)
+	{
+		clearFocus();
 		e->accept();
 		return;
-
 	}
-	e->accept();
-	Q3ListBox::keyPressEvent(e);
+
+	QListWidget::keyPressEvent(e);
 }
+
 /*!
  * Inserts s in list and idx in list of id.
  * \param s (in) - string for insert.
  * \param idx (in) - id for insert.
  * \param index (in) - position for insert.
  */
-void
-aListBox::insertItem(const QString &s, long idx, int index)
+void aListBox::insertItem(const QString &s, long idx, int index)
 {
-	listPrivate->insertItem(QString("%1").arg(idx),index);
-	Q3ListBox::insertItem(s,index);
+    if (index >= 0)
+    {
+        listPrivate->insertItem(index, QString::number(idx));
+        QListWidget::insertItem(index, s);
+    }
+    else
+    {
+        listPrivate->addItem(QString::number(idx));
+        QListWidget::addItem(s);
+    }
 }
+
 /*!
  * Clears list and list of id.
  */
@@ -141,7 +143,7 @@ void
 aListBox::clear()
 {
 	listPrivate->clear();
-	Q3ListBox::clear();
+	QListWidget::clear();
 }
 /*!
  * Focus out event handler. Emit signal lost focus.
@@ -158,29 +160,36 @@ aListBox::focusOutEvent ( QFocusEvent *e )
 void
 aListBox::setFocus()
 {
-	Q3ListBox::setFocus();
+	QListWidget::setFocus();
 	emit(sendMessage(tr("Use Enter for go to item and arrow for navigation")));
 }
 
 void
-aListBox::doubleClickHandler(Q3ListBoxItem *i)
+aListBox::doubleClickHandler(QListWidgetItem *i)
 {
 //	printf("double click handler!\n");
 	emit(keyArrowLRPressed());
 	emit(keyArrowLRPressed(i->text()));
 	emit(keyEnterPressed());
-
 }
-aLineEdit::aLineEdit ( QWidget* parent, const char* name) : QLineEdit(parent,name)
+
+aLineEdit::aLineEdit(QWidget* parent, const char* name) : QLineEdit(parent)
 {
+	setObjectName(name ? name : "aLineEdit");
+
 	timer = new QTimer(this);
+	timer->setSingleShot(true);
+
 	setFocusPolicy(Qt::StrongFocus);
-	connect(timer, 	SIGNAL	(timeout()),
-		this,	SLOT	(timerDone()));
-	connect(this,	SIGNAL	(textChanged ( const QString & )),
-		this,  	SLOT	(timerRestart(const QString &)));
-	connect(this,	SIGNAL	(lostFocus()),
-			SLOT	(stopTimer()));
+
+	connect(timer, SIGNAL(timeout()),
+		this, SLOT(timerDone()));
+
+	connect(this, SIGNAL(textChanged(const QString &)),
+		this, SLOT(timerRestart(const QString &)));
+
+	connect(this, SIGNAL(lostFocus()),
+		this, SLOT(stopTimer()));
 }
 
 aLineEdit::~aLineEdit()
@@ -219,10 +228,9 @@ aLineEdit::timerDone()
 
 }
 
-void
-aLineEdit::timerRestart(const QString &)
+void aLineEdit::timerRestart(const QString &)
 {
-	timer->start(500, false);
+	timer->start(500);
 }
 
 void
@@ -240,18 +248,18 @@ aLineEdit::setFocus()
 /*!
  <* Constructor create list view and popup menu.
  */
-aListView::aListView(QWidget* parent,
-		     const char* name,
-		     Qt::WFlags f) : Q3ListView(parent,name,f)
+aListView::aListView(QWidget *parent, Qt::WindowFlags f) : QTreeWidget(parent)
 {
+	setObjectName("aListView");
+
 	menu = 0;
 	toSelect = true;
 
-	connect(this, SIGNAL( doubleClicked( Q3ListViewItem *, const QPoint&, int)),
-		this, SLOT( doubleClickHandler( Q3ListViewItem *, const QPoint&, int)));
+	connect(this, SIGNAL( doubleClicked( QTreeWidgetItem *, const QPoint&, int)),
+		this, SLOT( doubleClickHandler( QTreeWidgetItem *, const QPoint&, int)));
 
-	connect(this, SIGNAL( contextMenuRequested (Q3ListViewItem*, const QPoint&, int)),
-		this, SLOT( showMenu( Q3ListViewItem*, const QPoint&, int)));
+	connect(this, SIGNAL( contextMenuRequested (QTreeWidgetItem*, const QPoint&, int)),
+		this, SLOT( showMenu( QTreeWidgetItem*, const QPoint&, int)));
 
 }
 
@@ -266,29 +274,31 @@ aListView::~aListView()
  * \param p (in) - mouse pointer position.
  * \param col (in) - current column.
  */
-void
-aListView::showMenu( Q3ListViewItem* item, const QPoint& p, int col)
+void aListView::showMenu(QTreeWidgetItem* item, const QPoint& p, int col)
 {
 	delete menu;
-	menu = new Q3PopupMenu();
-	if(toSelect)
+	menu = new QMenu(this);
+
+	if (toSelect)
 	{
-		menu->insertItem(tr("Select"),	this,	SLOT(select()));
-		menu->insertSeparator();
+		menu->addAction(tr("Select"), this, SLOT(select()));
+		menu->addSeparator();
 	}
-	menu->insertItem(tr("Edit"), 	this, 	SLOT(edit()));
-	menu->insertSeparator();
-	menu->insertItem(tr("New element"),	this, 	SLOT(newItem()));
-	menu->insertItem(tr("New group"),	this, 	SLOT(newGroup()));
-	menu->insertSeparator();
-	//menu->setItemEnabled(menu->idAt(3),false);
-	menu->insertItem(tr("Undo mark delete"),	this,	SLOT(undoMarkDeleted()));
-	menu->insertItem(tr("Delete (mark deleted)"),this, 	SLOT(markDeleted()));
-	menu->insertItem(tr("Delete (phisical)"),	this, 	SLOT(delItem()));
+
+	menu->addAction(tr("Edit"), this, SLOT(edit()));
+	menu->addSeparator();
+	menu->addAction(tr("New element"), this, SLOT(newItem()));
+	menu->addAction(tr("New group"), this, SLOT(newGroup()));
+	menu->addSeparator();
+	menu->addAction(tr("Undo mark delete"), this, SLOT(undoMarkDeleted()));
+	menu->addAction(tr("Delete (mark deleted)"), this, SLOT(markDeleted()));
+	menu->addAction(tr("Delete (phisical)"), this, SLOT(delItem()));
+
 	parentItem = item;
-	if(col==-1) col = 0;
+	if (col == -1) col = 0;
 	columnClicked = col;
-	menu->popup( p );
+
+	menu->popup(p);
 }
 
 void
@@ -340,32 +350,35 @@ aListView::getDestination()
 /*! Key press event handler. Emit signal keyEnterPressed().
  * \param e (in) - key press event.
  */
-void
-aListView::keyPressEvent(QKeyEvent *e)
+void aListView::keyPressEvent(QKeyEvent *e)
 {
-
-	switch(e->key())
+	switch (e->key())
 	{
 	case Qt::Key_Return:
+	case Qt::Key_Enter:
 		e->accept();
-		parentItem = selectedItem();
-		columnClicked = 0;
-		if(toSelect)
-		{
+		parentItem = currentItem();
+		columnClicked = currentColumn();
+
+		if (toSelect)
 			select();
-		}
 		else
-		{
 			edit();
-		}
-		break;
+		return;
+
 	case Qt::Key_Insert:
-		parentItem = selectedItem();
-		columnClicked = 0;
-		switch(QMessageBox::question(this,
-				tr("Type of new item"),
-				tr("<p align=\"center\">Select type of new item</p>"),
-				tr("&Elemnt"), tr("&Group")))
+		parentItem = currentItem();
+		columnClicked = currentColumn();
+
+		switch (QMessageBox::question(
+			this,
+			tr("Type of new item"),
+			tr("<p align=\"center\">Select type of new item</p>"),
+			tr("&Elemnt"),
+			tr("&Group"),
+			QString(),
+			0,
+			0))
 		{
 		case 0:
 			newItem();
@@ -376,14 +389,22 @@ aListView::keyPressEvent(QKeyEvent *e)
 		default:
 			break;
 		}
-		break;
+		e->accept();
+		return;
+
 	case Qt::Key_Delete:
-		parentItem = selectedItem();
-		columnClicked = 0;
-		switch(QMessageBox::question(this,
-				tr("Delete item"),
-				tr("<p align=\"center\">Mark deleted or delete?</p>"),
-				tr("&Mark deleted"), tr("&Delete")))
+		parentItem = currentItem();
+		columnClicked = currentColumn();
+
+		switch (QMessageBox::question(
+			this,
+			tr("Delete item"),
+			tr("<p align=\"center\">Mark deleted or delete?</p>"),
+			tr("&Mark deleted"),
+			tr("&Delete"),
+			QString(),
+			0,
+			0))
 		{
 		case 0:
 			markDeleted();
@@ -394,19 +415,20 @@ aListView::keyPressEvent(QKeyEvent *e)
 		default:
 			break;
 		}
-		break;
+		e->accept();
+		return;
+
 	default:
-		e->ignore();
 		break;
 	}
-	Q3ListView::keyPressEvent(e);
 
+	QTreeWidget::keyPressEvent(e);
 }
 
 void
 aListView::setFocus()
 {
-	Q3ListView::setFocus();
+	QTreeWidget::setFocus();
 	if(toSelect)
 	{
 		emit(sendMessage(tr("<Enter> - select, <Ins> - add, <Del> - delete items")));
@@ -419,7 +441,7 @@ aListView::setFocus()
 
 
 void
-aListView::doubleClickHandler( Q3ListViewItem *item, const QPoint& p, int col)
+aListView::doubleClickHandler( QTreeWidgetItem *item, const QPoint& p, int col)
 {
 	parentItem = item;
 	columnClicked = col;

@@ -3,13 +3,15 @@
 
 #include "ui_addfdialog.h"
 
+#include <QVariant>
+#include <QList>
 
 class addfdialog : public QDialog, public Ui::addfdialog
 {
     Q_OBJECT
 
 public:
-    addfdialog(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WindowFlags fl = 0);
+    addfdialog(QWidget *parent, Qt::WindowFlags fl);
     ~addfdialog();
 
     QStringList list,idlist;

@@ -3,13 +3,17 @@
 
 #include "ui_eaddobj.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
 
-class eAddObj : public Q3MainWindow, public Ui::eAddObj
+
+class eAddObj : public QMainWindow, public Ui::eAddObj
 {
     Q_OBJECT
 
 public:
-    eAddObj(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    eAddObj(QWidget* parent = 0, Qt::WindowFlags fl = 0);
     ~eAddObj();
 
 protected slots:

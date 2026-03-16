@@ -77,10 +77,9 @@ wDBField::~wDBField()
  * \ru 	Создает окно диалога редактора свойств.\_ru
  * 	\param parent - \en parent \_en \ru родитель \_ru
  */
-QDialog*
-wDBField::createEditor( QWidget *parent )
+QDialog *wDBField::createEditor(QWidget *parent)
 {
-	return new addfdialog( parent );
+    return new addfdialog(parent, Qt::WindowFlags());
 }
 
 
@@ -92,7 +91,7 @@ void wDBField::openEditor()
 {
 /*
 	QString s;
-  QValueList<Q_ULLONG> bindList = getBindList();
+  QValueList<qulonglong> bindList = getBindList();
   addfdialog e(this->topLevelWidget());
   getFields();
   e.setData( defDisplayFields, defFields,defId);
@@ -185,87 +184,80 @@ wDBField::init()
  *	Для групп и элементов каталога добавляет в конце (element) или (group) \_ru
  * 	\return \en List of field name \_en \ru Список имен полей \_ru
  */
-QStringList
-wDBField::getFields()
+QStringList wDBField::getFields()
 {
-  QStringList lst, dlst;
-  QString str;
-  int res,i;
-  Q3ValueList<qulonglong> bindList = getBindList();
-  aCfgItem o, o_head;
-  defId.clear();
-  defFields.clear();
-  defDisplayFields.clear();
-  if(!head.isNull())
-  {
-	if(md->objClass(head) == md_catalogue)
+	QStringList lst, dlst;
+	QString str;
+	int res, i;
+	QList<qulonglong> bindList = getBindList();
+	aCfgItem o, o_head;
+
+	defId.clear();
+	defFields.clear();
+	defDisplayFields.clear();
+
+	if (!head.isNull())
 	{
-//		printf("getting fields from metadata\n");
-		o = md->findChild(head,md_element); //object element
-	    	res = md->countChild(o,md_field);
-//		printf("find elements\n");
-	    	for( i = 0; i < res; i++ )
-	    	{
-//			printf("find %d elem\n",i);
-			o_head = md->findChild(o,md_field,i);
-			if(md->attr(o_head,mda_type).at(0)!=' ')
+		if (md->objClass(head) == md_catalogue)
+		{
+			o = md->findChild(head, md_element);
+			res = md->countChild(o, md_field);
+
+			for (i = 0; i < res; i++)
 			{
-//				printf("mda_type = %s\n",md->attr(o_head,mda_type).ascii());
-				lst << md->attr(o_head,mda_name);
-				dlst << md->attr(o_head,mda_name) + " (element)";
-				defId << md->attr(o_head,mda_id);
+				o_head = md->findChild(o, md_field, i);
+				if (md->attr(o_head, mda_type).at(0) != ' ')
+				{
+					lst << md->attr(o_head, mda_name);
+					dlst << md->attr(o_head, mda_name) + " (element)";
+					defId << md->attr(o_head, mda_id);
+				}
 			}
-			else
+
+			o = md->findChild(head, md_group);
+			res = md->countChild(o, md_field);
+
+			for (i = 0; i < res; i++)
 			{
-//				printf("calculated field not allowed here\n");
+				o_head = md->findChild(o, md_field, i);
+				if (md->attr(o_head, mda_type).at(0) != ' ')
+				{
+					lst << md->attr(o_head, mda_name);
+					dlst << md->attr(o_head, mda_name) + " (group)";
+					defId << md->attr(o_head, mda_id);
+				}
 			}
-	    	}
-		o = md->findChild(head,md_group); // object group
-	    	res = md->countChild(o,md_field);
-//		printf("find groups\n");
-	    	for( i = 0; i < res; i++ )
-	    	{
-//			printf("find %d group\n",i);
-			o_head = md->findChild(o,md_field,i);
-			//--if(md->attr(o,mda_type).left(1)!=' ')
-			if(md->attr(o,mda_type).at(0)!=' ')
-			{
-				lst << md->attr(o_head,mda_name);
-				dlst << md->attr(o_head,mda_name) + " (group)";
-				defId << md->attr(o_head,mda_id);
-			}
-	    	}
-	}
-	else
-	{
-		o = md->findChild(head,md_header); // object header
-	    	res = md->countChild(o,md_field);
-	    	for( i = 0; i < res; i++ )
-	    	{
-			o_head = md->findChild(o,md_field,i);
-			dlst << md->attr(o_head,mda_name);
-			lst << md->attr(o_head,mda_name);
-			defId << md->attr(o_head,mda_id);
-	    	}
-	}
-	res = lst.count();
-	for(int i=0; i<res; i++)
-	{
-		if(bindList.find(defId[i].toULongLong())!=bindList.end())
-			str ="* ";
+		}
 		else
-			str ="";
-		dlst[i] = str + dlst[i]; // addes available for binding fields name
-	//	printf("defField[%d]=%s\n",i,defFields[i].ascii());
+		{
+			o = md->findChild(head, md_header);
+			res = md->countChild(o, md_field);
+
+			for (i = 0; i < res; i++)
+			{
+				o_head = md->findChild(o, md_field, i);
+				dlst << md->attr(o_head, mda_name);
+				lst << md->attr(o_head, mda_name);
+				defId << md->attr(o_head, mda_id);
+			}
+		}
+
+		res = lst.count();
+		for (i = 0; i < res; i++)
+		{
+			if (bindList.contains(defId[i].toULongLong()))
+				str = "* ";
+			else
+				str = "";
+
+			dlst[i] = str + dlst[i];
+		}
 	}
-  }
-//<<<<<<< wdbfield.cpp
+
 	defDisplayFields = dlst;
-//	defDisplayFields = s;
-	    	defFields = lst;
-//=======
-//>>>>>>> 1.37.2.4
-return defFields;
+	defFields = lst;
+
+	return defFields;
 }
 
 
@@ -326,53 +318,46 @@ wDBField::initObject(aDatabase *adb )
  * \en	Set widget type, use property `Id'. \_en
  * \ru 	Устанавливает тип виджета, используя свойство `Id'. \_ru
  */
-void
-wDBField::setEditorType ()
+void wDBField::setEditorType()
 {
-    aCfgItem o_head,o;
-    QString str, type;
-    int id;
-	if(!head.isNull())
+	aCfgItem o_head, o;
+	QString str, type;
+
+	if (!head.isNull())
 	{
-		id = property("Id").toInt();
+		qulonglong id = property("Id").toULongLong();
 		o_head = md->find(id);
-		if(!o_head.isNull())
+
+		if (!o_head.isNull())
 		{
-			type = md->attr(o_head,mda_type);
+			type = md->attr(o_head, mda_type);
 			setFieldType(type);
-			str = type.section(' ',0,0);
-			// gets type of editor
-			if(str=="N") wField::setEditorType(Numberic);
-			if(str=="C") wField::setEditorType(String);
-			if(str=="D") wField::setEditorType(Date);
-			if(str=="B") wField::setEditorType(Boolean);
-			if(str=="O")
+
+			str = type.section(' ', 0, 0);
+
+			if (str == "N") wField::setEditorType(Numberic);
+			if (str == "C") wField::setEditorType(String);
+			if (str == "D") wField::setEditorType(Date);
+			if (str == "B") wField::setEditorType(Boolean);
+
+			if (str == "O")
 			{
-			//editor type is Object .
-			//May be Catalog or Document.
-				qulonglong tid;
-				//gets object id.
-				str = type.section(' ',1,1);
-				tid = atol(str);
+				qulonglong tid = type.section(' ', 1, 1).toULongLong();
 				o = md->find(tid);
-				if(!o.isNull())
+
+				if (!o.isNull())
 				{
-					//gets object class
 					str = md->objClass(o);
-					if(str == md_catalogue)
-						// and set editor
+
+					if (str == md_catalogue)
 						wField::setEditorType(Catalogue);
-					if(str == md_document)
+
+					if (str == md_document)
 						wField::setEditorType(Document);
-
 				}
-
 			}
-
 		}
-
 	}
-
 }
 
 
@@ -383,37 +368,37 @@ wDBField::setEditorType ()
  * 	\return \en List of binding fields id. \_en
  * 		\ru Список id забинденых полей. \_ru
  */
-Q3ValueList<qulonglong>
-wDBField::getBindList()
+QList<qulonglong> wDBField::getBindList()
 {
-aCfgItem obj;
-QObjectList wList;
-int id;
-Q3ValueList<qulonglong> listBindings;
-wDBField* wfield;
-QObject* wd = aWidget::parentContainer (this);
+	aCfgItem obj;
+	QList<qulonglong> listBindings;
+	QObject *wd = aWidget::parentContainer(this);
+
 	listBindings.clear();
-    	wList = wd->queryList( "wDBField" );
-	QListIterator<QObject*> it( wList ); // iterate over the wDBTable
-	while ( it.hasNext() )
+
+	if (!wd)
+		return listBindings;
+
+	QList<wDBField*> wList = wd->findChildren<wDBField*>();
+	QListIterator<wDBField*> it(wList);
+
+	while (it.hasNext())
 	{
-		wfield = qobject_cast<wDBField*>( it.next() );
+		wDBField *wfield = it.next();
+		if (!wfield) continue;
 
-		if(strcmp(wfield->name(),this->name())) // don't added current id
-		{
-		//don.t added deleted widgets
-		   if(strncmp("qt_dead_widget_",wfield->name(),strlen("qt_dead_widget_")))
-		   {
-			id = wfield->property("Id").toULongLong();
-	//		if(id>=0) // don't added negativ id (table while not selected)
-	//		{
-				listBindings << id;
-//				printf(">>>added id = `%d'\n",id);
-	//		}
-		   }
-		}
+		if (wfield == this) // don't add current widget
+			continue;
+
+		QString objName = wfield->objectName();
+
+		// don't add deleted widgets
+		if (objName.startsWith("qt_dead_widget_"))
+			continue;
+
+		qulonglong id = wfield->property("Id").toULongLong();
+		listBindings << id;
 	}
-	//--delete wList;
-return listBindings;
-}
 
+	return listBindings;
+}

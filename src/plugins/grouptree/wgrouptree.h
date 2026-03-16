@@ -30,11 +30,16 @@
 #ifndef WGROUPTREE_H
 #define WGROUPTREE_H
 
-#include <q3listview.h>
-#include <qwidgetplugin.h>
-#include <qwidget.h>
-//Added by qt3to4:
+
+#include <QTreeWidget>
+#include <QWidget>
 #include <QKeyEvent>
+#include <QLayout>
+#include <QAction>
+#include <QGridLayout>
+#include <QHeaderView>
+
+#include <qwidgetplugin.h>
 #include "awidget.h"
 
 class wGroupTreeItem;
@@ -43,7 +48,7 @@ class QT_WIDGET_PLUGIN_EXPORT wGroupTree : public aWidget
 {
     Q_OBJECT
 public:
-	Q3ListView *tree;
+	QTreeWidget *tree;
 	wGroupTreeItem *root;
 
 	wGroupTree( QWidget *parent = 0, Qt::WFlags fl = 0 );
@@ -51,7 +56,7 @@ public:
 
 	virtual void initObject( aDatabase *adb );
 	virtual QDialog* createEditor( QWidget *parent );
-	virtual Q3ToolBar*	createToolBar( Q3MainWindow *parent );
+	virtual QToolBar*	createToolBar( QMainWindow *parent );
 	virtual aObject *createDBObject(  aCfgItem obj, aDatabase *adb );
 	void buildGroupTree( aCfgItem obj, aCatGroup * cg1, wGroupTreeItem * wG );
 	void findGroupTree();
@@ -65,7 +70,7 @@ private slots:
 	void on_selected( ANANAS_UID element );
 //	void updateItem( ANANAS_UID element );
 	void updateItem( ANANAS_UID element );
-	void on_selectionChanged( Q3ListViewItem *);
+	void on_selectionChanged();
 signals:
     virtual void selected( ANANAS_UID group );
     virtual void selectionChanged( const qulonglong );
@@ -76,14 +81,20 @@ private:
 
 
 
-class wGroupTreeItem : public Q3ListViewItem
+class wGroupTreeItem : public QTreeWidgetItem
 {
 public:
 	ANANAS_UID id;
 	int level;
-    wGroupTreeItem( Q3ListView *parent, const QString &name = QString::null );
-    wGroupTreeItem( wGroupTreeItem *parent, wGroupTreeItem *after, const QString &name = QString::null, int newlevel = 0, ANANAS_UID newid = 0 );
-    wGroupTreeItem( wGroupTreeItem *parent, wGroupTreeItem *after, aCatGroup *g = 0 );
+    wGroupTreeItem(QTreeWidget *parent, const QString &name);
+    wGroupTreeItem(wGroupTreeItem *parent,
+                               wGroupTreeItem *after,
+                               const QString &name,
+                               int newlevel,
+                               ANANAS_UID newid);
+    wGroupTreeItem(wGroupTreeItem *parent,
+                               wGroupTreeItem *after,
+                               aCatGroup *g);
     virtual ~wGroupTreeItem();
     wGroupTreeItem *parentItem();
 private:

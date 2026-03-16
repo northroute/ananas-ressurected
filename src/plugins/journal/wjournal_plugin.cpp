@@ -19,10 +19,6 @@
 
 #include "wjournal_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wjournal_taskmenu.h"
 #include "wjournal.h"
 

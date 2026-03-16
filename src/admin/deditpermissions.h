@@ -1,6 +1,11 @@
 #ifndef DEDITPERMISSIONS_H
 #define DEDITPERMISSIONS_H
 
+
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 #include <ui_deditpermissions.h>
 //#include <qvariant.h>
 

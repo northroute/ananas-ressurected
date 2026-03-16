@@ -26,14 +26,14 @@
 **
 **********************************************************************/
 
-#include <aapplication.h>
-#include <qmessagebox.h>
-#include <qtranslator.h>
-#include <qsplashscreen.h>
-#include <qtextcodec.h>
-//Added by qt3to4:
+#include <QMessageBox>
+#include <QTranslator>
+#include <QSplashScreen>
+#include <QTextCodec>
 #include <QPixmap>
-#include <q3mimefactory.h>
+
+#include <aapplication.h>
+
 #include "mainform.h"
 #include "dselectdb.h"
 #include "dlogin.h"

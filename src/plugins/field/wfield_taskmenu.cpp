@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wfield_taskmenu.h"
 #include "wfield.h"
 #include "efield.h"

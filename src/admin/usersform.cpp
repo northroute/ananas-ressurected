@@ -1,9 +1,5 @@
 #include "usersform.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a UsersForm as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -15,7 +11,7 @@ UsersForm::UsersForm(QWidget* parent, Qt::WindowFlags fl)
     new QVBoxLayout( this );
     mdtree = new aMetadataTreeView( this, &aDatabase::database()->cfg ); // metadata tree creation
     mdtree->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    layout()->add( mdtree );
+    layout()->addWidget(mdtree);
     updateGeometry();
 }
 

@@ -28,14 +28,6 @@
 **
 **********************************************************************/
 
-#include <q3table.h>
-#include <qlayout.h>
-#include <qstring.h>
-#include <q3header.h>
-#include <qvariant.h>
-#include <qobject.h>
-#include <qobject.h>
-
 #include "acfg.h"
 #include "aobject.h"
 #include "awidget.h"
@@ -43,9 +35,9 @@
 
 
 
-wTable::wTable(QWidget *parent, const char * name):Q3Table(parent, name)
+wTable::wTable(QWidget *parent)
+    : QTableWidget(parent)
 {
-
 }
 
 wTable::~wTable()
@@ -58,76 +50,77 @@ wTable::setDocument(int row, aObject *object)
 {
 }
 
-void
-wTable::setText(int row, int col, const QString& text)
+void wTable::setText(int row, int col, const QString &text)
 {
-	return Q3Table::setText(row, col,text);
+    QTableWidgetItem *item = this->item(row, col);
+    if (!item) {
+        item = new QTableWidgetItem(text);
+        setItem(row, col, item);
+    } else {
+        item->setText(text);
+    }
 }
 
-
-QString
-wTable::text(int col, int row)
+QString wTable::text(int col, int row)
 {
-	return Q3Table::text(col,row);
+    QTableWidgetItem *item = this->item(row, col);
+    return item ? item->text() : QString();
 }
 
-void
-wTable::setHeaderText(int col, const QString& text)
+void wTable::setHeaderText(int col, const QString &text)
 {
-	Q3Table::horizontalHeader()->setLabel( col, text );
+    QTableWidgetItem *header = horizontalHeaderItem(col);
+    if (!header) {
+        header = new QTableWidgetItem(text);
+        setHorizontalHeaderItem(col, header);
+    } else {
+        header->setText(text);
+    }
 }
 
-
-QString
-wTable::textHeader(int col)
+QString wTable::textHeader(int col)
 {
-	return Q3Table::horizontalHeader()->label(col);
+    QTableWidgetItem *header = horizontalHeaderItem(col);
+    return header ? header->text() : QString();
 }
 
-void
-wTable::sortColumn ( int col, bool ascending, bool wholeRows )
+void wTable::sortColumn(int col, bool ascending, bool wholeRows)
 {
-	printf("do sort column\n");
-	Q3Table::sortColumn( col, ascending, true );
+    Q_UNUSED(wholeRows);
+    printf("do sort column\n");
+    sortItems(col, ascending ? Qt::AscendingOrder : Qt::DescendingOrder);
 }
 
-
-void
-wTable::setColumnWidth(int col, int width)
+void wTable::setColumnWidth(int col, int width)
 {
-	Q3Table::setColumnWidth(col,width);
+    QTableWidget::setColumnWidth(col, width);
 }
 
-
-int
-wTable::columnWidth(int col)
+int wTable::columnWidth(int col)
 {
-	return Q3Table::columnWidth(col);
+    return QTableWidget::columnWidth(col);
 }
 
-void
-wTable::setNumCols ( int r )
+void wTable::setNumCols(int r)
 {
-	Q3Table::setNumCols(r);
+    setColumnCount(r);
 }
 
-int
-wTable::numCols () const
+int wTable::numCols() const
 {
-	int res = Q3Table::numCols();// - 1;
-	return res;
-}
-void
-wTable::hideColumn ( int col )
-{
-	Q3Table::hideColumn ( col );
+    return columnCount();
 }
 
-void
-wTable::showColumn ( int col )
+void wTable::hideColumn(int col)
 {
-	Q3Table::showColumn ( col );
+    QTableWidget::hideColumn(col);
 }
+
+void wTable::showColumn(int col)
+{
+    QTableWidget::showColumn(col);
+}
+
 /*
 bool
 wTable::isColumnHidden ( int col ) const
@@ -137,80 +130,107 @@ wTable::isColumnHidden ( int col ) const
 	return QTable::isColumnHidden ( col );
 }
 */
-void
-wTable::adjustColumn ( int col )
+
+void wTable::adjustColumn(int col)
 {
-	return Q3Table::adjustColumn  ( col );
+    resizeColumnToContents(col);
 }
 
-void
-wTable::setColumnStretchable ( int col, bool stretch )
+void wTable::setColumnStretchable(int col, bool stretch)
 {
-	return Q3Table::setColumnStretchable ( col, stretch );
+    QHeaderView *h = horizontalHeader();
+    if (stretch)
+        h->setResizeMode(col, QHeaderView::Stretch);
+    else
+        h->setResizeMode(col, QHeaderView::Interactive);
 }
 
-bool
-wTable::isColumnStretchable ( int col ) const
+bool wTable::isColumnStretchable(int col) const
 {
-	return Q3Table::isColumnStretchable ( col );
+    return horizontalHeader()->resizeMode(col) == QHeaderView::Stretch;
 }
 
-
-void
-wTable::swapColumns ( int col1, int col2, bool swapHeader )
+void wTable::swapColumns(int col1, int col2, bool swapHeader)
 {
-	Q3Table::swapColumns( col1, col2, swapHeader );
+    for (int row = 0; row < rowCount(); ++row) {
+        QTableWidgetItem *item1 = takeItem(row, col1);
+        QTableWidgetItem *item2 = takeItem(row, col2);
 
+        setItem(row, col1, item2);
+        setItem(row, col2, item1);
+    }
+
+    if (swapHeader) {
+        QTableWidgetItem *h1 = takeHorizontalHeaderItem(col1);
+        QTableWidgetItem *h2 = takeHorizontalHeaderItem(col2);
+
+        setHorizontalHeaderItem(col1, h2);
+        setHorizontalHeaderItem(col2, h1);
+    }
 }
 
-void
-wTable::swapCells ( int row1, int col1, int row2, int col2 )
+void wTable::swapCells(int row1, int col1, int row2, int col2)
 {
-	Q3Table::swapCells( row1, col1, row2, col2 );
+    QTableWidgetItem *item1 = takeItem(row1, col1);
+    QTableWidgetItem *item2 = takeItem(row2, col2);
+
+    setItem(row1, col1, item2);
+    setItem(row2, col2, item1);
 }
 
-void
-wTable::setCurrentCell ( int row, int col )
+void wTable::setCurrentCell(int row, int col)
 {
-	Q3Table::setCurrentCell( row, col );
+    QTableWidget::setCurrentCell(row, col);
 }
 
-void
-wTable::setColumnReadOnly ( int col, bool ro )
+void wTable::setColumnReadOnly(int col, bool ro)
 {
-	Q3Table::setColumnReadOnly( col, ro );
+    for (int row = 0; row < rowCount(); ++row) {
+        QTableWidgetItem *item = this->item(row, col);
+        if (!item) {
+            item = new QTableWidgetItem();
+            setItem(row, col, item);
+        }
+
+        Qt::ItemFlags flags = item->flags();
+        if (ro)
+            item->setFlags(flags & ~Qt::ItemIsEditable);
+        else
+            item->setFlags(flags | Qt::ItemIsEditable);
+    }
 }
 
-void
-wTable::insertColumns ( int col, int count )
+void wTable::insertColumns(int col, int count)
 {
-	Q3Table::insertColumns( col, count );
+    for (int i = 0; i < count; ++i)
+        insertColumn(col);
 }
 
-void
-wTable::removeColumn ( int col )
+void wTable::removeColumn(int col)
 {
-	Q3Table::removeColumn( col );
+    QTableWidget::removeColumn(col);
 }
 
-void
-wTable::editCell ( int row, int col, bool replace )
+void wTable::editCell(int row, int col, bool replace)
 {
-	Q3Table::editCell( row, col, replace );
+    Q_UNUSED(replace);
+    editItem(item(row, col));
 }
 
-void
-wTable::columnClicked ( int col )
+void wTable::columnClicked(int col)
 {
-//	int i = -2;
-//	if(col>=0) i=col;
-	Q3Table::columnClicked ( col );//i-1 );
-}
-void
-wTable::swapRows ( int row1, int row2, bool swapHeader )
-{
-	Q3Table::swapRows (  row1, row2,swapHeader );
+    emit cellClicked(0, col);
 }
 
+void wTable::swapRows(int row1, int row2, bool swapHeader)
+{
+    Q_UNUSED(swapHeader);
 
+    for (int col = 0; col < columnCount(); ++col) {
+        QTableWidgetItem *item1 = takeItem(row1, col);
+        QTableWidgetItem *item2 = takeItem(row2, col);
 
+        setItem(row1, col, item2);
+        setItem(row2, col, item1);
+    }
+}

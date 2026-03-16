@@ -18,7 +18,7 @@
  *
  */
 dEditCommand::dEditCommand(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+    : QMainWindow(parent, name, fl)
 {
     setupUi(this);
 
@@ -118,9 +118,9 @@ void dEditCommand::setData( InterfaceListViewItem * o )
     // TODO Fixme!!!
     //--layout28->addWidget( vComActions, 0, 0 );
     actiontree = new aActionTreeView ( tabWidget2->page(1),  md );
-    disconnect( actiontree, SIGNAL( contextMenuRequested( Q3ListViewItem*, const QPoint&, int) ), actiontree, SLOT(ContextMenu() ) );
-    disconnect( actiontree, SIGNAL( returnPressed( Q3ListViewItem*) ), actiontree, SLOT( itemEdit() ) );
-    disconnect( actiontree, SIGNAL( doubleClicked( Q3ListViewItem*) ), actiontree, SLOT( itemEdit() ) );
+    disconnect( actiontree, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), actiontree, SLOT(ContextMenu() ) );
+    disconnect( actiontree, SIGNAL( returnPressed( QTreeWidgetItem*) ), actiontree, SLOT( itemEdit() ) );
+    disconnect( actiontree, SIGNAL( doubleClicked( QTreeWidgetItem*) ), actiontree, SLOT( itemEdit() ) );
     // TODO Fixme!!!
     //--layout29->addWidget( actiontree, 0, 0 );
 

@@ -74,7 +74,7 @@
 #endif
 
 
-//#if defined(Q_ULLONG)
+//#if defined(qulonglong)
 #	define ANANAS_UID qulonglong
 #	define ANANAS_UID_VALUE( v ) v.toULongLong()
 //#error yes
