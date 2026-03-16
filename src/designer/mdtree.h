@@ -28,7 +28,7 @@
 
 #ifndef MDTREE_H
 #define MDTREE_H
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <q3intdict.h>
 #include "acfg.h"
 #include "formdesigner.h"
@@ -48,7 +48,7 @@ public:
 */
 	aListViewItem(ananasListViewItem *parent, ananasListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
 //	aListViewItem(QListViewItem *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
-	aListViewItem(Q3ListView *parent, aCfg * cfgmd, aCfgItem obj, const QString &name = QString::null );
+	aListViewItem(QTreeWidget *parent, aCfg * cfgmd, aCfgItem obj, const QString &name = QString::null );
 	~aListViewItem();
 	QString text( int column ) const;
 	void loadTree();
@@ -73,7 +73,7 @@ public:
 
 protected:
 //	virtual void okRename( int col );
-	virtual int compare( Q3ListViewItem *i, int col, bool accending ) const;
+	virtual int compare( QTreeWidgetItem *i, int col, bool accending ) const;
 private:
 	void loadDocument ();
 	void loadJournal ();
@@ -107,7 +107,7 @@ public slots:
 	void itemSave();
 	void itemLoad();
 private slots:
-	void on_collapsed( Q3ListViewItem *item );
+	void on_collapsed( QTreeWidgetItem *item );
 private:
 	Q3IntDict<QWidget> editors;
 };

@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wdbfield_taskmenu.h"
 #include "wdbfield.h"
 #include "addfdialog.h"

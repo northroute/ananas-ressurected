@@ -4,7 +4,7 @@
 #include "ui_cfgform.h"
 
 
-class CfgForm : public Q3MainWindow, public Ui::CfgForm
+class CfgForm : public QMainWindow, public Ui::CfgForm
 {
     Q_OBJECT
 
@@ -12,7 +12,7 @@ public:
     CfgForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
     ~CfgForm();
 
-    Q3IntDict<Q3IconViewItem> idList;
+    Q3IntDict<QListWidgetItem> idList;
     InterfaceTreeView *interfacetree;
     aActionTreeView *actiontree;
     aCfg cfg;
@@ -33,7 +33,7 @@ public slots:
     virtual void initImageCollection();
     virtual void bAddImage_clicked();
     virtual void bRemoveImage_clicked();
-    virtual void vImageCollection_itemRenamed( Q3IconViewItem * item, const QString & name );
+    virtual void vImageCollection_itemRenamed( QListWidgetItem * item, const QString & name );
     virtual void initLang();
     virtual void initRoles();
     virtual void save();
@@ -43,7 +43,7 @@ public slots:
     virtual void tLang_doubleClicked( int, int, int, const QPoint & );
     virtual void bKill_clicked();
     virtual void newObj();
-    virtual void listCfg_onItem( Q3ListViewItem * );
+    virtual void listCfg_onItem( QTreeWidgetItem * );
     virtual void newField();
     virtual void newForm();
     virtual void newTable();

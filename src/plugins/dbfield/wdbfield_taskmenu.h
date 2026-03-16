@@ -20,7 +20,9 @@
 
 #include <QDesignerTaskMenuExtension>
 #include <QExtensionFactory>
+#include <QDesignerFormEditorInterface>
 
+#include <QAction>
 
 class QExtensionManager;
 class QAction;

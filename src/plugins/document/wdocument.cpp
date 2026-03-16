@@ -27,7 +27,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
 //--#include <qfocusdata.h>
 #include "adatabase.h"
 #include "adocument.h"
@@ -95,35 +94,35 @@ wDocument::createDBObject(  aCfgItem obj, aDatabase *adb )
  *\~
  *\param - \~english \~russian \~
  */
-void
-wDocument::initObject( aDatabase *adb )
+void wDocument::initObject(aDatabase *adb)
 {
-	aWidget::initObject( adb );
-	QObject *obj;
-	QObjectList lb = this->queryList( "wDBField" );
-	QListIterator<QObject*> itb( lb ); // iterate over the buttons
-	while ( itb.hasNext() )
-	{
-		obj = itb.next();
-//		if ( (wActionButtton*) obj )->isActionUpdate() )
-		connect( (wDBField *)obj, SIGNAL(valueChanged( const QVariant & )),
-				this, SLOT(valueChanged( const QVariant & )) );
-	}
-	//--delete lb; // delete the list, not the objects
-	lb = this->queryList( "wDBTable" );
-	QListIterator<QObject*> itb1( lb ); // iterate over the buttons
-	while ( itb1.hasNext() )
-	{
-		obj = itb1.next();
-//		if ( (wActionButtton*) obj )->isActionUpdate() )
-		connect( this, SIGNAL(changeObj(const QString &)),
-			 (wDBTable *)obj, SLOT(newFilter(const QString &)));
-		connect( this, SIGNAL(changeObjId(const qulonglong)),
-			 (wDBTable *)obj, SLOT(newDataId(const qulonglong)));
-	}
-	//--delete lb; // delete the list, not the objects
-	//--focusData()->next()->setFocus();
-	focusNextChild();
+    aWidget::initObject(adb);
+
+    QList<wDBField*> fields = this->findChildren<wDBField*>();
+    for (QList<wDBField*>::iterator it = fields.begin(); it != fields.end(); ++it)
+    {
+        wDBField *obj = *it;
+        if (!obj)
+            continue;
+
+        connect(obj, SIGNAL(valueChanged(const QVariant &)),
+                this, SLOT(valueChanged(const QVariant &)));
+    }
+
+    QList<wDBTable*> tables = this->findChildren<wDBTable*>();
+    for (QList<wDBTable*>::iterator it = tables.begin(); it != tables.end(); ++it)
+    {
+        wDBTable *obj = *it;
+        if (!obj)
+            continue;
+
+        connect(this, SIGNAL(changeObj(const QString &)),
+                obj, SLOT(newFilter(const QString &)));
+        connect(this, SIGNAL(changeObjId(const qulonglong)),
+                obj, SLOT(newDataId(const qulonglong)));
+    }
+
+    focusNextChild();
 }
 
 
@@ -149,10 +148,9 @@ wDocument::checkStructure()
  *\param - \~english \~russian \~
  *\return \~english \~russian \~
  */
-QDialog*
-wDocument::createEditor( QWidget *parent )
+QDialog* wDocument::createEditor(QWidget *parent)
 {
-	return new eDocument( parent );
+    return new eDocument(parent, Qt::WindowFlags());
 }
 
 
@@ -344,21 +342,28 @@ wDocument::TurnOff()
  *	Используется для при открытии формы, смене документа, обновлении значений виджетов документа.
  *\~
  */
-void
-wDocument::NewValues()
+void wDocument::NewValues()
 {
-	QString fname;
-	QObjectList l = this->queryList( "wDBField" );
-	QListIterator<QObject*> it( l );
-	QObject *obj;
-	while ( it.hasNext() )
-	{
-		obj = it.next();
-		fname=((wDBField *)obj)->getFieldName();
-		((wDBField *)obj)->setValue(dbobj->Value(fname).toString());
-		aLog::print(aLog::Debug, tr("wDocument set new value %1 for field %2 ").arg(dbobj->Value(fname).toString()).arg(fname));
-	}
-	//--delete l; // delete the list, not the objects
+    QString fname;
+
+    QList<wDBField*> fields = this->findChildren<wDBField*>();
+
+    for (QList<wDBField*>::iterator it = fields.begin(); it != fields.end(); ++it)
+    {
+        wDBField *fld = *it;
+        if (!fld)
+            continue;
+
+        fname = fld->getFieldName();
+
+        QString val = dbobj->Value(fname).toString();
+        fld->setValue(val);
+
+        aLog::print(aLog::Debug,
+                    tr("wDocument set new value %1 for field %2 ")
+                    .arg(val)
+                    .arg(fname));
+    }
 }
 
 
@@ -383,15 +388,19 @@ wDocument::NewValues()
  *\~
  *\param value - \~english new field value. \~russian новое значение поля. \~
  */
-void
-wDocument::valueChanged( const QVariant & value )
+void wDocument::valueChanged(const QVariant &value)
 {
-	if ( sender()->className() != QString("wDBField") ) return;
-	wDBField * fld = ( wDBField * ) sender();
-	QString fname=fld->getFieldName();
-//	printf( "field name %s\n",(const char*)fname );
-	if ( dbobj ) dbobj->SetValue( fname, value );
-	emit aWidget::valueChanged( fname, value );
+    QObject *s = sender();
+    wDBField *fld = qobject_cast<wDBField *>(s);
+    if (!fld)
+        return;
+
+    QString fname = fld->getFieldName();
+
+    if (dbobj)
+        dbobj->SetValue(fname, value);
+
+    emit aWidget::valueChanged(fname, value);
 }
 
 /*void

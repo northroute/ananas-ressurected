@@ -19,10 +19,6 @@
 
 #include "wdocument_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wdocument_taskmenu.h"
 #include "wdocument.h"
 

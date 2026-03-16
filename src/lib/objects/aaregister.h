@@ -64,7 +64,7 @@ public:
 	virtual ERR_Code initObject();
 
 	virtual bool deleteDocument( aDocument * doc );
-	//virtual bool deleteTable( Q_ULLONG iddt );
+	//virtual bool deleteTable( qulonglong iddt );
 	virtual QString trSysName( const QString & sname );
 public slots:
 	virtual ERR_Code New();

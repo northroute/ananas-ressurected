@@ -478,7 +478,7 @@ aObject::New()
 
 	if ( !t ) return err_notable;
 	setSelected ( t->New() );
-/*	Q_ULLONG Uid = t->primeInsert()->value("id").toULongLong();
+/*	qulonglong Uid = t->primeInsert()->value("id").toULongLong();
 	if ( t->insert() )
 	{
 		if ( t->select(QString("id=%1").arg(Uid), false) )
@@ -498,7 +498,7 @@ aObject::New()
 /*!
  * Copy current selected object data in database.
  */
-/*Q_ULLONG
+/*qulonglong
 aObject::copy( const QString & tablename )
 {
 	aDataTable * t = table( tablename );
@@ -506,7 +506,7 @@ aObject::copy( const QString & tablename )
 	if ( !t ) return 0;
 	if ( !selected(tablename) ) return 0;
 	QSqlRecord * r = t->primeUpdate();
-	Q_ULLONG Uid = db->uid( t->id );
+	qulonglong Uid = db->uid( t->id );
 	r->setValue("id",Uid);
 	if ( t->insert() ) return Uid;
 	else return 0;
@@ -522,7 +522,7 @@ aObject::Copy()
 {
 //	QSqlRecord r;
 
-//	Q_ULLONG Uid = copy();
+//	qulonglong Uid = copy();
 //	if ( !Uid ) return err_copyerror;
 	aDataTable *t = table();
 	if ( t->Copy() ) return err_noerror;

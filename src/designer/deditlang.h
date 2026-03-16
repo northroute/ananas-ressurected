@@ -4,7 +4,7 @@
 #include "ui_deditlang.h"
 
 
-class dEditLang : public Q3MainWindow, public Ui::dEditLang
+class dEditLang : public QMainWindow, public Ui::dEditLang
 {
     Q_OBJECT
 

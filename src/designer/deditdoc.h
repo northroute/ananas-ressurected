@@ -4,7 +4,7 @@
 #include "ui_deditdoc.h"
 
 
-class dEditDoc : public Q3MainWindow, public Ui::dEditDoc
+class dEditDoc : public QMainWindow, public Ui::dEditDoc
 {
     Q_OBJECT
 

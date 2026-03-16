@@ -21,6 +21,7 @@
 #define ACOMBOBOX_PLUGIN_H
 
 #include <QDesignerCustomWidgetInterface>
+#include <QtPlugin>
 
 #include <qwidgetplugin.h>
 

@@ -26,10 +26,10 @@
 **
 **********************************************************************/
 
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <qlabel.h>
 #include <qpixmap.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qstatusbar.h>
 #include <qlineedit.h>
 #include <qmessagebox.h>
@@ -76,7 +76,7 @@ aListViewItem::aListViewItem(ananasListViewItem *parent, ananasListViewItem *aft
 
 
 
-aListViewItem::aListViewItem(Q3ListView *parent, aCfg *cfgmd,  aCfgItem cfgobj, const QString &name )
+aListViewItem::aListViewItem(QTreeWidget *parent, aCfg *cfgmd,  aCfgItem cfgobj, const QString &name )
 : ananasListViewItem( parent, cfgmd, cfgobj, name )
 {
 	loadTree();
@@ -92,9 +92,9 @@ aListViewItem::~aListViewItem()
 QString
 aListViewItem::text( int column ) const
 {
-	return Q3ListViewItem::text( column );
+	return QTreeWidgetItem::text( column );
 //	if ( obj.isNull() ) return QObject::tr("Unknown object context");
-	if ( !id ) return Q3ListViewItem::text( column );
+	if ( !id ) return QTreeWidgetItem::text( column );
 	switch ( column ) {
 	case 0: return md->attr( obj, mda_name );
 	default:
@@ -103,7 +103,7 @@ aListViewItem::text( int column ) const
 }
 
 int
-aListViewItem::compare( Q3ListViewItem *i, int col, bool accending ) const
+aListViewItem::compare( QTreeWidgetItem *i, int col, bool accending ) const
 {
 	int id1 = 0, id2 = 0;
 	aListViewItem *ai = (aListViewItem *) i;
@@ -121,7 +121,7 @@ aListViewItem::compare( Q3ListViewItem *i, int col, bool accending ) const
 void
 aListViewItem::setup()
 {
-	Q3ListViewItem::setup();
+	QTreeWidgetItem::setup();
 }
 
 
@@ -729,10 +729,10 @@ void aListViewItem::saveItem()
 	{
 
 		QString fname;
-		Q3FileDialog fd( QString::null,
+		QFileDialog fd( QString::null,
   			QObject::tr("any files (*)"),
 			0, 0, TRUE );
-		fd.setMode(Q3FileDialog::AnyFile);
+		fd.setMode(QFileDialog::AnyFile);
 //		fd.addFilter(tr(" (*.bsa)"));
 		fd.setSelection( oclass + md->attr(obj,mda_id) );
 		if ( fd.exec() == QDialog::Accepted )
@@ -769,10 +769,10 @@ void aListViewItem::loadItem()
 	{
 
 		QString fname;
-		Q3FileDialog fd( QString::null,
+		QFileDialog fd( QString::null,
   			QObject::tr("any files (*)"),
 			0, 0, TRUE );
-		fd.setMode(Q3FileDialog::ExistingFiles);
+		fd.setMode(QFileDialog::ExistingFiles);
 		aCfgItem loadObj;
 //		fd.addFilter(tr(" (*.bsa)"));
 //		fd.setSelection( QDir::convertSeparators(eCfgName->text()));
@@ -1081,14 +1081,14 @@ aMetadataTreeView::aMetadataTreeView(  QWidget *parent, aCfg *cfgmd )
 	if ( !md ) return;
 	conf = new aListViewItem( this, md, md->find( mdc_metadata ), md->info( mda_name ));
 	conf->setOpen( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( Q3ListViewItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( Q3ListViewItem* ) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( Q3ListViewItem* ) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( collapsed( Q3ListViewItem* ) ), this, SLOT( on_collapsed( Q3ListViewItem* ) ) );
+	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
+	connect( this, SIGNAL( returnPressed( QTreeWidgetItem* ) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem* ) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( collapsed( QTreeWidgetItem* ) ), this, SLOT( on_collapsed( QTreeWidgetItem* ) ) );
 }
 
 void
-aMetadataTreeView::on_collapsed( Q3ListViewItem * item )
+aMetadataTreeView::on_collapsed( QTreeWidgetItem * item )
 {
 	aListViewItem *i = (aListViewItem *) item;
 	if ( i )
@@ -1103,7 +1103,7 @@ void
 aMetadataTreeView::ContextMenu()
 {
 
-	Q3PopupMenu *m=new Q3PopupMenu( this, "PopupMenu" );
+	QMenu *m=new QMenu( this, "PopupMenu" );
 	Q_CHECK_PTR(m);
 
 /*    	QLabel *caption = new QLabel( "<font color=darkblue><u><b>"

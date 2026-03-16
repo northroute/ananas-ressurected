@@ -67,10 +67,10 @@ class wDateEdit : public QDateEdit
 {
 	Q_OBJECT
 public:
-	wDateEdit(QWidget* parent = 0, const char* name = 0);
+	wDateEdit(QWidget *parent, const char *name);
 	wDateEdit(const QDate &date,
-			QWidget* parent = 0,
-			const char* name = 0 );
+                     QWidget *parent,
+                     const char *name);
 	~wDateEdit();
 protected:
 	void focusOutEvent ( QFocusEvent * );

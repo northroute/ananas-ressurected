@@ -19,10 +19,6 @@
 
 #include "wcatalogue_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wcatalogue_taskmenu.h"
 #include "wcatalogue.h"
 

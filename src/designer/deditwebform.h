@@ -4,7 +4,7 @@
 #include "ui_deditwebform.h"
 
 
-class dEditWebForm : public Q3MainWindow, public Ui::dEditWebForm
+class dEditWebForm : public QMainWindow, public Ui::dEditWebForm
 {
     Q_OBJECT
 

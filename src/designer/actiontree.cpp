@@ -26,9 +26,9 @@
 **
 **********************************************************************/
 
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <q3header.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qlabel.h>
 #include <qcursor.h>
 //Added by qt3to4:
@@ -42,10 +42,10 @@
 
 extern MainForm *mainform;
 extern QPixmap ANANAS_EXPORT rcIcon(const char *name);
-extern void set_Icon(Q3ListViewItem *item, const char *name);
+extern void set_Icon(QTreeWidgetItem *item, const char *name);
 
 
-ActionListViewItem::ActionListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
+ActionListViewItem::ActionListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
 : ananasListViewItem( parent, cfgmd, cfgobj, name )
 {
 	if (id) setRenameEnabled(0, true);
@@ -186,16 +186,16 @@ aActionTreeView::aActionTreeView ( QWidget *parent, aCfg *cfgmd )
 	actions = new ActionListViewItem ( this, md, item, QObject::tr ( "Actions" ) );
 	actions->loadTree();
 	actions->setOpen ( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( Q3ListViewItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( Q3ListViewItem*) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( Q3ListViewItem*) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
+	connect( this, SIGNAL( returnPressed( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
 };
 
 
 void
 aActionTreeView::ContextMenu()
 {
-	Q3PopupMenu *m=new Q3PopupMenu( this, "PopupMenu" );
+	QMenu *m=new QMenu( this, "PopupMenu" );
 	Q_CHECK_PTR(m);
 
 	ContextMenuAdd( m );

@@ -18,8 +18,12 @@
 #ifndef WDOCUMENT_TASKMENU_H
 #define WDOCUMENT_TASKMENU_H
 
+
 #include <QDesignerTaskMenuExtension>
 #include <QExtensionFactory>
+#include <QDesignerFormEditorInterface>
+
+#include <QAction>
 
 
 class QExtensionManager;

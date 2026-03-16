@@ -21,29 +21,27 @@
 **********************************************************************/
 
 #include "acombobox.h"
-//Added by qt3to4:
-#include <QPixmap>
-#include <Q3StrList>
-#include <QEvent>
 
-AComboBox::AComboBox( QWidget* parent, const char* name ):QComboBox( parent, name ) {
+
+AComboBox::AComboBox(QWidget* parent, const char* name) : QComboBox(parent)
+{
+	if (name)
+		setObjectName(name);
 }
 
-AComboBox::AComboBox(  bool rw, QWidget* parent, const char* name ):QComboBox( rw, parent, name ) {
+AComboBox::AComboBox(bool rw, QWidget* parent, const char* name) : QComboBox(parent)
+{
+	setObjectName(name ? name : "AComboBox");
+	setEditable(rw);
 }
 
 AComboBox::~AComboBox(){
 }
 
-int
-AComboBox::count() const {
-	return QComboBox::count();
+void AComboBox::insertStringList(const QStringList &list, int index)
+{
+	QComboBox::insertItems(index, list);
 }
-
-void
-AComboBox::insertStringList( const QStringList &list, int index ) {
-	QComboBox::insertStringList( list, index );
-};
 
 /*--void
 AComboBox::insertStrList( const Q3StrList &list, int index ){
@@ -60,75 +58,78 @@ AComboBox::insertStrList( const char **str, int numStrings, int index){
 	QComboBox::insertStrList( str, numStrings, index );
 };*/
 
-void
-AComboBox::insertItem( const QString &text, int index ){
-	QComboBox::insertItem( text, index);
-};
+void AComboBox::insertItem(const QString &text, int index)
+{
+	QComboBox::insertItem(index, text);
+}
 
-void
-AComboBox::insertItem( const QPixmap &pixmap, int index ){
-	QComboBox::insertItem( pixmap, index);
-};
+void AComboBox::insertItem(const QPixmap &pixmap, int index)
+{
+	QComboBox::insertItem(index, QIcon(pixmap), QString());
+}
 
-void
-AComboBox::insertItem( const QPixmap &pixmap, const QString &text, int index ){
-	QComboBox::insertItem(pixmap, text, index );
-};
+void AComboBox::insertItem(const QPixmap &pixmap, const QString &text, int index)
+{
+	QComboBox::insertItem(index, QIcon(pixmap), text);
+}
+
+void AComboBox::removeItem(int index)
+{
+	QComboBox::removeItem(index);
+}
 
 
-void
-AComboBox::removeItem( int index ){
-	QComboBox::removeItem( index );
-};
+int AComboBox::currentItem()
+{
+	return currentIndex();
+}
 
-
-int
-AComboBox::currentItem() {
-	return QComboBox::currentItem();
-};
-
-void
-AComboBox::setCurrentItem( int index ){
-	QComboBox::setCurrentItem( index );
-};
-
+void AComboBox::setCurrentItem(int index)
+{
+	setCurrentIndex(index);
+}
 
 QString
 AComboBox::currentText() const {
 	return QComboBox::currentText();
 };
 
-void
-AComboBox::setCurrentText( const QString& string){
-	QComboBox::setCurrentText( string );
-};
+void AComboBox::setCurrentText(const QString &string)
+{
+	int idx = findText(string);
+	if (idx >= 0)
+		setCurrentIndex(idx);
+	else if (isEditable())
+		setEditText(string);
+}
 
 
-QString
-AComboBox::text( int index ) const {
-	return QComboBox::text( index );
-};
 
-const QPixmap
-AComboBox::pixmap( int index ) const {
-	return QComboBox::pixmap( index );
-};
+QString AComboBox::text(int index) const
+{
+	return itemText(index);
+}
 
-void
-AComboBox::changeItem( const QString &text, int index ){
-	QComboBox::changeItem( text, index );
-};
+const QPixmap AComboBox::pixmap(int index) const
+{
+	return itemIcon(index).pixmap(iconSize());
+}
 
-void
-AComboBox::changeItem( const QPixmap &pixmap, int index ){
-	QComboBox::changeItem( pixmap, index );
-};
+void AComboBox::changeItem(const QString &text, int index)
+{
+	setItemText(index, text);
+}
 
-void
-AComboBox::changeItem( const QPixmap &pixmap, const QString &text, int index ){
-	QComboBox::changeItem( pixmap, text, index );
-};
+void AComboBox::changeItem(const QPixmap &pixmap, int index)
+{
+	setItemIcon(index, QIcon(pixmap));
+}
 
+void AComboBox::changeItem(const QPixmap &pixmap, const QString &text, int index)
+{
+    setItemIcon(index, QIcon(pixmap));
+    setItemText(index, text);
+}
 
 /*--bool
 AComboBox::autoResize() const {
@@ -181,14 +182,14 @@ AComboBox::maxCount() const {
 	return QComboBox::maxCount();
 }
 
-void
-AComboBox::setInsertionPolicy(QComboBox::Policy policy ){
-	QComboBox::setInsertionPolicy(policy );
+void AComboBox::setInsertPolicy(QComboBox::InsertPolicy policy)
+{
+    QComboBox::setInsertPolicy(policy);
 }
 
-QComboBox::Policy
-AComboBox::insertionPolicy() const{
-	return QComboBox::insertionPolicy() ;
+QComboBox::InsertPolicy AComboBox::insertPolicy() const
+{
+    return QComboBox::insertPolicy();
 }
 
 
@@ -203,11 +204,11 @@ AComboBox::validator() const{
 }
 
 /*--void
-AComboBox::setListBox( Q3ListBox * lb){
+AComboBox::setListBox( QListWidget * lb){
 	QComboBox::setListBox( lb );
 }
 
-Q3ListBox *
+QListWidget *
 AComboBox::listBox() const {
 	return QComboBox::listBox();
 }*/
@@ -248,9 +249,9 @@ AComboBox::duplicatesEnabled() const{
 	return QComboBox::duplicatesEnabled();
 }
 
-bool
-AComboBox::editable() const{
-	return QComboBox::editable();
+bool AComboBox::editable() const
+{
+    return isEditable();
 }
 
 void
@@ -258,9 +259,9 @@ AComboBox::setEditable( bool val ){
 	QComboBox::setEditable( val );
 }
 
-void
-AComboBox::popup(){
-	QComboBox::popup();
+void AComboBox::popup()
+{
+    QComboBox::showPopup();
 }
 
 

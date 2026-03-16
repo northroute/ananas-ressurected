@@ -31,23 +31,29 @@
 
 #ifndef ANANASMAINFORM_H
 #define ANANASMAINFORM_H
-#include <qvariant.h>
-#include <qworkspace.h>
-#include <qsinterpreter.h>
-#include <qdialog.h>
-#include <qstringlist.h>
-#include <qworkspace.h>
-#include <q3mainwindow.h>
-#include <q3vbox.h>
-#include <qapplication.h>
-#include <qsettings.h>
-//Added by qt3to4:
+
+
+#include <QVariant>
+#include <QMdiArea>
+#include <QDialog>
+#include <QStringList>
+#include <QMainWindow>
+#include <QVBoxLayout>
+#include <QApplication>
+#include <QSettings>
 #include <QPixmap>
-#include <Q3ActionGroup>
-#include <Q3GridLayout>
-#include <Q3HBoxLayout>
-#include <Q3VBoxLayout>
-#include <Q3PopupMenu>
+#include <QActionGroup>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QMenu>
+#include <QToolBar>
+
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QStatusBar>
+#include <QDir>
+#include <QFrame>
+
 #include "ananas.h"
 #include "amenubar.h"
 #include "atoolbar.h"
@@ -55,13 +61,13 @@
 #include "engine.h"
 
 
-class Q3VBoxLayout;
-class Q3HBoxLayout;
-class Q3GridLayout;
+class QVBoxLayout;
+class QHBoxLayout;
+class QGridLayout;
 class QAction;
-class Q3ActionGroup;
-class Q3ToolBar;
-class Q3PopupMenu;
+class QActionGroup;
+class QToolBar;
+class QMenu;
 
 /*!
  * \ru
@@ -70,18 +76,18 @@ class Q3PopupMenu;
  * \_ru
  */
 
-class MainForm : public Q3MainWindow {
+class MainForm : public QMainWindow {
 	Q_OBJECT
 
 public:
-	MainForm( QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::WType_TopLevel );
+	MainForm(QWidget* parent = 0, Qt::WindowFlags fl = 0);
 	~MainForm();
 	aEngine engine;
 	aCfg *md;
 
 	AMenuBar* menubar;
-	Q3PopupMenu *windowsMenu;
-	QWorkspace* ws;
+	QMenu *windowsMenu;
+	QMdiArea* ws;
 	aWindowsList* wl;
 	QString rcfile;
 
@@ -110,7 +116,7 @@ private:
 };
 
 extern MainForm *mainform;
-extern QWorkspace *mainformws;
+extern QMdiArea *mainformws;
 extern aWindowsList *mainformwl;
 
 #endif // ANANASMAINFORM_H

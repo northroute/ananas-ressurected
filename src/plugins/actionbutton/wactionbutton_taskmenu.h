@@ -18,9 +18,12 @@
 #ifndef WACTIONBUTTON_TASKMENU_H
 #define WACTIONBUTTON_TASKMENU_H
 
+
 #include <QDesignerTaskMenuExtension>
 #include <QExtensionFactory>
+#include <QDesignerFormEditorInterface>
 
+#include <QAction>
 
 class QExtensionManager;
 class QAction;

@@ -19,8 +19,6 @@
 
 #include "awidgets_plugin.h"
 
-#include <QtPlugin>
-
 #include "acombobox_plugin.h"
 #include "wfield_plugin.h"
 #include "wdbfield_plugin.h"

@@ -1,11 +1,5 @@
 #include "eactionbutton.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
-#include <qseditor.h>
-#include <stdlib.h>
 
 /*
  *  Constructs a eActionButton as a child of 'parent', with the
@@ -15,10 +9,15 @@
  *  true to construct a modal dialog.
  */
 eActionButton::eActionButton(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+    : QDialog(parent, fl)
 {
     setupUi(this);
 
+    if (name)
+        setObjectName(name);
+
+    if (modal)
+        setModal(modal);
 }
 
 /*
@@ -51,56 +50,58 @@ void eActionButton::Script_toggled( bool o )
     Action->setChecked( !o );
 }
 
-void eActionButton::setData(  wActionButton *b )
+void eActionButton::setData(wActionButton *b)
 {
-    if ( !b ) return;
-    if ( b->isAction() ) Action->setChecked( TRUE );
-    if ( b->isActionUpdate() ) cbUpdate->setChecked( TRUE );
-    if ( b->isActionTurnOn() ) cbTurnon->setChecked( TRUE );
-    if ( b->isActionClose() ) cbClose->setChecked( TRUE );
-    if ( b->isScript() ) Script->setChecked( TRUE );
-//    cbAction->setCurrentItem(b->getAction())
-    // eCode->setText( b->getScriptCode() );
-//    button = b;
-    aWidget *wd = aWidget::parentContainer( b );
-    if ( !strcmp(wd->name(),"Catalogue") )
-    {
-	    cbTurnon->setChecked( false );
-	    cbTurnon->setHidden( TRUE );
+    if (!b) return;
 
-//	b->setActionTurnOn( FALSE );
+    if (b->isAction()) Action->setChecked(true);
+    if (b->isActionUpdate()) cbUpdate->setChecked(true);
+    if (b->isActionTurnOn()) cbTurnon->setChecked(true);
+    if (b->isActionClose()) cbClose->setChecked(true);
+    if (b->isScript()) Script->setChecked(true);
+
+    aWidget *wd = aWidget::parentContainer(b);
+    if (wd && wd->objectName() == "Catalogue")
+    {
+        cbTurnon->setChecked(false);
+        cbTurnon->setHidden(true);
     }
+
     aCfg *md = wd->getMd();
     QStringList l_name;
     aCfgItem parent = md->find(mdc_actions);
+
     l_id.clear();
     loadActions(&l_name, &l_id, parent, md);
-    cbAction->clear();
-    cbAction->insertStringList(l_name);
-    cbAction->setCurrentItem( l_id.findIndex( QString("%1").arg(b->getActionId()) ) );
 
+    cbAction->clear();
+    cbAction->addItems(l_name);
+
+    cbAction->setCurrentIndex(
+        l_id.indexOf(QString("%1").arg(b->getActionId()))
+    );
 }
 
 
-void eActionButton::getData( wActionButton *button)
+void eActionButton::getData(wActionButton *button)
 {
-    if ( !button ) return;
-    button->setAction( Action->isChecked() );
-    button->setActionUpdate( cbUpdate->isChecked() );
-    button->setActionTurnOn( cbTurnon->isChecked() );
-    button->setActionClose( cbClose->isChecked() );
-    button->setScript( Script->isChecked() );
-    button->setActionUpdate( cbUpdate->isChecked() );
-    if(cbAction->isEnabled())
-    {
+    if (!button) return;
 
-    	button->setActionId ( atoi(l_id[cbAction->currentItem()].ascii()));
+    button->setAction(Action->isChecked());
+    button->setActionUpdate(cbUpdate->isChecked());
+    button->setActionTurnOn(cbTurnon->isChecked());
+    button->setActionClose(cbClose->isChecked());
+    button->setScript(Script->isChecked());
+    button->setActionUpdate(cbUpdate->isChecked());
+
+    if (cbAction->isEnabled())
+    {
+        button->setActionId(l_id[cbAction->currentIndex()].toInt());
     }
     else
     {
-	    button->setActionId(0);
+        button->setActionId(0);
     }
-//    button->setScriptCode( eCode->text() );
 }
 
 void eActionButton::destroy()

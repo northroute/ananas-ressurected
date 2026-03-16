@@ -19,10 +19,6 @@
 
 #include "wdbtable_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wdbtable_taskmenu.h"
 #include "wdbtable.h"
 

@@ -8,7 +8,7 @@
 #include <QPixmap>
 #include <QDir>          // вместо <qdir.h>
 #include <QString>       // вместо <qstring.h>
-#include <QFileDialog>   // вместо <q3filedialog.h>
+#include <QFileDialog>
 #include <QLineEdit>     // вместо <qlineedit.h>
 #include <QDomDocument>  // вместо <qdom.h>
 

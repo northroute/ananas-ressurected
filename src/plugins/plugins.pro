@@ -12,7 +12,9 @@ DESTDIR = ../../lib/designer
 DLLDESTDIR = ../../bin
 
 INCLUDEPATH += ../plugins ../lib 
-LIBS += -L../../lib -lananas4 
+LIBS += -L../../lib -lananas4
+
+QT += network
 
 shared {
     win32:DEFINES+= QT_PLUGIN # ANANAS_DLL

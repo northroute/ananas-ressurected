@@ -19,8 +19,6 @@
 
 #include "wgrouptree_plugin.h"
 
-#include <QtPlugin>
-
 #include "wgrouptree.h"
 
 

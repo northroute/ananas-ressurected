@@ -29,8 +29,12 @@
 
 #ifndef WDOCUMENT_H
 #define WDOCUMENT_H
+
+
+#include <QObject>
+#include <QWidget>
+
 #include <qwidgetplugin.h>
-#include <qwidget.h>
 #include "awidget.h"
 
 class aDatabase;

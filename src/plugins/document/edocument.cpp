@@ -1,8 +1,5 @@
 #include "edocument.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
 
 #include "acfg.h"
 
@@ -13,11 +10,13 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-eDocument::eDocument(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+eDocument::eDocument(QWidget *parent, Qt::WindowFlags fl)
+    : QDialog(parent, fl)
 {
-    setupUi(this);
+    setObjectName("eDocument");
+    setModal(true);
 
+    setupUi(this);
     init();
 }
 
@@ -85,69 +84,68 @@ void eDocument::init()
 
 
 
-void eDocument::setData( QWidget *o, aCfg *md )
+void eDocument::setData(QWidget *o, aCfg *md)
 {
-//	const QObject *o = sender();
-	if ( o ) {
-	    if ( o->className() != QString("wDocument") || !md ) {
-		reject();
-		return;
-	    }
-	}
-	else {
-		reject();
-		return;
-	}
-	wDocument *f = ( wDocument*) o;
-			int w=0, d=0, idx=0;
-			unsigned int i;
-			long oid , id;
+    if (!o || !md)
+    {
+        reject();
+        return;
+    }
 
-			id = f->getId();
+    wDocument *f = qobject_cast<wDocument *>(o);
+    if (!f)
+    {
+        reject();
+        return;
+    }
 
-			otypes.clear();
-			eType->clear();
+    int idx = 0;
+    int oid = 0;
+    qulonglong id = f->getId();
 
-			QStringList tlist = md->types( md_document );
-			otypes.clear();
-			eType->clear();
-			for ( QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it ) {
-				otypes.append( (*it).section( "\t", 0, 0 ) );
-				eType->insertItem( (*it).section("\t", 1, 1 ), idx++ );
-			}
-			for ( i = 0 ; i < otypes.count(); i++ ) {
-				oid = 0;
-				if( otypes[i][0] == 'O' ) {
-					sscanf( (const char *)otypes[ i ], "O %d", &oid );
-					if ( oid == id ) {
-						eType->setCurrentItem( i );
-						break;
-					}
-				}
-			}
+    otypes.clear();
+    eType->clear();
+
+    QStringList tlist = md->types(md_document);
+
+    for (QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it)
+    {
+        otypes.append((*it).section("\t", 0, 0));
+        eType->insertItem(idx++, (*it).section("\t", 1, 1));
+    }
+
+    for (int i = 0; i < otypes.count(); ++i)
+    {
+        if (!otypes[i].isEmpty() && otypes[i].at(0) == 'O')
+        {
+            oid = otypes[i].section(' ', 1, 1).toInt();
+            if ((qulonglong)oid == id)
+            {
+                eType->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
 }
 
 
-void eDocument::getData( QWidget *o )
-//aDocument *f )
+void eDocument::getData(QWidget *o)
 {
-	QVariant v;
-//	const QObject *o = sender();
-            if ( !o ) return;
-	if ( o->className() != QString("wDocument") ) return;
-	wDocument *f = ( wDocument*) o;
+    QVariant v;
 
-	int idx=eType->currentItem();
-	int oid = 0;
+    if (!o)
+        return;
 
-	if (f) {
-		if( otypes[idx][0] == 'O' ) {
-			sscanf( (const char *)otypes[ idx ], "O %d", &oid );
-//			v = oid;
-			f->setProperty("Id", QVariant( oid ) );
-//			f->setId( oid );
-		}
-	}
+    wDocument *f = qobject_cast<wDocument *>(o);
+    if (!f)
+        return;
 
+    int idx = eType->currentIndex();
+    int oid = 0;
+
+    if (otypes[idx].at(0) == 'O')
+    {
+        oid = otypes[idx].section(' ', 1, 1).toInt();
+        f->setProperty("Id", QVariant(oid));
+    }
 }
-

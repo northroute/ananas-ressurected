@@ -26,9 +26,9 @@
 **
 **********************************************************************/
 
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <q3header.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qlabel.h>
 #include <qcursor.h>
 //Added by qt3to4:
@@ -43,9 +43,9 @@
 
 extern MainForm *mainform;
 extern QPixmap rcIcon(const char *name);
-extern void set_Icon(Q3ListViewItem *item, const char *name);
+extern void set_Icon(QTreeWidgetItem *item, const char *name);
 
-InterfaceListViewItem::InterfaceListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
+InterfaceListViewItem::InterfaceListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
 : ananasListViewItem( parent, cfgmd, cfgobj, name )
 {
 	id = md->id(obj);
@@ -274,16 +274,16 @@ InterfaceTreeView::InterfaceTreeView ( QWidget *parent, aCfg *cfgmd )
 	popups->setPixmap(0, rcIcon("p_menus.png"));
 	popups->loadTree();
 	popups->setOpen ( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( Q3ListViewItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( Q3ListViewItem*) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( Q3ListViewItem*) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
+	connect( this, SIGNAL( returnPressed( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
+	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
 };
 
 
 void
 InterfaceTreeView::ContextMenu()
 {
-	Q3PopupMenu *m=new Q3PopupMenu( this, "PopupMenu" );
+	QMenu *m=new QMenu( this, "PopupMenu" );
 	Q_CHECK_PTR(m);
 
 /*	QLabel *caption = new QLabel( "<font color=darkblue><u><b>" "Context Menu</b></u></font>", this );

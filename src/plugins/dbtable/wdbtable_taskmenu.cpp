@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wdbtable_taskmenu.h"
 #include "wdbtable.h"
 #include "edbtable.h"

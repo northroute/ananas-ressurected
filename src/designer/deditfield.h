@@ -4,7 +4,7 @@
 #include "ui_deditfield.h"
 
 
-class dEditField : public Q3MainWindow, public Ui::dEditField
+class dEditField : public QMainWindow, public Ui::dEditField
 {
     Q_OBJECT
 

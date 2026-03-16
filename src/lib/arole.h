@@ -89,7 +89,7 @@ public:
 	//virtual ERR_Code setFirstName( const QString & );
 	//virtual ERR_Code setLastName( const QString & );
 
-//irtual Q_ULLONG getUserId( const QString &login, const QString &password );
+//irtual qulonglong getUserId( const QString &login, const QString &password );
 //irtual ERR_Code getRoles(QValueList<aRole> *lst);
 	bool First();
 	bool Next();

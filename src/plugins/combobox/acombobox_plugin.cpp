@@ -19,8 +19,6 @@
 
 #include "acombobox_plugin.h"
 
-#include <QtPlugin>
-
 #include "acombobox.h"
 
 

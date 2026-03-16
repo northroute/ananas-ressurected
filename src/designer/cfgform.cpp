@@ -4,10 +4,10 @@
 #include <qimage.h>
 #include <qpixmap.h>
 
-#include <q3listview.h>
+#include <QTreeWidget>
 #include <qlabel.h>
 #include <qpixmap.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qstatusbar.h>
 #include <qlineedit.h>
 #include <qmessagebox.h>
@@ -17,11 +17,11 @@
 #include <q3table.h>
 #include <q3dragobject.h>
 #include <qmime.h>
-#include <q3filedialog.h>
+#include <QFileDialog.h>
 #include <qinputdialog.h>
 #include <q3cstring.h>
 //Added by qt3to4:
-#include <Q3GridLayout>
+#include <QGridLayout>
 #include <QCloseEvent>
 //#include <iostream.h>
 
@@ -45,7 +45,7 @@
  *
  */
 CfgForm::CfgForm(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+    : QMainWindow(parent, name, fl)
 {
     setupUi(this);
 
@@ -73,7 +73,7 @@ void CfgForm::languageChange()
 extern MainForm *mainform;
 
 void
-set_Icon(Q3ListViewItem *item, const char *name)
+set_Icon(QTreeWidgetItem *item, const char *name)
 {
     char in[200];
     strcpy(in, name);
@@ -143,7 +143,7 @@ CfgForm::init( QString &rcf, bool flagNew )	//	flagNew shows if it needs to crea
 //    globalCfg = &cfg;
     setCaption(tr("Business scheme: ")+cfg.info( mda_name ));
 //	QWidget *tab_0 = new QWidget( tabWidget, "tab" );
-    Q3GridLayout *l = new Q3GridLayout( tabWidget->page(0), 1, 1, 1,  2, "tablayout" );
+    QGridLayout *l = new QGridLayout( tabWidget->page(0), 1, 1, 1,  2, "tablayout" );
     mdtree = new aMetadataTreeView( tabWidget->page(0), &cfg );	// metadata tree creation
     l->addWidget( mdtree, 0, 0);
 //	tabWidget->insertTab( tab_0, tr( "Business scheme" ), 0 );
@@ -155,11 +155,11 @@ CfgForm::init( QString &rcf, bool flagNew )	//	flagNew shows if it needs to crea
     mainform->configSaveAction->setVisible( TRUE );	//	show save button
 
     actiontree = new aActionTreeView ( tabWidget->page(1), &cfg );	//	action tree creation
-    Q3GridLayout *j = new Q3GridLayout( tabWidget->page(1), 1, 1, 1,  2, "atablayout" );
+    QGridLayout *j = new QGridLayout( tabWidget->page(1), 1, 1, 1,  2, "atablayout" );
     j->addWidget( actiontree, 0, 0);
 
     interfacetree = new InterfaceTreeView ( tabWidget->page(2), &cfg );	//	interface tree creation
-    Q3GridLayout *k = new Q3GridLayout( tabWidget->page(2), 1, 1, 1,  2, "itablayout" );
+    QGridLayout *k = new QGridLayout( tabWidget->page(2), 1, 1, 1,  2, "itablayout" );
     k->addWidget( interfacetree, 0, 0);
     // connection toolbar actions
     connect(mainform->objMetadataNewAction, SIGNAL(activated()), mdtree, SLOT( itemNew() ) );
@@ -198,7 +198,7 @@ void CfgForm::initImageCollection()
 	image = cfg.findChild( image_collection, md_image, i );	// foreach
 	name = cfg.attr( image, mda_name );	// get name
 	pix.loadFromData( cfg.binary( image ) );	// load binary
-	Q3IconViewItem *item = new Q3IconViewItem( vImageCollection, name, pix );	// create image
+	QListWidgetItem *item = new QListWidgetItem( vImageCollection, name, pix );	// create image
 	item->setRenameEnabled( TRUE );	// set rename enabled
 	vImageCollection->insertItem( item, 0 );	// insert image
 	idList.insert( cfg.id( image ), item );		// add image into dict
@@ -212,7 +212,7 @@ void CfgForm::initImageCollection()
 void CfgForm::bAddImage_clicked()
 {
     QPixmap pix;
-    Q3FileDialog *fd = new Q3FileDialog( "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", 0, 0, TRUE );
+    QFileDialog *fd = new QFileDialog( "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", 0, 0, TRUE );
     QByteArray ba;
     QString name;
     QStringList names;
@@ -221,10 +221,10 @@ void CfgForm::bAddImage_clicked()
     PixmapPreview *p = new PixmapPreview;
 
     fd->setContentsPreview( p, p );
-    fd->setPreviewMode( Q3FileDialog::Contents );
+    fd->setPreviewMode( QFileDialog::Contents );
     fd->setContentsPreviewEnabled( TRUE );
     fd->setCaption( tr("Open image dialog" ) );
-    fd->setMode( Q3FileDialog::ExistingFiles );		// tune file dialogue
+    fd->setMode( QFileDialog::ExistingFiles );		// tune file dialogue
     if ( fd->exec() == QDialog::Accepted ) {		// if accepted
 	names = fd->selectedFiles();			// get selected filenames
 	QStringList::Iterator it = names.begin();
@@ -241,7 +241,7 @@ void CfgForm::bAddImage_clicked()
 		}
 		QFileInfo fi( name );
 		name = fi.baseName();
-		Q3IconViewItem *item = new Q3IconViewItem( vImageCollection, name, pix );
+		QListWidgetItem *item = new QListWidgetItem( vImageCollection, name, pix );
 		item->setRenameEnabled( TRUE );		// set rename enabled
 		vImageCollection->insertItem( item, 0 );	// insert image
 		image_collection = cfg.findChild( cfg.find( mdc_root ), md_image_collection, 0 );
@@ -260,7 +260,7 @@ void CfgForm::bAddImage_clicked()
   */
 void CfgForm::bRemoveImage_clicked()
 {
-    Q3IconViewItem *current;
+    QListWidgetItem *current;
     aCfgItem image_collection, image;
     int i, n, id;
 
@@ -287,7 +287,7 @@ void CfgForm::bRemoveImage_clicked()
 /*
   * Image rename event handler
   */
-void CfgForm::vImageCollection_itemRenamed( Q3IconViewItem *item, const QString &name )
+void CfgForm::vImageCollection_itemRenamed( QListWidgetItem *item, const QString &name )
 {
     aCfgItem image_collection, image;
     int i, n;
@@ -507,7 +507,7 @@ void CfgForm::newObj()
 }
 
 
-void CfgForm::listCfg_onItem( Q3ListViewItem * )
+void CfgForm::listCfg_onItem( QTreeWidgetItem * )
 {
 
 }
@@ -536,7 +536,7 @@ void CfgForm::closeEvent( QCloseEvent *e )
 {
 
 	if ( !cfg.modified() ) {		// if data didn't modify send event further
-	Q3MainWindow::closeEvent( e );
+	QMainWindow::closeEvent( e );
 	return;
     }
     switch( QMessageBox::warning( this, tr("Saving changes"),
@@ -547,7 +547,7 @@ void CfgForm::closeEvent( QCloseEvent *e )
 	{
 		mainform->closeChildWindows();
 		save();			// save data and send event further
-		Q3MainWindow::closeEvent( e );
+		QMainWindow::closeEvent( e );
 /*
 	    cancelupdate=0;
 	    if (closeSubWindows()) e->ignore();
@@ -566,7 +566,7 @@ void CfgForm::closeEvent( QCloseEvent *e )
 //	    //e->accept();
 //	}				// send event further
 		mainform->closeChildWindows();
-        	Q3MainWindow::closeEvent(e);
+        	QMainWindow::closeEvent(e);
 	break;
     default:
 	e->ignore();			// ignore event by default

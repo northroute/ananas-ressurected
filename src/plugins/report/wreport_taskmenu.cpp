@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wreport_taskmenu.h"
 #include "wreport.h"
 #include "ereport.h"

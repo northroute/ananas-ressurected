@@ -4,7 +4,7 @@
 #include "ui_deditcat.h"
 
 
-class dEditCat : public Q3MainWindow, public Ui::dEditCat
+class dEditCat : public QMainWindow, public Ui::dEditCat
 {
     Q_OBJECT
 

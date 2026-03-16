@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wjournal_taskmenu.h"
 #include "wjournal.h"
 #include "ejournal.h"

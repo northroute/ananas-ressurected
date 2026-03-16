@@ -32,60 +32,75 @@
 
 //#include <qimage.h>
 #include "atoolbar.h"
-//Added by qt3to4:
-#include <QPixmap>
 
-aToolBar::aToolBar( aCfg *cfg, aCfgItem &obj, aEngine *e, Q3MainWindow* parent , const char* name )
-: Q3ToolBar( parent, name )
+
+aToolBar::aToolBar(aCfg *cfg, aCfgItem &obj, aEngine *e, QMainWindow *parent, const char *name) : QToolBar(parent)
 {
+	setObjectName(name ? name : "aToolBar");
+
 	md = cfg;
 	en = e;
-	ReadTool( obj );
+
+	ReadTool(obj);
 }
 
 aToolBar::~aToolBar(){
 }
 
-void
-aToolBar::ReadTool( aCfgItem &obj )
+void aToolBar::ReadTool(aCfgItem &obj)
 {
-    aCfgItem aobj, apix;	// action and pixmap XML data
-    QString aKey;	// key sequence
-    long pid;	// action id
+    aCfgItem aobj, apix;
+    QString aKey;
+    long pid;
 
-    aobj = md->firstChild( obj );	//from first child action
-    while ( !aobj.isNull() ) {		// foreach not null
-	aKey = md->sText ( aobj, md_key );	//key sequence
-	pid = md->id( aobj );	// action id
-	apix = md->findChild(
-		md->find(
-			md->text( md->findChild( aobj, md_comaction, 0 ) ).toLong() ),
-		            md_active_picture,
-                  		0
-		);	// first action pixmap cfg object
-	QPixmap pix( md->binary( apix ) );	// pixmap
-	QAction *a = new QAction(
-		QIcon(pix), // pixmap
-		md->attr( aobj, mda_name), // name
-		aKey, // key sequence
-		this, // owner
-		md->attr( aobj, mda_name) // name
-	);	// create new action
-	actions.insert( pid, a );	// add action to dict
-	a->addTo( this );	// put action into toolbar
-	connect( a, SIGNAL(activated()), this, SLOT(on_Item()) );	// connect to slot
-	aobj = md->nextSibling( aobj );	// get next action
+    aobj = md->firstChild(obj);
+
+    while (!aobj.isNull())
+    {
+        aKey = md->sText(aobj, md_key);
+        pid = md->id(aobj);
+
+        apix = md->findChild(
+            md->find(
+                md->text(md->findChild(aobj, md_comaction, 0)).toLong()
+            ),
+            md_active_picture,
+            0
+        );
+
+        QPixmap pix(md->binary(apix));
+
+        QAction *a = new QAction(
+            QIcon(pix),
+            md->attr(aobj, mda_name),
+            this
+        );
+
+        if (!aKey.isEmpty())
+            a->setShortcut(QKeySequence(aKey));
+
+        a->setObjectName(md->attr(aobj, mda_name));
+
+        actions.insert(pid, a);
+
+        this->addAction(a);
+
+        connect(a, SIGNAL(triggered()), this, SLOT(on_Item()));
+
+        aobj = md->nextSibling(aobj);
     }
 }
 
-void
-aToolBar::on_Item()
+void aToolBar::on_Item()
 {
-    Q3IntDictIterator<QAction> it( actions );	//dict iterator
-    for ( ; it.current(); ++it ) {	// foreach action
-	if ( it.current() == sender() ) {	// sender object
-	    en->on_MenuBar( it.currentKey() );	// call slot
-	    break;	// break cycle
-	}
+    QMap<int, QAction*>::iterator it;
+
+    for (it = actions.begin(); it != actions.end(); ++it)
+    {
+        if (it.value() == sender())
+        {
+            en->on_MenuBar(it.key());
+            break;
+        }
     }
 }

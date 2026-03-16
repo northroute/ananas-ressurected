@@ -488,7 +488,7 @@ aIRegister::SelectByDoc()
  *	\brief Возвращает значения поля с именем =  name основной таблицы объекта.
  *
  *	\param name - имя поля
- *	\return  значение поля. Поля типа Q_ULLONG и DateTime переводятся в строки.
+ *	\return  значение поля. Поля типа qulonglong и DateTime переводятся в строки.
  *\_ru
  */
 QVariant

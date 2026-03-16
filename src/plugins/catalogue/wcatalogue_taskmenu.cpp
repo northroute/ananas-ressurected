@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wcatalogue_taskmenu.h"
 #include "wcatalogue.h"
 #include "ecatalogue.h"

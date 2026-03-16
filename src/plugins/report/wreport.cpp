@@ -27,11 +27,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-//--#include <qfocusdata.h>
-#include <q3toolbar.h>
 #include "adatabase.h"
 #include "wreport.h"
 #include "ereport.h"
@@ -39,10 +34,10 @@
 //extern aCfg *plugins_aCfg;
 
 
-wReport::wReport( QWidget *parent, Qt::WFlags fl )
-:aWidget( parent, "wReport", fl )
+wReport::wReport(QWidget *parent, Qt::WindowFlags fl)
+    : aWidget(parent, "wReport", fl)
 {
-	setInited( false );
+    setInited(false);
 }
 
 
@@ -71,10 +66,9 @@ wReport::checkStructure()
 
 
 
-QDialog*
-wReport::createEditor( QWidget *parent )
+QDialog *wReport::createEditor(QWidget *parent)
 {
-    return new eReport( parent );
+    return new eReport(parent, 0);
 }
 
 

@@ -4,7 +4,7 @@
 #include "ui_mainform.h"
 
 
-class MainForm : public Q3MainWindow, public Ui::MainForm
+class MainForm : public QMainWindow, public Ui::MainForm
 {
     Q_OBJECT
 
@@ -67,7 +67,7 @@ protected slots:
     virtual void languageChange();
 
 private:
-    Q3PopupMenu *windowsMenu;
+    QMenu *windowsMenu;
 
 private slots:
     virtual void windowsMenuActivated( int id );

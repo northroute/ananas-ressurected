@@ -30,40 +30,7 @@
 **********************************************************************/
 
 //--#include <qwidgetfactory.h>
-#include <QFormBuilder>
-#include <QDesignerCustomWidgetInterface>
-#include <QCoreApplication>
-#include <qdialog.h>
-#include <qobject.h>
-#include <qdialog.h>
-#include <qbuffer.h>
-#include <q3cstring.h>
-#include <qiodevice.h>
-#include <qstring.h>
-#include <qfile.h>
-#include <qdir.h>
-#include <qsinterpreter.h>
-//--#include <qbutton.h>
-#include <qpushbutton.h>
-//--#include <qfocusdata.h>
-#include <qlabel.h>
-#include <q3mainwindow.h>
-#include <q3datetimeedit.h>
-#include <qstatusbar.h>
-#include <qlineedit.h>
-#include <qlayout.h>
-#include <qbuffer.h>
-#include <qiodevice.h>
-#include <qmessagebox.h>
-#include <qstatusbar.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <q3sqlform.h>
-#include <qwidget.h>
-//Added by qt3to4:
-#include <QKeyEvent>
-#include <Q3ValueList>
-#include <q3mimefactory.h>
+
 
 #include "aform.h"
 #include "wcatalogue.h"
@@ -76,63 +43,82 @@
 #include "wdbtable.h"
 #include "wactionbutton.h"
 #include "alog.h"
+
 /*!
 Base form object.
 */
-aForm::aForm( QWidget *parent,  aEngine *eng )
-:QObject( eng, (QString("aForm%1").arg(eng->next_obj_id++)).ascii())
+aForm::aForm(QWidget *parent, aEngine *eng) : QObject(eng)
 {
+	setObjectName(QString("aForm%1").arg(eng->next_obj_id++));
+
 	engine = eng;
 	db = eng->db;
 	md = &db->cfg;
+
 	parentWidget = parent;
 	form = 0;
+
 	closeAfterSelect = false;
-	RO=false;
+	RO = false;
+
 	callerWidget = NULL;
+
 	mode = 0;
-	db_uid=0;
-	objid=0;
+	db_uid = 0;
+	objid = 0;
+
 	init();
 }
 
-
-
-aForm::aForm( QWidget *parent,  aEngine *eng,  Q_ULONG form_mid, aWidget* caller )
-:QObject( eng, (QString("aForm%1").arg(eng->next_obj_id++)).ascii() )
+aForm::aForm(QWidget *parent, aEngine *eng, qulonglong form_mid, aWidget* caller) : QObject(eng)
 {
+	setObjectName(QString("aForm%1").arg(eng->next_obj_id++));
+
 	aCfgItem obj;
 
 	engine = eng;
 	db = eng->db;
 	md = engine->md;
+
 	parentWidget = parent;
 	form = 0;
+
 	closeAfterSelect = false;
-	mdObj = md->find( form_mid );
+
+	mdObj = md->find(form_mid);
+
 	objid = form_mid;
-	db_uid=0;
-	RO=false;
+	db_uid = 0;
+
+	RO = false;
+
 	callerWidget = caller;
+
 	mode = 0;
+
 	init();
 }
 
-aForm::aForm( QWidget *parent,  aEngine *eng, QString oftype, QObject *aobj )
-:QObject( eng, (QString("aForm%1").arg(eng->next_obj_id++)).ascii())
+aForm::aForm(QWidget *parent, aEngine *eng, QString oftype, QObject *aobj) : QObject(eng)
 {
+	setObjectName(QString("aForm%1").arg(eng->next_obj_id++));
+
 	engine = eng;
 	db = eng->db;
 	md = &db->cfg;
-	parentWidget = parent;
-	db_uid=0;
-	objid=0;
-	form = 0;
-	closeAfterSelect = false;
-	RO=false;
-	mode = 0;
-	init();
 
+	parentWidget = parent;
+
+	db_uid = 0;
+	objid = 0;
+
+	form = 0;
+
+	closeAfterSelect = false;
+	RO = false;
+	mode = 0;
+
+	init();
 }
 
 
@@ -161,11 +147,14 @@ aForm::parentContainer( QWidget *w )
  *	требуют инициализации, например wDBTable.
  *\~
  */
-void
-aForm::initWidget( QWidget *widget, aDatabase *adb )
+void aForm::initWidget(QWidget *widget, aDatabase *adb)
 {
-	QString oclass = widget->className();
-	if (oclass == "wDBTable") ( ( wDBTable* ) widget )->init( adb, engine );
+	QString oclass = widget->metaObject()->className();
+
+	if (oclass == "wDBTable")
+	{
+		((wDBTable*)widget)->init(adb, engine);
+	}
 }
 
 
@@ -176,50 +165,62 @@ aForm::initWidget( QWidget *widget, aDatabase *adb )
  *	Инициализирует все виджеты, унаследованные от aWidget
  *\~
  */
-void
-aForm::initContainer( aWidget *widget, aDatabase *adb ){
-
-	// Init subobjects.
-	if ( !widget->isContainer() ) return;
+void aForm::initContainer(aWidget *widget, aDatabase *adb)
+{
+	if (!widget->isContainer()) return;
 
 	widget->engine = engine;
-	widget->init( adb );
-	QObjectList l = widget->queryList( "QWidget" );
-	QListIterator<QObject*> it( l ); // iterate over all subwidgets
+	widget->init(adb);
+
+	QList<QWidget*> l = widget->findChildren<QWidget*>();
+	QListIterator<QWidget*> it(l);
+
 	QObject *obj;
-	QString oclass;
 	aWidget *aw;
-//	QWidget *w;
+
 	// Init all container owned widgets
-	while ( it.hasNext()  ) {
-		// for each found object...
+	while (it.hasNext())
+	{
 		obj = it.next();
-		if ( !obj ) continue;
-		if ( parentContainer( ( QWidget *) obj ) != widget ) continue;
- 		if ( obj->inherits("aWidget") ) {
-			aw = ( aWidget* ) obj;
+		if (!obj) continue;
+		if (parentContainer((QWidget*)obj) != widget) continue;
+
+		if (obj->inherits("aWidget"))
+		{
+			aw = (aWidget*)obj;
 			aw->engine = engine;
-			if ( !aw->isContainer() )
-			{
-				aw->init( adb );
-			}
-			if ( form->inherits( "QMainWindow" ) ) aw->createToolBar( ( Q3MainWindow *) form );
-		} else initWidget( ( QWidget *) obj, adb );
-	}
-	it.toFront();
-	// Init all container subcontainers
-	while ( it.hasNext() ) {
-		obj = it.next();
-		if ( !obj ) continue;
-                if ( obj == widget ) continue;
-		if ( parentContainer( ( QWidget*) obj ) != widget ) continue;
-		if ( obj->inherits("aWidget") ) {
-			aw = ( aWidget* ) obj;
-			aw->engine = engine;
-			if ( aw->isContainer() ) initContainer( aw, adb );
+
+			if (!aw->isContainer())
+				aw->init(adb);
+
+			if (form->inherits("QMainWindow"))
+				aw->createToolBar((QMainWindow*)form);
+		}
+		else
+		{
+			initWidget((QWidget*)obj, adb);
 		}
 	}
-	//delete l;
+
+	it.toFront();
+
+	// Init all container subcontainers
+	while (it.hasNext())
+	{
+		obj = it.next();
+		if (!obj) continue;
+		if (obj == widget) continue;
+		if (parentContainer((QWidget*)obj) != widget) continue;
+
+		if (obj->inherits("aWidget"))
+		{
+			aw = (aWidget*)obj;
+			aw->engine = engine;
+
+			if (aw->isContainer())
+				initContainer(aw, adb);
+		}
+	}
 }
 
 
@@ -232,131 +233,145 @@ aForm::initContainer( aWidget *widget, aDatabase *adb ){
  *	функции, определенные в этом модуле.
  *\~
  */
-void
-aForm::init()
+void aForm::init()
 {
 	QString ui, sModule;
 	aCfgItem obj;
-	static QMutex mutex;
-	mainWidget = 0;
-	if ( !mdObj.isNull() && md ) {
-		ui = md->sText( mdObj, md_formdesign );
-		sModule = md->sText( mdObj, md_sourcecode );
-		if ( !ui.isEmpty() ) {
-		    //aLog::print(aLog::Debug, ui);
-		    QByteArray buf = ui.toUtf8();
-			QBuffer b(&buf);
-			//--b.open(QIODevice::WriteOnly);
 
-			//--b.writeBlock( ( const char *) ui, strlen( ( const char *) ui) );
-			//--b.close();
-			b.open(QIODevice::ReadOnly );
+	mainWidget = 0;
+
+	if (!mdObj.isNull() && md)
+	{
+		ui = md->sText(mdObj, md_formdesign);
+		sModule = md->sText(mdObj, md_sourcecode);
+
+		if (!ui.isEmpty())
+		{
+			QByteArray buf = ui.toUtf8();
+			QBuffer b(&buf);
+			b.open(QIODevice::ReadOnly);
+
 			aLog::print(aLog::Info, tr("aForm creating form from ui"));
-			//--form = QWidgetFactory::create( &b );
+
 			QFormBuilder fb;
-			fb.addPluginPath(QCoreApplication::applicationDirPath() /*"/plugins/designer"*/);
-			/*QList<QDesignerCustomWidgetInterface*> l = fb.customWidgets();
-			int i;
-			for (i=0; i<l.size(); i++)
-			{
-			    aLog::print(aLog::Info, l[i]->name());
-			}*/
-            form = fb.load(&b);
-			aLog::print(aLog::Info, tr("aForm form create from ui ok"));
+			fb.addPluginPath(QCoreApplication::applicationDirPath());
+
+			form = fb.load(&b);
 			b.close();
+
+			aLog::print(aLog::Info, tr("aForm form create from ui ok"));
 		}
 	}
-	if (form) {
-		Q3MainWindow *mw = new Q3MainWindow( parentWidget, "main form", Qt::WDestructiveClose );
-  		mw->statusBar()->hide();
-		mw->setCaption( form->caption() );
 
-		printf("try find in windowslist %d, %llu\n ", objid, db_uid);
-		if ( engine->wl->find( objid, db_uid ) )
-		{
-			printf("found, remove\n");
-			engine->wl->remove( objid, db_uid );
-		}
-		else
-		{
-			printf("not found\n");
-		}
-		engine->wl->insert( objid, mw, db_uid );
-		printf("insert new in wl ok\n");
-		if ( form->inherits("QMainWindow" )){
-			((Q3MainWindow *) form)->statusBar()->hide();
-		}
-	    	mainWidget = 0;
-		aCfgItem par = md->parent( md->parent( mdObj ) );
-		if ( !form->inherits("aWidget"))
-		{
-			aLog::print(aLog::Error, tr("aForm do not inherits aWidget!"));
-			QMessageBox::critical( 0, tr("Error"), tr("Error while open dialog form. Init hasn't been completed.") );
-			return;
-		}
-                // Create main widgets container.
-	    	if ( md->objClass( par ) == md_catalogue ) {
-                        mainWidget = ( wCatalogue *) form; //new wCatalogue( mw );
-                        mw->setIcon( rcIcon("wcatalogue.png"));
-                }
-	    	if ( md->objClass( par ) == md_document ) {
-                        mainWidget = ( wDocument *) form; //new wDocument( mw );
-                        mw->setIcon( rcIcon("wdocument.png"));
-                }
-	    	if ( md->objClass( par ) == md_journal ) {
-                        mainWidget = ( wJournal *) form; //new wJournal( mw );
-                        mw->setIcon( rcIcon("wjournal.png"));
-			mw->statusBar()->show();
-			mw->statusBar()->message(tr("New document - <Ins>, Edit - <Enter>, View - <Shift+Enter>"));
-		}
-	    	if ( md->objClass( par ) == md_report ) {
-                        mainWidget = ( wReport *) form;
-                        mw->setIcon( rcIcon("wreport.png"));
-                }
+	if (!form)
+	{
+		aLog::print(aLog::Error, tr("aForm form not found"));
+		QMessageBox::critical(0, tr("Error"),
+			tr("Error open dialog form. Form not found."));
+		return;
+	}
 
-		if ( !mainWidget ) {
-        		form->reparent( parentWidget, Qt::WDestructiveClose, QPoint(0, 0));
-                        delete mw;
-                } else {
-			form = mw;
-			mainWidget->setFormMode( md->attr( mdObj, mda_type ).toInt());
-			mainWidget->createToolBar( mw );
-			mw->resize( mainWidget->size() );
-			mainWidget->reparent( mw, 0, QPoint(0, 0));
-			mw->setCentralWidget( mainWidget );
-			initContainer( mainWidget, db );
-			mainWidget->show();
-			form = mw;
-			mw->setFocusPolicy( Qt::NoFocus );
-                }
-            //--
-            ((QWorkspace*)engine->ws)->addWindow(form);
-            form->show();
+	QMainWindow *mw = new QMainWindow(parentWidget);
+	mw->setAttribute(Qt::WA_DeleteOnClose);
+	mw->statusBar()->hide();
+	mw->setWindowTitle(form->windowTitle());
 
-		connectSlots();
-		if ( !sModule.isEmpty() )
-		{
-		//	engine->project.addObject(this);
-			engine->project.interpreter()->evaluate(sModule,this );
-			aLog::print(aLog::Debug, tr("aForm load form module script"));
-			QStringList lst = engine->project.interpreter()->functions(this);
-			for(uint i=0; i<lst.count();i++)
-			{
-				aLog::print(aLog::Debug, tr("aForm defined function %1").arg(lst[i]));
-			}
-		}
-		else
-		{
-			aLog::print(aLog::Debug, tr("aForm form module script is empty"));
-		}
-		if ( md->attr( mdObj, mda_readonly ).toInt()) SetReadOnly(true);
+	if (engine->wl->find(objid, db_uid))
+		engine->wl->remove(objid, db_uid);
+
+	engine->wl->insert(objid, mw, db_uid);
+
+	if (form->inherits("QMainWindow"))
+	{
+		((QMainWindow*)form)->statusBar()->hide();
+	}
+
+	mainWidget = 0;
+
+	aCfgItem par = md->parent(md->parent(mdObj));
+
+	if (!form->inherits("aWidget"))
+	{
+		aLog::print(aLog::Error, tr("aForm do not inherits aWidget!"));
+		QMessageBox::critical(0, tr("Error"),
+			tr("Error while open dialog form. Init hasn't been completed."));
+		return;
+	}
+
+	if (md->objClass(par) == md_catalogue)
+	{
+		mainWidget = (wCatalogue*)form;
+		mw->setWindowIcon(rcIcon("wcatalogue.png"));
+	}
+
+	if (md->objClass(par) == md_document)
+	{
+		mainWidget = (wDocument*)form;
+		mw->setWindowIcon(rcIcon("wdocument.png"));
+	}
+
+	if (md->objClass(par) == md_journal)
+	{
+		mainWidget = (wJournal*)form;
+		mw->setWindowIcon(rcIcon("wjournal.png"));
+		mw->statusBar()->show();
+		mw->statusBar()->showMessage(
+			tr("New document - <Ins>, Edit - <Enter>, View - <Shift+Enter>"));
+	}
+
+	if (md->objClass(par) == md_report)
+	{
+		mainWidget = (wReport*)form;
+		mw->setWindowIcon(rcIcon("wreport.png"));
+	}
+
+	if (!mainWidget)
+	{
+		form->setParent(parentWidget);
+		form->move(0,0);
+		delete mw;
 	}
 	else
 	{
-		aLog::print(aLog::Error, tr("aForm form not found"));
-		QMessageBox::critical( 0, tr("Error"), tr("Error open dialog form. Form not found.") );
+		form = mw;
 
+		mainWidget->setFormMode(md->attr(mdObj, mda_type).toInt());
+		mainWidget->createToolBar(mw);
+
+		mw->resize(mainWidget->size());
+
+		mainWidget->setParent(mw);
+		mainWidget->move(0,0);
+
+		mw->setCentralWidget(mainWidget);
+
+		initContainer(mainWidget, db);
+
+		mainWidget->show();
+
+		form = mw;
+
+		mw->setFocusPolicy(Qt::NoFocus);
 	}
+
+	((QMdiArea*)engine->ws)->addSubWindow(form);
+	form->show();
+
+	connectSlots();
+
+	if (!sModule.isEmpty())
+	{
+		engine->project->evaluate(sModule);
+
+		aLog::print(aLog::Debug, tr("aForm load form module script"));
+	}
+	else
+	{
+		aLog::print(aLog::Debug, tr("aForm form module script is empty"));
+	}
+
+	if (md->attr(mdObj, mda_readonly).toInt())
+		SetReadOnly(true);
 }
 
 /*!
@@ -369,17 +384,20 @@ aForm::init()
  *	\return объект контейнер.
  *\~
 */
-QWidget *
-aForm::aParent( QWidget *widget )
+QWidget *aForm::aParent(QWidget *widget)
 {
 	QWidget *p = widget->parentWidget();
-	QString pc;
-	while ( p ){
-		pc = p->className();
-		if ( pc == "wCatalogue") break;
-		if ( pc == "wDocument") break;
+
+	while (p)
+	{
+		QString pc = p->metaObject()->className();
+
+		if (pc == "wCatalogue") break;
+		if (pc == "wDocument") break;
+
 		p = p->parentWidget();
 	}
+
 	return p;
 }
 
@@ -396,19 +414,20 @@ aForm::aParent( QWidget *widget )
  *	\see close
  *\~
 */
-void
-aForm::Show()
+void aForm::Show()
 {
-	if ( form )
+	if (form)
 	{
-		if ( engine->project.interpreter()->functions( this ).findIndex("on_formstart")!=-1)
+		QScriptValue func = engine->project->globalObject().property("on_formstart");
+		if (func.isFunction())
 		{
-			engine->project.interpreter()->call("on_formstart", QVariantList(), this);
+			func.call();
 		}
+
 		form->show();
 		((QWidget*)form->parent())->move(0,0);
-		connect( form, SIGNAL(destroyed()), this, SLOT(close()) );
-    }
+		connect(form, SIGNAL(destroyed()), this, SLOT(close()));
+	}
 }
 
 /**
@@ -440,7 +459,7 @@ aForm::Close() {
 	on_form_close(); //to run ananas-script
 	
 	if( form ) {
-		if( form->isShown() ) {
+		if( form->isVisible() ) {
 			aLog::print(aLog::Debug,tr("aForm::Close() hides form"));
 			disconnect( form );
 			form->hide();
@@ -482,25 +501,28 @@ aForm::turn_on(){
  *	Если функция возвращает false, то отметка о проведении не ставится.
  *\~
  */
-int
-aForm::SignIn(){
+int aForm::SignIn()
+{
 	QVariant res;
-	if ( form && !mainWidget->dataObject()->IsConducted())
+
+	if (form && !mainWidget->dataObject()->IsConducted())
 	{
-		if ( engine->project.interpreter()->functions( this ).findIndex("on_conduct")!=-1)
+		QScriptValue func = engine->project->globalObject().property("on_conduct");
+
+		if (func.isFunction())
 		{
-			res  = engine->project.interpreter()->call("on_conduct",QVariantList(), this);
+			QScriptValue r = func.call();
+			res = r.toVariant();
 		}
 	}
-	//--if(res.type()==QSArgument::Variant)
+
+	if (res.toBool() == false && res.type() != QVariant::Invalid)
 	{
-		// if return false
-		if(res.toBool()==false && res.type()!=QVariant::Invalid)
-		{
-			aLog::print(aLog::Info, tr("aForm conduct: function on_conduct() return false, document not conducted"));
-			return 0;
-		}
+		aLog::print(aLog::Info,
+			tr("aForm conduct: function on_conduct() return false, document not conducted"));
+		return 0;
 	}
+
 	return mainWidget->TurnOn();
 }
 
@@ -673,42 +695,71 @@ aForm::Widget( QString name )
  *	on_valuechanged(), on_button(), on_tabvaluechanged(), etc.
  *\~
  */
-void
-aForm::connectSlots()
+void aForm::connectSlots()
 {
-	QObject* obj;
-	if ( !form ) return;
-	QObjectList list = form->queryList("QWidget");
-	if ( mainWidget->inherits("aWidget") )
-		connect( mainWidget, SIGNAL( valueChanged( const QString &, const QVariant & ) ),\
-				 this, SLOT( on_valueChanged( const QString &, const QVariant & ) ) );
+	if (!form) return;
 
-	QListIterator<QObject*> it(list);
-	while ( it.hasNext() ) {
-			obj = it.next();
-			if (!obj) continue;
-			if ( obj->inherits("wActionButton" )){
-				connect( obj, SIGNAL( clicked() ), this, SLOT( on_actionbutton() ) );
-				connect( mainWidget, SIGNAL( keyPressed(QKeyEvent*) ), obj, SLOT( keyPressHandler(QKeyEvent*) ) );
-                        //        continue;
-			}
-			if ( obj->inherits("QPushButton" )){
-				connect( obj, SIGNAL( clicked() ), this, SLOT( on_button() ) );
-                                continue;
-			}
-			if ( obj->inherits("wDBTable" )){
-				connect( obj, SIGNAL( currentChanged(  QSqlRecord * ) ), this, SLOT( on_dbtablerow( QSqlRecord * ) ) );
-				connect( obj, SIGNAL( deleteLine( QSqlRecord * ) ), this, SLOT( on_tabupdate( QSqlRecord * ) ) );
-
-				connect(obj,	SIGNAL(updateCurr(int,int) ),
-					this,	SLOT( on_tabvalueChanged(int, int) ) );
-//				connect( obj, SIGNAL( primeUpdate(  QSqlRecord * ) ), this, SLOT( on_tabupdate( QSqlRecord * ) ) );
-				connect( obj, SIGNAL( selected( qulonglong ) ), this, SLOT( on_tabselected( qulonglong ) ) );
-				connect( obj, SIGNAL( selectRecord( qulonglong ) ), this, SLOT( on_tablerow( qulonglong ) ) );
-                                continue;
-			}
+	if (mainWidget->inherits("aWidget"))
+	{
+		connect(mainWidget,
+				SIGNAL(valueChanged(const QString &, const QVariant &)),
+				this,
+				SLOT(on_valueChanged(const QString &, const QVariant &)));
 	}
-	//--delete list;
+
+	QList<QWidget*> list = form->findChildren<QWidget*>();
+	QListIterator<QWidget*> it(list);
+
+	while (it.hasNext())
+	{
+		QObject *obj = it.next();
+		if (!obj) continue;
+
+		if (obj->inherits("wActionButton"))
+		{
+			connect(obj, SIGNAL(clicked()), this, SLOT(on_actionbutton()));
+			connect(mainWidget,
+					SIGNAL(keyPressed(QKeyEvent*)),
+					obj,
+					SLOT(keyPressHandler(QKeyEvent*)));
+		}
+
+		if (obj->inherits("QPushButton"))
+		{
+			connect(obj, SIGNAL(clicked()), this, SLOT(on_button()));
+			continue;
+		}
+
+		if (obj->inherits("wDBTable"))
+		{
+			connect(obj,
+					SIGNAL(currentChanged(QSqlRecord*)),
+					this,
+					SLOT(on_dbtablerow(QSqlRecord*)));
+
+			connect(obj,
+					SIGNAL(deleteLine(QSqlRecord*)),
+					this,
+					SLOT(on_tabupdate(QSqlRecord*)));
+
+			connect(obj,
+					SIGNAL(updateCurr(int,int)),
+					this,
+					SLOT(on_tabvalueChanged(int,int)));
+
+			connect(obj,
+					SIGNAL(selected(qulonglong)),
+					this,
+					SLOT(on_tabselected(qulonglong)));
+
+			connect(obj,
+					SIGNAL(selectRecord(qulonglong)),
+					this,
+					SLOT(on_tablerow(qulonglong)));
+
+			continue;
+		}
+	}
 }
 
 void
@@ -834,46 +885,33 @@ function on_button(buttonName) // обработчик нажатия кнопк
 \endcode
 \~
  */
-QVariant
-aForm::DBValue(const QString &name)
+QVariant aForm::DBValue(const QString &name)
 {
-	QObject *w;
+	QObject *w = Widget(name);
 	QVariant res;
-	w = Widget( name );
-	if ( w )
+
+	if (w)
 	{
-		if (!strcmp(w->className(),"wDBField"))
+		if (w->metaObject()->className() == QString("wDBField"))
 		{
-			res=( (wDBField*)w )->value(); //value();
-			if(res.type()==QVariant::ULongLong || res.type()==QVariant::LongLong)
-			{
-				res = res.toString();
-			}
-			//if(res.type()==QVariant::DateTime)
-			//{
-			//	res = res.toDateTime().toString(ISODate);
-			//}
+			res = static_cast<wDBField*>(w)->value();
 		}
-		else
+		else if (w->inherits("wField"))
 		{
-			if (w->inherits("wField"))
-			{
-				res=( (wField*)w )->value(); //value();
-			}
-			if(res.type()==QVariant::ULongLong || res.type()==QVariant::LongLong)
-			{
-				res = res.toString();
-			}
-			//if(res.type()==QVariant::DateTime)
-			//{
-			//	res = res.toDateTime().toString(ISODate);
-			//}
+			res = static_cast<wField*>(w)->value();
+		}
+
+		if (res.type() == QVariant::ULongLong || res.type() == QVariant::LongLong)
+		{
+			res = res.toString();
 		}
 	}
 	else
 	{
-		aLog::print(aLog::Error, tr("aForm not found widget with name %1").arg(name));
+		aLog::print(aLog::Error,
+			tr("aForm not found widget with name %1").arg(name));
 	}
+
 	return res;
 }
 
@@ -955,24 +993,38 @@ aForm::SetValue(const QString &name, QVariant value)
  *\param numCol - \~english Column number.\~russian Номер столбца.\~
  *\param ro - \~english `Readonly' flag value.\~russian Значение флага `только чтение'.\~
  */
-void
-aForm::SetColumnReadOnly(const QString &tname, int numCol, bool ro)
+void aForm::SetColumnReadOnly(const QString &tname, int numCol, bool ro)
 {
-	QObject *w;
-	w = Widget( tname );
-	if ( w )
+	QObject *w = Widget(tname);
+
+	if (w)
 	{
-		if (!strcmp(w->className(),"wDBTable"))
+		if (w->metaObject()->className() == QString("wDBTable"))
 		{
-			((wDBTable*)w)->setColumnReadOnly(numCol,ro);
+			wDBTable *wdb = static_cast<wDBTable*>(w);
+
+			for (int row = 0; row < wdb->rowCount(); ++row)
+			{
+				QTableWidgetItem *item = wdb->item(row, numCol);
+				if (!item)
+				{
+					item = new QTableWidgetItem();
+					wdb->setItem(row, numCol, item);
+				}
+
+				Qt::ItemFlags flags = item->flags();
+				if (ro)
+					item->setFlags(flags & ~Qt::ItemIsEditable);
+				else
+					item->setFlags(flags | Qt::ItemIsEditable);
+			}
 		}
 	}
 	else
 	{
-		aLog::print(aLog::Error, tr("aForm not found widget with name %1").arg(tname));
+		aLog::print(aLog::Error,
+			tr("aForm not found widget with name %1").arg(tname));
 	}
-
-	return;
 }
 
 
@@ -988,30 +1040,30 @@ aForm::SetColumnReadOnly(const QString &tname, int numCol, bool ro)
  *\param tname - \~english Table name.\~russian Имя таблицы.\~
  *\return - \~english Number rows of table.\~russian Количество строк в таблице.\~
  */
-int
-aForm::TabCount(const QString &tname)
+int aForm::TabCount(const QString &tname)
 {
-	int res=0;
-	QObject *w;
-	w = Widget( tname );
-	if ( w )
+	int res = 0;
+	QObject *w = Widget(tname);
+
+	if (w)
 	{
-		if (!strcmp(w->className(),"wDBTable"))
+		if (w->metaObject()->className() == QString("wDBTable"))
 		{
-			res=( (wDBTable*)w )->numRows() ; //value();
+			res = static_cast<wDBTable*>(w)->rowCount();
 		}
 		else
 		{
-			aLog::print(aLog::Error, tr("Expected wDBTable widget but found %1").arg(w->className()));
+			aLog::print(aLog::Error,
+				tr("Expected wDBTable widget but found %1").arg(w->metaObject()->className()));
 		}
 	}
 	else
 	{
-		aLog::print(aLog::Error, tr("aForm not found widget with name %1").arg(tname));
+		aLog::print(aLog::Error,
+			tr("aForm not found widget with name %1").arg(tname));
 	}
 
-        return res;
-
+	return res;
 }
 
 /**
@@ -1021,46 +1073,75 @@ aForm::TabCount(const QString &tname)
  * 	\param tname - имя виджета
  * \_ru
  */
-void
-aForm::TabNewLine(const QString &tname)
+void aForm::TabNewLine(const QString &tname)
 {
-       QObject *w;
+	QObject *w = Widget(tname);
 
-       w = Widget( tname );
-       if ( w  && !strcmp(w->className(),"wDBTable"))
-       {
-               wDBTable *wdb = (wDBTable*)w;
-               Q3SqlCursor *cur = wdb->sqlCursor();
-               QSqlRecord *buffer = cur->primeInsert();
-               wdb->lineInsert(buffer);
-               cur->insert();
-       }
-       else
-       {
-               aLog::print(aLog::Error, tr("aForm not found wDBTabe widget with name %1").arg(tname));
-       }
+	if (w && w->metaObject()->className() == QString("wDBTable"))
+	{
+		wDBTable *wdb = static_cast<wDBTable*>(w);
+
+		int row = wdb->rowCount();
+		wdb->insertRow(row);
+
+		// при необходимости можно инициализировать ячейки
+		for (int col = 0; col < wdb->columnCount(); ++col)
+		{
+			if (!wdb->item(row, col))
+				wdb->setItem(row, col, new QTableWidgetItem());
+		}
+
+		wdb->setCurrentCell(row, 0);
+	}
+	else
+	{
+		aLog::print(aLog::Error,
+			tr("aForm not found wDBTabe widget with name %1").arg(tname));
+	}
 }
 
-void
-aForm::TabUpdate(const QString &tname)
+void aForm::TabUpdate(const QString &tname)
 {
-       QObject *w;
+	QObject *w = Widget(tname);
 
-       w = Widget( tname );
-       if ( w  && !strcmp(w->className(),"wDBTable"))
-       {
-               wDBTable *wdb = (wDBTable*)w;
-               Q3SqlCursor *cur = wdb->sqlCursor();
-               //QSqlRecord *buffer = cur->primeInsert();
-             //  wdb->lineInsert(buffer);
-               cur->primeUpdate();
-	       cur->update();
-       }
-       else
-       {
-               aLog::print(aLog::Error, tr("aForm not found wDBTabe widget with name %1").arg(tname));
-       }
+	if (w && w->metaObject()->className() == QString("wDBTable"))
+	{
+		wDBTable *wdb = static_cast<wDBTable*>(w);
+
+		if (wdb->cur)
+		{
+			QSqlRecord rec = wdb->cur->record();
+			QString table = wdb->list_available_tables.value(wdb->tableInd);
+
+			QStringList fields;
+			QVariantList values;
+
+			for (int i = 0; i < rec.count(); ++i)
+			{
+				fields << QString("%1=?").arg(rec.fieldName(i));
+				values << rec.value(i);
+			}
+
+			QString sql = QString("UPDATE %1 SET %2")
+				.arg(table)
+				.arg(fields.join(","));
+
+			QSqlQuery q;
+			q.prepare(sql);
+
+			for (int i = 0; i < values.count(); ++i)
+				q.addBindValue(values.at(i));
+
+			q.exec();
+		}
+	}
+	else
+	{
+		aLog::print(aLog::Error,
+			tr("aForm not found wDBTabe widget with name %1").arg(tname));
+	}
 }
+
 /**
  * \ru
  * 	\brief ScriptAPI. Возвращает значение ячейки табличного виджета wDBTable.
@@ -1114,47 +1195,47 @@ aForm::TabDBValue(const QString &tname, int row, int col)
 }
 
 
-QVariant
-aForm::tabValue(const QString &tname, int row, int col, bool dbval)
+QVariant aForm::tabValue(const QString &tname, int row, int col, bool dbval)
 {
-	QVariant res=QString::QString("Unknown");
+	QVariant res = QString("Unknown");
 	QObject *w;
-	QStringList l;
-	w = Widget( tname );
-	if ( w  && !strcmp(w->className(),"wDBTable"))
+
+	w = Widget(tname);
+
+	if (w && w->metaObject()->className() == QString("wDBTable"))
 	{
-		wDBTable *wdb = (wDBTable*)w;
-			if(wdb->getDefIdList().count()>col && col>=0)
+		wDBTable *wdb = static_cast<wDBTable*>(w);
+
+		if (wdb->getDefIdList().count() > col && col >= 0)
+		{
+			long f_oid = wdb->getDefIdList()[col].toLong();
+			QString type = wdb->getFieldType(f_oid);
+
+			if (row == -1)
+				row = wdb->currentRow();
+
+			QVariant cell = wdb->item(row, col) ? wdb->item(row, col)->data(Qt::EditRole) : QVariant();
+
+			if (type.left(1) == "O" && dbval)
 			{
-				long f_oid = wdb->getDefIdList()[col].toLong();
-				QString type = wdb->getFieldType(f_oid);
-				if(row==-1)
-				{
-					row = wdb->currentRow();
-				}
-				if(type.left(1) == "O" && dbval)
-				{
-					res = ananas_objectstr(db, wdb->value(row,col).toULongLong(), type.section(' ',1,1).toInt());
-				}
-				else
-				{
-					res = wdb->value(row,col);
-					//if( res.type() == QVariant::DateTime || res.type() == QVariant::Date )
-					//{
-					//	res = QString("%1").arg(res.toDateTime().toString(Qt::ISODate));
-					//}
-				}
+				res = ananas_objectstr(db, cell.toULongLong(), type.section(' ',1,1).toInt());
 			}
 			else
 			{
-				aLog::print(aLog::Error, tr("aForm table value: column out of range"));
+				res = cell;
 			}
+		}
+		else
+		{
+			aLog::print(aLog::Error, tr("aForm table value: column out of range"));
+		}
 	}
 	else
 	{
 		aLog::print(aLog::Error, tr("aForm not found widget with name %1").arg(tname));
 	}
-        return res;
+
+	return res;
 }
 
 
@@ -1168,22 +1249,21 @@ aForm::tabValue(const QString &tname, int row, int col, bool dbval)
  * \param colname - \~english Column name.\~russian Имя столбца.\~
  * \return  \~english Column index.\~russian Индекс столбца.\~
  */
-int
-aForm::ColIndex(const QString &tname, const QString &colname)
+int aForm::ColIndex(const QString &tname, const QString &colname)
 {
-	int res;
-	QObject *w;
-	int col=-1;
-	w = Widget( tname );
-	if ( w  && !strcmp(w->className(),"wDBTable"))
+	QObject *w = Widget(tname);
+	int col = -1;
+
+	if (w && w->metaObject()->className() == QString("wDBTable"))
 	{
-			wDBTable *wdb = ((wDBTable*)w );
-			col= wdb->getDefFields().findIndex(colname);
+		wDBTable *wdb = static_cast<wDBTable*>(w);
+		col = wdb->getDefFields().indexOf(colname);
 	}
 	else
 	{
 		aLog::print(aLog::Error, tr("aForm not found widget with name %1").arg(tname));
 	}
+
 	return col;
 }
 
@@ -1198,35 +1278,40 @@ aForm::ColIndex(const QString &tname, const QString &colname)
  * 	\param value - значение
  * \_ru
  */
-void
-aForm::SetTabValue(const QString &tname, const QString &colname, int row, QVariant value)
+void aForm::SetTabValue(const QString &tname, const QString &colname, int row, QVariant value)
 {
-	QObject *w;
-	w = Widget( tname );
-	if ( w  && !strcmp(w->className(),"wDBTable"))
+	QObject *w = Widget(tname);
+
+	if (w && w->metaObject()->className() == QString("wDBTable"))
 	{
-	//	printf(">>>>>>>>>>>>>>Set tab value %s, for %s, rov = %d, value = %s\n",(const char*)tname.local8Bit(), (const char *)colname.local8Bit(), row, (const char*)value.toString().local8Bit() );
-		wDBTable *wdb = (wDBTable*)w;
-		aSQLTable *t = ( aSQLTable *) wdb->sqlCursor();
-		t->select(QString("idd=%1").arg(mainWidget->uid()));
-		t->first();
-		if(t->seek(row))
+		wDBTable *wdb = static_cast<wDBTable*>(w);
+
+		if (!wdb->cur)
+			return;
+
+		if (wdb->cur->seek(row))
 		{
-			t->setValue(colname,value);
-			t->Update();
-			//t->update();
+			QSqlRecord rec = wdb->cur->record();
+			rec.setValue(colname, value);
+
+			QString sql = QString("UPDATE %1 SET %2=? WHERE idd=%3")
+				.arg(wdb->list_available_tables.value(wdb->tableInd))
+				.arg(colname)
+				.arg(mainWidget->uid());
+
+			QSqlQuery q;
+			q.prepare(sql);
+			q.addBindValue(value);
+			q.exec();
 		}
-		wdb->refresh();//updateCurrent();
-			//	wdb->setValue(row, col, value);
-				//res = wdb->text(row,col);
+
+		wdb->viewport()->update();
 	}
 	else
 	{
-		aLog::print(aLog::Error, tr("aForm not found wDBTable widget with name %1").arg(tname));
+		aLog::print(aLog::Error,
+			tr("aForm not found wDBTable widget with name %1").arg(tname));
 	}
-
-        return;
-
 }
 
 
@@ -1263,12 +1348,13 @@ aForm::SetFocus(){
 	if(form) form->setFocus();
 }
 
-void
-aForm::on_button(){
-	if ( engine->project.interpreter()->functions(this).findIndex("on_button")!=-1)
-	{
-		engine->project.interpreter()->call("on_button",QVariantList()<<sender()->name(),this);
-//		engine->code->evaluate("on_button(\""+sender()->name()+"\")", this);
+void aForm::on_button()
+{
+	QScriptValue func = engine->project->globalObject().property("on_button");
+	if (func.isFunction()) {
+		QVariantList args;
+		args << sender()->objectName();
+		func.call(QScriptValue(), engine->project->toScriptValue(args));
 	}
 }
 
@@ -1291,7 +1377,7 @@ aForm::on_actionbutton()
                         if ( b->isActionClose() )
                         {
 	                       	if(form)
-				if( form->isShown() )
+				if( form->isVisible() )
 				{
 //#ifndef _Windows
 					form->disconnect();
@@ -1322,11 +1408,13 @@ aForm::on_lostfocus(){
 }
 
 
-void
-aForm::on_form_close(){
-	if(!engine) return;
-	if ( engine->project.interpreter()->functions(this).findIndex("on_formstop")!=-1) {
-		engine->project.interpreter()->call("on_formstop", QVariantList(),this);
+void aForm::on_form_close()
+{
+	if (!engine) return;
+
+	QScriptValue func = engine->project->globalObject().property("on_formstop");
+	if (func.isFunction()) {
+		func.call();
 	}
 }
 
@@ -1369,81 +1457,61 @@ aForm::on_valueChanged(const QString &s){
  *\param name - \~english field metedata name \~russian имя поля в конфигурации.\~
  *\param value - \~english new field value \~russian новое значение поля. \~
  */
-void
-aForm::on_valueChanged( const QString & name, const QVariant & val )
+void aForm::on_valueChanged( const QString & name, const QVariant & val )
 {
+	QScriptValue func = engine->project->globalObject().property("on_valuechanged");
+	if (func.isFunction()) {
+		QVariantList args;
+		args << name;
+		args << val;
+		func.call(QScriptValue(), engine->project->toScriptValue(args));
+	}
+}
 
-	if ( engine->project.interpreter()->functions(this).findIndex("on_valuechanged")!=-1)
-	{
-		Q3ValueList<QVariant> lst;
-		lst << name;
-		lst << val;
-//		if(!val.isNull() && !val.isValid()) v = val;
-		engine->project.interpreter()->call("on_valuechanged",QVariantList(lst), this);
-	//	printf("aForm change value field %s to %s\n",(const char*)name.local8Bit(), val.toString().ascii());
+void aForm::on_tabvalueChanged(int row, int col)
+{
+	QScriptValue func = engine->project->globalObject().property("on_tabupdate");
+	if (func.isFunction()) {
+		QVariantList args;
+		args << row;
+		args << col;
+		args << sender()->objectName();
+		func.call(QScriptValue(), engine->project->toScriptValue(args));
 	}
 }
 
 
-void
-aForm::on_tabvalueChanged(int row, int col)
+void aForm::on_dbtablerow( QSqlRecord *r )
 {
+	unsigned int i;
+	aObject *o = 0;
+	QVariant tv;
 
-	if ( engine->project.interpreter()->functions(this).findIndex("on_tabupdate")!=-1)
-	{
-		Q3ValueList<QVariant> lst;
-		lst << row;
-		lst << col;
-		lst << sender()->name();
+	if (mainWidget)
+		o = mainWidget->dataObject();
 
-		engine->project.interpreter()->call("on_tabupdate",QVariantList(lst), this);
-	}
-/*
-	const QObject *sobj=sender();
-	QString objName=widgetName((QObject *) sobj);
-	cfg_message(0, "value changed %s (%s)\n", (const char *) objName.utf8(), (const char *) dbobject->className());
-	cfg_message(0, "classname %s\n", (const char *) sobj->className());
-	if (strcmp(sobj->className(),"QAnanasDBTable")==0) {
-//	if (sobj->className()=="QAnanasDBField") {
-*/
-/*		cfg_message(0,"OK");
-		if (dbobject->className()=="QAdoc"){
-			((QAdoc *)dbobject)->setfield(objName, s);
-		}
-		if (dbobject->className()=="QAcat"){
-			cfg_message(0,"Поле справочника %s=%s\n",(const char *) objName.utf8(), (const char *) s.utf8());
-			((QAcat *)dbobject)->setfield(objName, s);
-		}
-*/
-//	}
-}
-
-
-void
-aForm::on_dbtablerow( QSqlRecord *r )
-{
-        unsigned int i;
-        aObject *o = 0;
-        QVariant tv;
-        if ( mainWidget ) o = mainWidget->dataObject();
-        if ( o )
-	{
+	if (o) {
 		aSQLTable *t = o->table();
 		id = t->value(0).toULongLong();
-        }
-	if ( engine->project.interpreter()->functions(this).findIndex("on_tablerow")!=-1) {
-		engine->project.interpreter()->call("on_tablerow", QVariantList()<<sender()->name(), this);
+	}
+
+	QScriptValue func = engine->project->globalObject().property("on_tablerow");
+	if (func.isFunction()) {
+		QVariantList args;
+		args << sender()->objectName();
+		func.call(QScriptValue(), engine->project->toScriptValue(args));
 	}
 }
 
-void
-aForm::on_event( const QString &source, const QString &data )
+void aForm::on_event( const QString &source, const QString &data )
 {
-	Q3ValueList<QVariant> lst;
+	QVariantList lst;
 	lst << source;
 	lst << data;
-	if ( engine->project.interpreter()->functions(this).findIndex("on_event")!=-1) {
-		engine->project.interpreter()->call("on_event", QVariantList(lst), this);
+
+	QScriptValue func = engine->project->globalObject().property("on_event");
+	if (func.isFunction()) {
+		func.call(QScriptValue(), engine->project->toScriptValue(lst));
 	}
 }
 
@@ -1461,14 +1529,15 @@ aForm::on_tabselected( qulonglong uid )
 	}
 }
 
-void
-aForm::on_tablerow( qulonglong uid )
+void aForm::on_tablerow( qulonglong uid )
 {
-	Q3ValueList<QVariant> lst;
-	lst << sender()->name();
+	QVariantList lst;
+	lst << sender()->objectName();
 	lst << QString("%1").arg(uid);
-	if ( engine->project.interpreter()->functions(this).findIndex("on_tabrowselected")!=-1) {
-		engine->project.interpreter()->call("on_tabrowselected", QVariantList(lst), this);
+
+	QScriptValue func = engine->project->globalObject().property("on_tabrowselected");
+	if (func.isFunction()) {
+		func.call(QScriptValue(), engine->project->toScriptValue(lst));
 	}
 }
 
@@ -1537,7 +1606,7 @@ aForm::Select( qulonglong id )
 int
 aForm::SelectGroup( qulonglong id )
 {
-	if ( mainWidget && !strcmp(mainWidget->className(),"wCatalogue"))
+	if ( mainWidget && !strcmp(mainWidget->metaObject()->className(),"wCatalogue"))
 	 {
 		if ( engine->wl->find( objid, db_uid ) )
 		{
@@ -1560,7 +1629,7 @@ aForm::SelectGroup( qulonglong id )
 
 /*
 int
-aForm::select( Q_ULLONG id )
+aForm::select( qulonglong id )
 {
 CHECK_POINT
 //  Select( id );

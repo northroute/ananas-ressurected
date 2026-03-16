@@ -30,10 +30,14 @@
 #ifndef WACTIONBUTTON_H
 #define WACTIONBUTTON_H
 
-#include <qpushbutton.h>
-#include <qwidgetplugin.h>
-//Added by qt3to4:
+
+#include "qwidgetplugin.h"
+
+#include <QPushButton>
+#include <QVariant>
+#include <QObject>
 #include <QKeyEvent>
+
 #include "acfg.h"
 
 class QWidget;
