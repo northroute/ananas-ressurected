@@ -58,3 +58,14 @@ jobs:
               qmake-qt4
               make -j1
             "
+
+      - name: Build plugins
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace/src/plugins \
+            ananas-ci:latest \
+            bash -lc "
+              qmake-qt4
+              make -j1
+            "
