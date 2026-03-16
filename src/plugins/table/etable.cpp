@@ -1,9 +1,5 @@
 #include "etable.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "ananas.h"
 #include "wtable.h"
 
@@ -14,11 +10,10 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-eTable::eTable(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+eTable::eTable(QWidget *parent, Qt::WindowFlags fl)
+    : QDialog(parent, fl)
 {
     setupUi(this);
-
     init();
 }
 
@@ -270,7 +265,7 @@ void eTable::getData( QWidget *o )
 	printf("getData defs = %s\n",(const char *)s.utf8());
 	t->setDefineCols(s);
 */
-	t->setName(eTabName->text());
+	t->setObjectName(eTabName->text());
 }
 
 

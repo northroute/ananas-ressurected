@@ -179,7 +179,7 @@ aDocJournal::docType()
  *\~russian
  *	Удаляет текущий документ.
  *\~
- *\see deleteDocument( Q_ULLONG idd )
+ *\see deleteDocument( qulonglong idd )
  *\return \~english error code \~russian код ошибки.\~
  */
 ERR_Code
@@ -295,7 +295,7 @@ aDocJournal::New( qulonglong idd, const QString & docPrefix, int type )
  *	Выбирает документ с заданным идентификатором.
  *\~
  *\param idd - \~english document id \~russian идентификатор документа \~
- *\see findDocument( Q_ULLONG idd )
+ *\see findDocument( qulonglong idd )
  *\return \~english error code \~russian код ошибки.\~
  */
 ERR_Code
@@ -446,7 +446,7 @@ aDocJournal::setNumber( QVariant number  )
 	return err_noerror;
 //	return Update();
 	/*QString query;
-	Q_ULLONG idd = docId();
+	qulonglong idd = docId();
 	QSqlQuery q = db->db()->exec ( QString("SELECT pnum, num FROM a_journ WHERE idd=%1").arg( idd ) );
 	if ( q.first() ) return q.value(0).toString()+q.value(1).toString();
 	else return "";*/
@@ -460,7 +460,7 @@ aDocJournal::setNumber( QVariant number  )
  *\~russian
  *	Ищет документ в системном журнале по его идентификатору.
  *\~
- *\see findDoc( const QString & number, int type ) selectDocument( Q_ULLONG idd )
+ *\see findDoc( const QString & number, int type ) selectDocument( qulonglong idd )
  *\param idd - \~english document number \~russian номер документа \~
  *\return 	\~english document id or 0 if document not found
  *		\~russian id документа или 0, если документ не найден.\~
@@ -491,7 +491,7 @@ aDocJournal::findDocument( qulonglong idd )
  *\~russian
  *	Ищет документ по его номеру и типу.
  *\~
- *\see findDocument( Q_ULLONG idd )
+ *\see findDocument( qulonglong idd )
  *\param number - \~english document number \~russian номер документа, состоящий из префикса и номера \~
  *\param type - \~english document type \~russian тип документа \~
  *\return 	\~english document id or 0 if document not found

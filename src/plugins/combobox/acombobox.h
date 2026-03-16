@@ -23,13 +23,13 @@
 #define ACOMBOBOX_H
 
 
-#include <qwidgetplugin.h>
-#include "qcombobox.h"
-//Added by qt3to4:
+#include <QComboBox>
 #include <QPixmap>
-#include <Q3StrList>
 #include <QEvent>
-#include <Q3ListBox>
+#include <QStringList>
+#include <QListWidget>
+
+#include <qwidgetplugin.h>
 
 
 /*!
@@ -65,8 +65,11 @@ class QT_WIDGET_PLUGIN_EXPORT AComboBox : public QComboBox
 		AComboBox( bool rw, QWidget* parent=0, const char* name=0 );
 		~AComboBox();
 public slots:
-
-    int		count() const;
+    int currentItem();
+    virtual void setCurrentItem(int index);
+    virtual void setCurrentText(const QString &string);
+    QString text(int index) const;
+    const QPixmap pixmap(int index) const;
 
     void	insertStringList( const QStringList &, int index=-1 );
     //--void	insertStrList( const Q3StrList &, int index=-1 );
@@ -79,14 +82,7 @@ public slots:
 
     void	removeItem( int index );
 
-    int		currentItem();
-    virtual void setCurrentItem( int index );
-
     QString 	currentText() const;
-    virtual void setCurrentText( const QString& );
-
-    QString 	text( int index ) const;
-    const QPixmap pixmap( int index ) const;
 
     void	changeItem( const QString &text, int index );
     void	changeItem( const QPixmap &pixmap, int index );
@@ -107,14 +103,14 @@ public slots:
     virtual void setMaxCount( int );
     int		maxCount() const;
 
-    virtual void setInsertionPolicy( Policy policy );
-    QComboBox::Policy	insertionPolicy() const;
+    virtual void setInsertPolicy(QComboBox::InsertPolicy policy);
+    QComboBox::InsertPolicy insertPolicy() const;
 
     virtual void setValidator( const QValidator * );
     const QValidator * validator() const;
 
-    //--virtual void setListBox( Q3ListBox * );
-    //--Q3ListBox *	listBox() const;
+    //--virtual void setListBox( QListWidget * );
+    //--QListWidget *	listBox() const;
 
     virtual void setLineEdit( QLineEdit *edit );
     QLineEdit*	lineEdit() const;

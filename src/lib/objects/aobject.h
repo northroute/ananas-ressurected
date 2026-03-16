@@ -144,7 +144,7 @@ public slots:
 protected:
 	bool concrete;
 	virtual aCfgItem displayStringContext();
-//	Q_ULLONG lastUid;
+//	qulonglong lastUid;
 	virtual ERR_Code setObject( aCfgItem newobject );
 //	virtual ERR_Code initObject( aDatabase *adb );
 	virtual ERR_Code initObject();
@@ -157,7 +157,7 @@ protected:
 	virtual QVariant tValue( const QString & tablename, const QString & name );
 	virtual ERR_Code setTValue(const QString & tablename, const QString & name, const QVariant &value);
 	virtual QString trSysName( const QString & sname );
-//	Q_ULLONG copy(const QString & tablename = "");
+//	qulonglong copy(const QString & tablename = "");
 	void	setSelected( bool sel, const QString & tablename = "" );
 	virtual ERR_Code setTFilter( const QString & tname, const QString & valname, const QVariant & value );
 	virtual ERR_Code clearTFilter( const QString & tname );

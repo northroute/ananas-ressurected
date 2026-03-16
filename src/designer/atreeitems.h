@@ -29,14 +29,14 @@
 
 #ifndef ATREEITEMS_H
 #define ATREEITEMS_H
-#include <q3popupmenu.h>
-#include <q3listview.h>
+#include <QMenu>
+#include <QTreeWidget>
 #include <q3intdict.h>
 #include "acfg.h"
 
 class QWidget;
 
-class ananasListViewItem : public Q3ListViewItem
+class ananasListViewItem : public QTreeWidgetItem
 {
 public:
 	int id;
@@ -44,8 +44,8 @@ public:
 	QWidget *editor;
 	aCfg *md;
 
-	ananasListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
-	ananasListViewItem( Q3ListView *parent, Q3ListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
+	ananasListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
+	ananasListViewItem( QTreeWidget *parent, QTreeWidgetItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
 	ananasListViewItem( ananasListViewItem *parent, ananasListViewItem *after, aCfg * cfgmd,
 						aCfgItem cfgobj, const QString &name = QString::null );
 
@@ -62,7 +62,7 @@ protected:
 };
 
 class ananasTreeView
-: public Q3ListView
+: public QTreeWidget
 {
     Q_OBJECT
 public:
@@ -70,7 +70,7 @@ public:
 
 	ananasTreeView( QWidget *parent, aCfg *cfgmd );
 
-	void ContextMenuAdd(  Q3PopupMenu * m );
+	void ContextMenuAdd(  QMenu * m );
 	void deleteItem();
 	void moveUpItem ();
 	void moveDownItem ();

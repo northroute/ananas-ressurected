@@ -4,12 +4,17 @@
 #include "ui_efield.h"
 
 
+#include <stdlib.h>
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+
 class eField : public QDialog, public Ui::eField
 {
     Q_OBJECT
 
 public:
-    eField(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WindowFlags fl = 0);
+    eField(QWidget *parent, Qt::WindowFlags fl);
     ~eField();
 
     QStringList otypes;

@@ -4,7 +4,7 @@
 #include "ui_deditdialog.h"
 
 
-class dEditDialog : public Q3MainWindow, public Ui::dEditDialog
+class dEditDialog : public QMainWindow, public Ui::dEditDialog
 {
     Q_OBJECT
 

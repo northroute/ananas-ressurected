@@ -29,32 +29,41 @@
 #ifndef CATALOGFORMWIDGET_H
 #define CATALOGFORMWIDGET_H
 
-#include <stdlib.h>
-#include <qwidget.h>
-#include <qtimer.h>
-#include <q3listbox.h>
-#include <qlineedit.h>
-#include <q3listview.h>
-#include <qlayout.h>
-#include <qlabel.h>
-#include <qevent.h>
-#include <q3popupmenu.h>
-//Added by qt3to4:
-#include <Q3Frame>
+
+#include <cstdlib>
+
+#include <QWidget>
+#include <QTimer>
+#include <QLineEdit>
+#include <QLayout>
+#include <QLabel>
+#include <QEvent>
+#include <QMessageBox>
+
+#include <QListWidget>
+#include <QTreeWidget>
+
 #include <QKeyEvent>
 #include <QFocusEvent>
+#include <QFrame>
+#include <QMenu>
+
 //class QVBoxLayout;
 
-class aListBox:public Q3ListBox
+class aListBox : public QListWidget
 {
 	Q_OBJECT
 public:
-	aListBox(QWidget *parent = 0, const char* name = 0, Qt::WFlags f = 0);
+	aListBox(QWidget* parent = 0, const char *name = 0, Qt::WindowFlags f = 0);
 	~aListBox();
 	void insertItem(const QString &s, long idx, int index = -1);
-	void show(QWidget *w, Q3Frame *fr);//, QLabel *lb);
+	void show(QWidget *w, QFrame *fr);//, QLabel *lb);
 
-	long getId(int ind) { return atol(listPrivate->text(ind).ascii()); };
+	long getId(int ind) {
+		QListWidgetItem *it = listPrivate->item(ind);
+		if (!it) return 0;
+		return atol(it->text().toLatin1().constData());
+	}
 
 	void clear();
 	//void setId(long idx) {id = idx;};
@@ -66,7 +75,7 @@ protected:
 	virtual void keyPressEvent ( QKeyEvent *e );
 	void focusOutEvent ( QFocusEvent *e );
 protected slots:
-	void doubleClickHandler(Q3ListBoxItem *i);
+	void doubleClickHandler(QListWidgetItem *i);
 	//	QVBoxLayout* layout1;
 //	QLabel * statusBar;
 signals:
@@ -76,7 +85,7 @@ signals:
 	void lostFocus();
 	void sendMessage(const QString &);
 private:
-	Q3ListBox* listPrivate;
+	QListWidget* listPrivate;
 };
 
 
@@ -107,14 +116,14 @@ signals:
 	void	sendMessage(const QString &);
 };
 
-class aListView : public Q3ListView
+class aListView : public QTreeWidget
 {
 	Q_OBJECT
 public:
-	aListView(QWidget* parent = 0, const char* name = 0, Qt::WFlags f = 0);
+	aListView(QWidget *parent, Qt::WindowFlags f);
 	~aListView();
 
-	Q3PopupMenu *menu;
+	QMenu *menu;
 	void setDestination(const bool dest);
 	bool getDestination();
 protected:
@@ -122,7 +131,7 @@ protected:
 
 public slots:
 
-	void 	showMenu( Q3ListViewItem* item, const QPoint& p, int);
+	void 	showMenu( QTreeWidgetItem* item, const QPoint& p, int);
 	void 	newItem();
 	void 	newGroup();
 	void	delItem();
@@ -133,20 +142,20 @@ public slots:
 	virtual void 	setFocus();
 
 protected slots:
-	void 	doubleClickHandler( Q3ListViewItem *, const QPoint&, int col);
+	void 	doubleClickHandler( QTreeWidgetItem *, const QPoint&, int col);
 
 signals:
 
 	void	sendMessage(const QString &);
- 	void	newItemRequest(Q3ListViewItem* parentItem);
-	void	newGroupRequest(Q3ListViewItem* parentItem);
-	void	delItemRequest(Q3ListViewItem* item);
-	void	markDeletedRequest(Q3ListViewItem* item);
-	void 	undoMarkDeletedRequest(Q3ListViewItem* item);
-	void	editRequest(Q3ListViewItem* item, int columnClicked);
-	void	selectRequest(Q3ListViewItem* item);
+ 	void	newItemRequest(QTreeWidgetItem* parentItem);
+	void	newGroupRequest(QTreeWidgetItem* parentItem);
+	void	delItemRequest(QTreeWidgetItem* item);
+	void	markDeletedRequest(QTreeWidgetItem* item);
+	void 	undoMarkDeletedRequest(QTreeWidgetItem* item);
+	void	editRequest(QTreeWidgetItem* item, int columnClicked);
+	void	selectRequest(QTreeWidgetItem* item);
 private:
-	Q3ListViewItem* parentItem;
+	QTreeWidgetItem* parentItem;
 	int columnClicked;
 	bool toSelect;
 };

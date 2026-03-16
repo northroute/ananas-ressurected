@@ -4,7 +4,7 @@
 #include "ui_deditjournal.h"
 
 
-class dEditJournal : public Q3MainWindow, public Ui::dEditJournal
+class dEditJournal : public QMainWindow, public Ui::dEditJournal
 {
     Q_OBJECT
 

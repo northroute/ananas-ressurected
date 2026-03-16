@@ -28,18 +28,6 @@
 
 /****************************************************************************
 ****************************************************************************/
-#include <qmenubar.h>
-#include <qmessagebox.h>
-#include <q3toolbar.h>
-#include <qstatusbar.h>
-#include <qworkspace.h>
-#include <qapplication.h>
-#include <qaction.h>
-#include <qdir.h>
-//Added by qt3to4:
-#include <Q3Frame>
-#include <QPixmap>
-#include <Q3PopupMenu>
 
 #include "mainform.h"
 
@@ -55,14 +43,15 @@ aWindowsList *mainformwl=NULL;
  *  name 'name' and widget flags set to 'f'.
  *
  */
-MainForm::MainForm( QWidget* parent, const char* name, Qt::WFlags fl )
-    : Q3MainWindow( parent, name, fl )
+MainForm::MainForm(QWidget* parent, Qt::WindowFlags fl)
+	: QMainWindow(parent, fl)
 {
+	setObjectName("MainForm");
 //    QApopupmenu *popup;
-    Q3VBox	*vb = new Q3VBox(this);
+    QVBoxLayout	*vb = new QVBoxLayout(this);
 
     setIcon( rcIcon("a-system.png"));
-    vb->setFrameStyle( Q3Frame::StyledPanel | Q3Frame::Sunken );
+    vb->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
     ws = new QWorkspace( vb );
     wl = new aWindowsList();
     ws->setScrollBarsEnabled( TRUE );
@@ -126,9 +115,9 @@ MainForm::initEngine()
 void
 MainForm::initMenuBar()
 {
-	Q3PopupMenu *m;
-	m = new Q3PopupMenu();
-	windowsMenu = new Q3PopupMenu();
+	QMenu *m;
+	m = new QMenu();
+	windowsMenu = new QMenu();
     	connect( windowsMenu, SIGNAL( aboutToShow() ),
 	     this, SLOT( windowsMenuAboutToShow() ) );
 	m->insertItem(rcIcon("a-system.png"), tr( "About" ), this, SLOT( helpAbout() ));
@@ -177,7 +166,7 @@ MainForm::helpAbout()
 }
 
 void MainForm::InsertMainMenu(QString text, QObject *pop){
-    menubar->insertItem(text, (Q3PopupMenu *) pop);
+    menubar->insertItem(text, (QMenu *) pop);
 
 }
 

@@ -44,30 +44,40 @@
  * \en	Constructs object with parent=parent, name=name and flags=fl \_en
  * \ru	Создает объект с родителем parent, именем name и флагом fl. \_ru
  */
-wField::wField( QWidget *parent, const char *name, Qt::WFlags fl )
-    : aWidget( parent, name, fl )
+wField::wField(QWidget *parent, const char *name, Qt::WFlags fl) : aWidget(parent, name, fl)
 {
-	loaded = 0;
-	md_oid = 0;
-	md_fid = 0;
-	setSizePolicy( QSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed ) );
-	setFocusPolicy(Qt::StrongFocus);
-	new Q3HBoxLayout( this, 0, 0 );
-	lineEdit = new QLineEdit(this);
-	lineEdit->hide();
-	dateEdit = new wDateEdit(this);
-	dateEdit->hide();
-	objButton = new wCatButton("...",this);
-	objButton->hide();
-	objLabel = new QLabel(this);
-	objLabel->setSizePolicy( QSizePolicy( QSizePolicy::Ignored, QSizePolicy::Preferred ));
-	objLabel->setFrameShape(Q3Frame::Box);
-	objLabel->setText("UnknownField");
-	objLabel->show();
-	checkBox = new wCheckBox(this);
-	checkBox->hide();
-	vEditorType = Unknown;
+    loaded = 0;
+    md_oid = 0;
+    md_fid = 0;
+
+    setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    setFocusPolicy(Qt::StrongFocus);
+
+    QHBoxLayout *lay = new QHBoxLayout(this);
+    lay->setContentsMargins(0, 0, 0, 0);
+    lay->setSpacing(0);
+
+    lineEdit = new QLineEdit(this);
+    lineEdit->hide();
+
+    dateEdit = new wDateEdit(this, "");
+    dateEdit->hide();
+
+    objButton = new wCatButton("...", this);
+    objButton->hide();
+
+    objLabel = new QLabel(this);
+    objLabel->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred));
+    objLabel->setFrameShape(QFrame::Box);
+    objLabel->setText("UnknownField");
+    objLabel->show();
+
+    checkBox = new wCheckBox(this);
+    checkBox->hide();
+
+    vEditorType = Unknown;
 }
+
 /*
 wField::wField( QWidget *parent, const char *name, WFlags fl, bool dbf )
     : aWidget( parent, name, fl )
@@ -103,171 +113,163 @@ wField::~wField()
  * 	`fieldType'. Это свойсто должно быть установлено до вызова этой функции,
  * 	иначе тип виджета будет установлен в Unknown. \_ru
  */
-void
-wField::widgetInit()
+void wField::widgetInit()
 {
-    QString str;
-    char s1[20];
-    int n1=0, n2=0;
-    lineEdit->hide();
-	disconnect( lineEdit, SIGNAL( textChanged( const QString & ) ),
-				this, SLOT( setValue( const QString & ) ) );
-	disconnect( lineEdit, SIGNAL( lostFocus() ), this, SLOT( focusOutEvent()) );
-  //  lineEdit->disconnect();
-    lineEdit->setReadOnly(false);
-    layout()->remove(lineEdit);
-    dateEdit->hide();// = new QDateEdit(this);
-    disconnect(dateEdit, SIGNAL( valueChanged ( const QDate&) ),
-				this, SLOT( setValue( const QDate & ) ) );
-    disconnect(dateEdit, SIGNAL( lostFocus() ),
-			 	this, SLOT( focusOutEvent() ) );
-    layout()->remove(dateEdit);
-    objLabel->hide();// = new QLabel(this);
-    objLabel->disconnect();
-    layout()->remove(objLabel);
-    objButton->hide();// = new wCatButton("...",this);
-	disconnect( objButton,	SIGNAL( clicked() ),
-			 this, SLOT( fieldSelect() ) );
-//    objButton->disconnect();
-    layout()->remove(objButton);
-    checkBox->hide();
-	disconnect( checkBox, SIGNAL( valueChanged ( const QString & ) ),
-				this, SLOT( setValue( const QString & ) ) );
+    int n1 = 0;
+    int n2 = 0;
 
-	disconnect( checkBox, SIGNAL( toggled (bool) ), checkBox, SLOT( on_toggled() ) );
-//     checkBox->disconnect();
-    layout()->remove(checkBox);
-    //TODO: need rewrite
-    if (!vFieldType.isEmpty()) sscanf((const char *)vFieldType,"%s %i %i", s1, &n1, &n2);
+    lineEdit->hide();
+    disconnect(lineEdit, SIGNAL(textChanged(const QString &)),
+               this, SLOT(setValue(const QString &)));
+    lineEdit->setReadOnly(false);
+    layout()->removeWidget(lineEdit);
+
+    dateEdit->hide();
+    disconnect(dateEdit, SIGNAL(dateChanged(const QDate &)),
+               this, SLOT(setValue(const QDate &)));
+    layout()->removeWidget(dateEdit);
+
+    objLabel->hide();
+    objLabel->disconnect();
+    layout()->removeWidget(objLabel);
+
+    objButton->hide();
+    disconnect(objButton, SIGNAL(clicked()),
+               this, SLOT(fieldSelect()));
+    layout()->removeWidget(objButton);
+
+    checkBox->hide();
+    disconnect(checkBox, SIGNAL(valueChanged(const QString &)),
+               this, SLOT(setValue(const QString &)));
+    disconnect(checkBox, SIGNAL(toggled(bool)),
+               checkBox, SLOT(on_toggled()));
+    layout()->removeWidget(checkBox);
+
+    if (!vFieldType.isEmpty())
+    {
+        QStringList parts = vFieldType.split(' ', QString::SkipEmptyParts);
+        if (parts.count() > 1)
+            n1 = parts[1].toInt();
+        if (parts.count() > 2)
+            n2 = parts[2].toInt();
+    }
 
     switch (vEditorType)
     {
     case Numberic:
-		lineEdit->setText(vValue);
-		if(vFieldType.isEmpty())
-		{
-		// set validator for numeric type
-			QString str = tr("^\\-{0,1}\\d{0,%1}\\.{1}\\d{0,%2}$").arg(3).arg(3);
-			QRegExp rexp( str );
-			lineEdit->setValidator(new QRegExpValidator(rexp,lineEdit));
-		}
-		else
-		{
-			if(n2==0)
-			{
-			   // set default validator for integer type
-			   QString str = tr("^\\-{0,1}\\d{0,%1}$").arg(n1);
-			   QRegExp rexp( str );
-			   lineEdit->setValidator(new QRegExpValidator(rexp,lineEdit));
-			}
-			else
-			{
-				// set default validator for float type
-				QString str = tr("^\\-{0,1}\\d{0,%1}\\.{1}\\d{0,%2}$").arg(n1).arg(n2);
-				QRegExp rexp( str );
-				lineEdit->setValidator(new QRegExpValidator(rexp,lineEdit));
-			}
-		}
-		connect( lineEdit, SIGNAL( textChanged( const QString & ) ),
-				this, SLOT( setValue( const QString & ) ) );
-		connect( lineEdit, SIGNAL( lostFocus() ), this, SLOT( focusOutEvent()) );
+        lineEdit->setText(vValue);
 
-		setFocusProxy(lineEdit);
-		layout()->add( lineEdit );
-		lineEdit->show();
-		break;
+        if (vFieldType.isEmpty())
+        {
+            QString rx = tr("^\\-{0,1}\\d{0,%1}\\.{1}\\d{0,%2}$").arg(3).arg(3);
+            QRegExp rexp(rx);
+            lineEdit->setValidator(new QRegExpValidator(rexp, lineEdit));
+        }
+        else
+        {
+            if (n2 == 0)
+            {
+                QString rx = tr("^\\-{0,1}\\d{0,%1}$").arg(n1);
+                QRegExp rexp(rx);
+                lineEdit->setValidator(new QRegExpValidator(rexp, lineEdit));
+            }
+            else
+            {
+                QString rx = tr("^\\-{0,1}\\d{0,%1}\\.{1}\\d{0,%2}$").arg(n1).arg(n2);
+                QRegExp rexp(rx);
+                lineEdit->setValidator(new QRegExpValidator(rexp, lineEdit));
+            }
+        }
 
-	case String:
-		if(vFieldType.isEmpty())
-		{
-			// set default validator for string
-			lineEdit->setMaxLength(20);
-		}
-		else
-		{
-			// set validator for string
-			lineEdit->setMaxLength(n1);
-		}
-		connect( lineEdit, SIGNAL( textChanged( const QString & ) ),
-				this, SLOT( setValue( const QString & ) ) );
-		connect( lineEdit, SIGNAL( lostFocus() ), this, SLOT( focusOutEvent()) );
+        connect(lineEdit, SIGNAL(textChanged(const QString &)),
+                this, SLOT(setValue(const QString &)));
 
-		setFocusProxy(lineEdit);
-		layout()->add( lineEdit );
-		lineEdit->show();
-		break;
+        setFocusProxy(lineEdit);
+        layout()->addWidget(lineEdit);
+        lineEdit->show();
+        break;
 
-	case Date:
-	case DateTime:
-	// used object wDateTime, inherits QDateTime
-		dateEdit->setSeparator(".");
-		dateEdit->setOrder( Q3DateEdit::DMY );
-		connect(dateEdit, SIGNAL( valueChanged ( const QDate&) ),
-				this, SLOT( setValue( const QDate & ) ) );
-		connect(dateEdit, SIGNAL( lostFocus() ),
-			 	this, SLOT( focusOutEvent() ) );
+    case String:
+        if (vFieldType.isEmpty())
+            lineEdit->setMaxLength(20);
+        else
+            lineEdit->setMaxLength(n1);
 
-		setFocusProxy( dateEdit );
-		layout()->add( dateEdit );
-		dateEdit->show();
-		break;
+        connect(lineEdit, SIGNAL(textChanged(const QString &)),
+                this, SLOT(setValue(const QString &)));
 
-	case Catalogue:
-		md_oid = n1;
-		objLabel->setFrameShape( Q3Frame::Box );
-		objLabel->setLineWidth( 1 );
-		objLabel->setFocusPolicy(Qt::NoFocus);
-		objButton->setMaximumWidth(25);
-		objButton->setFocusPolicy(Qt::StrongFocus);
-		connect( objButton,	SIGNAL( clicked() ),
-			 this, SLOT( fieldSelect() ) );
+        setFocusProxy(lineEdit);
+        layout()->addWidget(lineEdit);
+        lineEdit->show();
+        break;
 
-		setFocusProxy(objButton);
-		layout()->add( objLabel );
-		layout()->add( objButton );
-		objLabel->show();
-		objButton->show();
-		break;
+    case Date:
+    case DateTime:
+        connect(dateEdit, SIGNAL(dateChanged(const QDate &)),
+                this, SLOT(setValue(const QDate &)));
 
-	case Document:
-//>>>>>>> 1.49.2.4
-	// Field type = Document
-		md_oid = n1;
-		objLabel->setFrameStyle( Q3Frame::Panel | Q3Frame::Sunken );
-		objLabel->setLineWidth( 1 );
-		objLabel->setFocusPolicy(Qt::NoFocus);
-		objButton->setMaximumWidth(25);
-		objButton->setFocusPolicy(Qt::StrongFocus);
-		connect( objButton,	SIGNAL( clicked() ),
-			 this, SLOT( fieldSelect() ) );
+        setFocusProxy(dateEdit);
+        layout()->addWidget(dateEdit);
+        dateEdit->show();
+        break;
 
-		setFocusProxy(objButton);
-		layout()->add( objLabel );
-		layout()->add( objButton );
-		objLabel->show();
-		objButton->show();
-		break;
+    case Catalogue:
+        md_oid = n1;
+        objLabel->setFrameShape(QFrame::Box);
+        objLabel->setLineWidth(1);
+        objLabel->setFocusPolicy(Qt::NoFocus);
+        objButton->setMaximumWidth(25);
+        objButton->setFocusPolicy(Qt::StrongFocus);
 
-	case Boolean:
-//		connect( checkBox, SIGNAL( lostFocus() ), this, SLOT( focusOutEvent()) );
-		connect( checkBox, SIGNAL( valueChanged ( const QString & ) ),
-				this, SLOT( setValue( const QString & ) ) );
+        connect(objButton, SIGNAL(clicked()),
+                this, SLOT(fieldSelect()));
 
-		connect( checkBox, SIGNAL( toggled (bool) ), checkBox, SLOT( on_toggled() ) );
-		setFocusProxy(checkBox);
-		layout()->add(checkBox);
-		checkBox->show();
-		break;
+        setFocusProxy(objButton);
+        layout()->addWidget(objLabel);
+        layout()->addWidget(objButton);
+        objLabel->show();
+        objButton->show();
+        break;
+
+    case Document:
+        md_oid = n1;
+        objLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+        objLabel->setLineWidth(1);
+        objLabel->setFocusPolicy(Qt::NoFocus);
+        objButton->setMaximumWidth(25);
+        objButton->setFocusPolicy(Qt::StrongFocus);
+
+        connect(objButton, SIGNAL(clicked()),
+                this, SLOT(fieldSelect()));
+
+        setFocusProxy(objButton);
+        layout()->addWidget(objLabel);
+        layout()->addWidget(objButton);
+        objLabel->show();
+        objButton->show();
+        break;
+
+    case Boolean:
+        connect(checkBox, SIGNAL(valueChanged(const QString &)),
+                this, SLOT(setValue(const QString &)));
+        connect(checkBox, SIGNAL(toggled(bool)),
+                checkBox, SLOT(on_toggled()));
+
+        setFocusProxy(checkBox);
+        layout()->addWidget(checkBox);
+        checkBox->show();
+        break;
 
     default:
-		objLabel->setText("UnknownField");
-		objLabel->setFrameShape(Q3Frame::Box);
-		setFocusPolicy(Qt::NoFocus);
-		layout()->add( objLabel );
-		objLabel->show();
-	break;
+        objLabel->setText("UnknownField");
+        objLabel->setFrameShape(QFrame::Box);
+        setFocusPolicy(Qt::NoFocus);
+        layout()->addWidget(objLabel);
+        objLabel->show();
+        break;
     }
-	setValue(vValue);
+
+    setValue(vValue);
 }
 
 
@@ -316,10 +318,9 @@ wField::load()
  * \ru 	Создает окно диалога редактора свойств.\_ru
  * 	\param parent - \en parent \_en \ru родитель \_ru
  */
-QDialog*
-wField::createEditor( QWidget *parent )
+QDialog *wField::createEditor(QWidget *parent)
 {
-    return new eField( parent );
+    return new eField(parent, 0);
 }
 
 
@@ -378,7 +379,7 @@ wField::setValue(const QString &newvalue)
 	 str = newvalue;
 	 if(newvalue.isEmpty())
 	 {
-		 str= QDateTime::currentDateTime(Qt::LocalTime).toString(Qt::ISODate);
+		str = QDateTime::currentDateTime().toString(Qt::ISODate);
 	 }
 	 dt = QDateTime::fromString(str,Qt::ISODate);
 	 vValue = dt.toString(Qt::ISODate);
@@ -460,59 +461,69 @@ wField::text() const
  * \en	Calls handler onClick event for Catalogue or Document object. \_en
  * \ru	Вызывает обработчик события onClick для объектов Каталог или Документ. \_ru
  */
-void
-wField::fieldSelect()
+void wField::fieldSelect()
 {
-	aForm * f = 0;
-//    if (!fieldEditor) return;
-	switch (vEditorType)
-	{
-		case Catalogue:
-			//printf("select catalogue\n");
-		if ( engine )
-		{
-			int fid = md->getDefaultFormId( md->find( md_oid ), md_action_view);
-			if ( !fid )
-			{
-				engine->openEmbedCatalogueEditor(md_oid,this,true);
-				return;
-			}
-			f = engine->openForm( md_oid, 0, md_action_view, 0, false );
-			if ( f )
-			{
-				connect(f, SIGNAL(selected( qulonglong )), this, SLOT(on_selected( qulonglong )));
-				f->closeAfterSelect = true;
-			}
-		}
-		else printf("No Engine\n");
-		break;
-		case Document:
-		if( engine )
-		{
-			aCfgItem journ  = md->findJournal(1, md->find( md_oid ));
-			if( journ.isNull() )
-			{
-				printf("special journal not found, find system journal\n");
-				journ = md->findJournal(0, md->find( md_oid ));
-			}
-			else
-			{
-				printf("found special journal %s with class %s\n", (const char*) md->attr(journ,mda_name).local8Bit(),md->objClass(journ).ascii());
-			}
-			f =  engine->openForm( md->id(journ), 0, md_action_view, 0, false );
-			if( f )
-			{
-				connect(f, SIGNAL(selected( qulonglong )), this, SLOT(on_selected( qulonglong )));
-				f->closeAfterSelect = true;
-			}
+    aForm *f = 0;
 
-		}
-		else printf("No engine\n");
-//		printf("select document!\n");
-		break;
-		default:
-		break;
-	}
+    switch (vEditorType)
+    {
+        case Catalogue:
+            if (engine)
+            {
+                int fid = md->getDefaultFormId(md->find(md_oid), md_action_view);
+                if (!fid)
+                {
+                    engine->openEmbedCatalogueEditor(md_oid, this, true);
+                    return;
+                }
+
+                f = engine->openForm(md_oid, 0, md_action_view, 0, false);
+                if (f)
+                {
+                    connect(f, SIGNAL(selected(qulonglong)),
+                            this, SLOT(on_selected(qulonglong)));
+                    f->closeAfterSelect = true;
+                }
+            }
+            else
+            {
+                printf("No Engine\n");
+            }
+            break;
+
+        case Document:
+            if (engine)
+            {
+                aCfgItem journ = md->findJournal(1, md->find(md_oid));
+                if (journ.isNull())
+                {
+                    printf("special journal not found, find system journal\n");
+                    journ = md->findJournal(0, md->find(md_oid));
+                }
+                else
+                {
+                    printf("found special journal %s with class %s\n",
+                           qPrintable(md->attr(journ, mda_name)),
+                           qPrintable(md->objClass(journ)));
+                }
+
+                f = engine->openForm(md->id(journ), 0, md_action_view, 0, false);
+                if (f)
+                {
+                    connect(f, SIGNAL(selected(qulonglong)),
+                            this, SLOT(on_selected(qulonglong)));
+                    f->closeAfterSelect = true;
+                }
+            }
+            else
+            {
+                printf("No engine\n");
+            }
+            break;
+
+        default:
+            break;
+    }
 }
 
 
@@ -687,8 +698,12 @@ wCatButton::keyPressEvent ( QKeyEvent * e )
 	}
 }
 
-wCheckBox::wCheckBox(QWidget * parent, const char * name):QCheckBox(parent,name)
+wCheckBox::wCheckBox(QWidget *parent, const char *name) : QCheckBox(parent)
 {
+    if (name)
+        setObjectName(name);
+
+    connect(this, SIGNAL(toggled(bool)), this, SLOT(on_toggled()));
 }
 
 wCheckBox::~wCheckBox()

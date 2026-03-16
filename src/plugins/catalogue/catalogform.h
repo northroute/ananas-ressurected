@@ -3,67 +3,73 @@
 
 #include "ui_catalogform.h"
 
-#include <Q3GridLayout>
-#include <Q3VBoxLayout>
+#include <QGridLayout>
+#include <QVBoxLayout>
+#include <QFrame>
+#include <QList>
+#include <QPixmap>
+#include <QLabel>
+#include <QKeyEvent>
+#include <QVariant>
+#include <QImage>
 
-
-class CatalogForm : public Q3MainWindow, public Ui::CatalogForm
+class CatalogForm : public QMainWindow, public Ui::CatalogForm
 {
     Q_OBJECT
 
 public:
-    CatalogForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    CatalogForm(QWidget* parent = 0, Qt::WindowFlags fl = 0);
     ~CatalogForm();
 
     aListView* ListView;
     QString fieldName;
     aLineEdit *LineEdit;
     aListBox* ListHint;
-    Q3Frame* StatusFrame;
+    QFrame* StatusFrame;
     aCatalogue* cat;
     bool FormToSelect;
 
-    virtual Q_ULLONG getId();
+    virtual qulonglong getId();
     virtual void init();
     virtual void destroy();
     virtual long findFirst( const QString & s );
-    virtual Q_ULLONG getIdg( Q_ULLONG ide );
+    virtual qulonglong getIdg( qulonglong ide );
     virtual QPixmap getGroupPixmap();
-    virtual void edit( Q3ListViewItem * item, bool );
+    virtual void edit( QTreeWidgetItem * item, bool );
     virtual QPixmap getElementPixmap();
     virtual QPixmap getMarkDeletedPixmap();
 
 public slots:
-    virtual void setData( aCatalogue * catalog, QMap<Q_ULLONG, Q3ListViewItem *> mg, const QStringList & Fname, const QStringList & FnameGroup, Q_ULLONG idElForm, Q_ULLONG idGrForm, const bool toSelect );
-    virtual void setId( Q_ULLONG idx );
+    virtual void setData( aCatalogue * catalog, QMap<qulonglong, QTreeWidgetItem *> mg, const QStringList & Fname, const QStringList & FnameGroup, qulonglong idElForm, qulonglong idGrForm, const bool toSelect );
+    virtual void setId( qulonglong idx );
     virtual void find( const QString & s );
     virtual void pressArrow();
     virtual void isPressArrow();
     virtual void setText( const QString & s );
     virtual void go();
-    virtual void goToItem( Q3ListViewItem * item );
-    virtual void loadElements( Q_ULLONG idGroup );
-    virtual void onLoadElements( Q3ListViewItem * item );
-    virtual void new_item( Q3ListViewItem * parentItem );
-    virtual void new_group( Q3ListViewItem * parentItem );
-    virtual void del_item( Q3ListViewItem * item );
-    virtual void mark_deleted( Q3ListViewItem * item );
-    virtual void undo_mark_deleted( Q3ListViewItem * item );
-    virtual void edit( Q3ListViewItem * item, int );
-    virtual void select( Q3ListViewItem * item );
-    virtual void Refresh( Q_ULLONG id );
+    virtual void goToItem( QTreeWidgetItem * item );
+    virtual void loadElements( qulonglong idGroup );
+    virtual void onLoadElements( QTreeWidgetItem * item );
+    virtual void new_item( QTreeWidgetItem * parentItem );
+    virtual void new_group( QTreeWidgetItem * parentItem );
+    virtual void del_item( QTreeWidgetItem * item );
+    virtual void mark_deleted( QTreeWidgetItem * item );
+    virtual void undo_mark_deleted( QTreeWidgetItem * item );
+    virtual void edit( QTreeWidgetItem * item, int );
+    virtual void select( QTreeWidgetItem * item );
+    virtual void Refresh( qulonglong id );
 
 signals:
-    void selected(Q_ULLONG);
+    void selected(qulonglong);
 
 protected:
-    Q3GridLayout* GridLayout;
-    Q3VBoxLayout* layout1;
-    Q_ULLONG id,idElementForm,idGroupForm;
+    QGridLayout* GridLayout;
+    QVBoxLayout* layout1;
+    qulonglong id,idElementForm,idGroupForm;
     QStringList fieldList, fieldListGroup;
 
-    virtual long getGroupId( Q3ListViewItem * item );
-    virtual Q_ULLONG getElementId( Q3ListViewItem * item );
+    virtual long getGroupId( QTreeWidgetItem * item );
+    virtual qulonglong getElementId( QTreeWidgetItem * item );
 
 protected slots:
     virtual void languageChange();
@@ -72,9 +78,9 @@ protected slots:
 
 
 private:
-    QMap<Q_ULLONG, Q3ListViewItem*> map_gr;
-    QMap<Q_ULLONG, Q3ListViewItem*> map_el;
-    QMap<Q_ULLONG,bool> map_deleted;
+    QMap<qulonglong, QTreeWidgetItem*> map_gr;
+    QMap<qulonglong, QTreeWidgetItem*> map_el;
+    QMap<qulonglong,bool> map_deleted;
 
 private slots:
     virtual void doOk();

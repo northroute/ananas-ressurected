@@ -33,8 +33,9 @@
 #ifndef AMENUBAR_H
 #define AMENUBAR_H
 
+
 #include <QMenuBar>   // вместо <qmenubar.h>
-#include <QMenu>      // вместо <Q3PopupMenu>
+#include <QMenu>
 #include <QPixmap>
 
 #include	"acfg.h"

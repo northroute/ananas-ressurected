@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wactionbutton_taskmenu.h"
 #include "wactionbutton.h"
 #include "eactionbutton.h"

@@ -4,7 +4,7 @@
 #include "ui_deditaction.h"
 
 
-class dEditAction : public Q3MainWindow, public Ui::dEditAction
+class dEditAction : public QMainWindow, public Ui::dEditAction
 {
     Q_OBJECT
 

@@ -1,14 +1,7 @@
 #include "edbtable.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
-#include <stdlib.h>
 #include "wdbtable.h"
-//Added by qt3to4:
-#include <Q3ValueList>
-#include <Q3SqlFieldInfo>
+
 
 /*
  *  Constructs a eDBTable as a child of 'parent', with the
@@ -17,9 +10,10 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-eDBTable::eDBTable(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+eDBTable::eDBTable(QWidget *parent, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
+    setObjectName("eDBTable");
+
     setupUi(this);
 
     init();
@@ -86,365 +80,233 @@ if (ListCol->count()) ListCol->setCurrentItem(ListCol->count()-1);
 }
 */
 
-
-
 void eDBTable::ColumnDel()
 {
+    int idx = ListCol->currentRow();
+    if (idx == -1 || ListCol->count() == 0)
+        return;
 
-int idx;
-QString str;
-idx = ListCol->currentItem();
-if (idx != -1 && ListCol->count()>0)
-{
-	str = fname[idx];
-	table->removeColumn(idx);
-	deletedFields.append(str);
-	deletedFieldsId.append(idlist[idx]);
-	idlist.remove(idlist.at(idx));
-	fname.remove(fname.at(idx));
-	cwidth.remove(cwidth.at(idx));
-	ListCol->removeItem(idx);
-//	table->removeColumn(idx);
-}
+    QString str = fname[idx];
+
+    deletedFields.append(str);
+    deletedFieldsId.append(idlist[idx]);
+
+    idlist.removeAt(idx);
+    fname.removeAt(idx);
+    cwidth.removeAt(idx);
+
+    delete ListCol->takeItem(idx);
 }
 
 void eDBTable::ColumnL()
 {
- int idx;
- QString str;
- QStringList::Iterator it;
- 	idx = ListCol->currentItem();
-	if(idx>0)
-	{
-		str = fname[idx];
-		//--it = fname.at(idx);
-		//--fname.remove(it);
-		fname.removeAt(idx);
-		//--it = fname.at(idx-1);
-		//--fname.insert(it,str);
-		fname.insert(idx-1,str);
+    int idx = ListCol->currentRow();
+    if (idx <= 0) return;
 
-		str = idlist[idx];
-		//--it = idlist.at(idx);
-		//--idlist.remove(it);
-		idlist.removeAt(idx);
-		//--it = idlist.at(idx-1);
-		//--idlist.insert(it,str);
-		idlist.insert(idx-1,str);
+    fname.move(idx, idx - 1);
+    idlist.move(idx, idx - 1);
+    cwidth.move(idx, idx - 1);
 
-		str = cwidth[idx];
-		//--it = cwidth.at(idx);
-		//--cwidth.remove(it);
-		cwidth.removeAt(idx);
-		//--it = cwidth.at(idx-1);
-		//--cwidth.insert(it,str);
-		cwidth.insert(idx-1,str);
-
-	 	str = ListCol->currentText();
-		ListCol->removeItem(idx);
-		ListCol->insertItem(str,idx-1);
-		ListCol->setSelected(idx-1,true);
-	}
+    QListWidgetItem *item = ListCol->takeItem(idx);
+    ListCol->insertItem(idx - 1, item);
+    ListCol->setCurrentRow(idx - 1);
 }
-
 
 void eDBTable::ColumnR()
 {
- uint idx;
- QString str;
- QStringList::Iterator it;
- 	idx = ListCol->currentItem();
-	if(idx<ListCol->count()-1)
-	{
-		str = fname[idx];
-		//--it = fname.at(idx);
-		//--fname.remove(it);
-		fname.removeAt(idx);
-		//--it = fname.at(idx+1);
-		//--fname.insert(it,str);
-		fname.insert(idx+1,str);
+    int idx = ListCol->currentRow();
+    if (idx == -1) return;
 
-		str = idlist[idx];
-		//--it = idlist.at(idx);
-		//--idlist.remove(it);
-		idlist.removeAt(idx);
-		//--it = idlist.at(idx+1);
-		//--idlist.insert(it,str);
-		idlist.insert(idx+1,str);
+    if (idx < ListCol->count() - 1)
+    {
+        fname.move(idx, idx + 1);
+        idlist.move(idx, idx + 1);
+        cwidth.move(idx, idx + 1);
 
-		str = cwidth[idx];
-		//--it = cwidth.at(idx);
-		//--cwidth.remove(it);
-		cwidth.removeAt(idx);
-		//--it = cwidth.at(idx+1);
-		//--cwidth.insert(it,str);
-		cwidth.insert(idx+1,str);
-
-		str = ListCol->currentText();
-		ListCol->removeItem(idx);
-		ListCol->insertItem(str,idx+1);
-		ListCol->setSelected(idx+1,true);
-	}
-
+        QListWidgetItem *item = ListCol->takeItem(idx);
+        ListCol->insertItem(idx + 1, item);
+        ListCol->setCurrentRow(idx + 1);
+    }
 }
+
 void eDBTable::ColumnSel(int col)
 {
-QString str,s;
-int ind = 0;
-QStringList lst;
-	eColHeader->blockSignals(true);
-	eColWidth->blockSignals(true);
-	eType->clear();
-	eColTWidth->setValue(0);
-	eColTDec->setValue(0);
-	eColHeader->setText("");
-	eColWidth->setValue(0);
-	eColName->setText("");
-//	str = table->getFieldType((const char*) ComboBoxTable->currentText().utf8(),(const char*)ListCol->currentText().utf8());
-	//if(eColHeader->text="")
-//	ListCol->blockSignals( TRUE );
-	//ListCol->changeItem(s, ListCol->currentItem());
+    QString str, s;
 
-//	printf(">>>read property DefHeaders in %s\n", table->name());
-//	lst = table->property("DefHeaders").toStringList();
-//	printf(">>>ok!\n");
-//	ListCol->clear();
-//	printf(">>>insert str list\n");
-//	ListCol->insertStringList(lst);
-//	ListCol->setCurrentItem(col);
-//	ListCol->blockSignals( FALSE );
-	if(col==-1 || ListCol->count()==0) return;
-//	printf(">>>set text in eColHeader\n");
-	eColHeader->setText(ListCol->currentText());
-	eColHeader->blockSignals(false);
-	ind = ListCol->currentItem();
-	str = cwidth[ind];
-	eColWidth->setValue(atoi(str));
-	eColWidth->blockSignals(false);
-	str = fname[ind];
-	eColName->setText(str);
-//	eType->clear();
-//	printf(">>>get fields type\n");
-//	str = eColName->text();
+    eColHeader->blockSignals(true);
+    eColWidth->blockSignals(true);
 
-	str = table->getFieldType(idlist[ind].toInt());
-//	parse string with type, num, numdec
-	if(!str.isEmpty())
-	{
-		eType->setText(str.left(1));
-		str.remove(0,2);
-		if(!str.isEmpty())
-		{
-//			printf(">>>%s\n",str.ascii());
-			eColTWidth->setValue(atoi(str));
-		}
-		ind = str.find(" ");
-		if(ind)// poisk decimal chasti
-		{
-			s = str.remove(0,str.find(" "));
-		}
-		else
-		{
-			str="0";
-		}
-//		printf(">>>%s\n",str.ascii());
-		eColTDec->setValue(atoi(str));
-	}
-	else
-	{
-//		printf(">>>unknown field\n");
-	}
-	/*
-	tablefield *f;
+    eType->clear();
+    eColTWidth->setValue(0);
+    eColTDec->setValue(0);
+    eColHeader->clear();
+    eColWidth->setValue(0);
+    eColName->clear();
 
-	if (col >= 0 && col < tablerow_columns( r )) {
-		f = tablerow_column( r, col );
-		blockSignals( true );
-		eColHeader->setText(trUtf8(tablefield_header( f )));
-		eColWidth->setValue(f->sizex);
-		eType->setCurrentItem(f->ftypeindex);
-		eColName->setText(trUtf8(f->name));
-		eColTWidth->setValue(f->flen);
-		eColTDec->setValue(f->decimals);
-		blockSignals( false );
-	}
-*/
+    if (col == -1 || ListCol->count() == 0)
+        return;
+
+    int ind = ListCol->currentRow();
+
+    eColHeader->setText(ListCol->item(ind)->text());
+    eColHeader->blockSignals(false);
+
+    str = cwidth[ind];
+    eColWidth->setValue(str.toInt());
+    eColWidth->blockSignals(false);
+
+    str = fname[ind];
+    eColName->setText(str);
+
+    str = table->getFieldType(idlist[ind].toInt());
+
+    // parse string with type, num, numdec
+    if (!str.isEmpty())
+    {
+        eType->setText(str.left(1));
+        str.remove(0, 2);
+
+        if (!str.isEmpty())
+            eColTWidth->setValue(str.toInt());
+
+        int pos = str.indexOf(' ');   // decimal part
+
+        if (pos != -1)
+        {
+            s = str.mid(pos + 1);
+        }
+        else
+        {
+            s = "0";
+        }
+
+        eColTDec->setValue(s.toInt());
+    }
 }
-
 
 void eDBTable::ColumnUpd()
 {
-QStringList lst;
-int id;
-Q3ValueList<int> listTableId;
-	id = table->getTableId(ComboBoxTable->currentItem()-1);
-	listTableId = table->getBindList();
-	if(listTableId.find(id)!=listTableId.end())
-	{
-		cfg_message(0,tr("table in use, please select another table"));
-	//	ComboBoxTable->setCurrentItem(table->getTableInd(table->property("TableInd").toInt()));
-		ListCol->clear();
-		ListCol->insertItem("table in use!");
-		ListCol->setEnabled(false);
-		bOK->setEnabled(false);
-		ColumnSel(-1); // clear all line edit and labels
-		return;
-	}
-	if(!ListCol->isEnabled()) ListCol->setEnabled(true);
-	if(!bOK->isEnabled()) bOK->setEnabled(true);
-	lst = table->getFields(id);
-	ListCol->clear();
-	fname = lst;
-	idlist = table->getFields(id,true);
-	ListCol->insertStringList(lst,0);
-	cwidth.clear();
-	for(uint i=0; i<lst.count();i++)
-	{
-		cwidth << table->property("DefaultColWidth").toString();
-	}
-	//fname = table->fname;
-	findDeletedFields(id,idlist);
+    QStringList lst;
 
+    int id = table->getTableId(ComboBoxTable->currentIndex() - 1);
+    QList<int> listTableId = table->getBindList();
+
+    if (listTableId.contains(id))
+    {
+        cfg_message(0, tr("table in use, please select another table").toUtf8().constData());
+
+        ListCol->clear();
+        ListCol->addItem("table in use!");
+        ListCol->setEnabled(false);
+        bOK->setEnabled(false);
+
+        ColumnSel(-1);
+        return;
+    }
+
+    ListCol->setEnabled(true);
+    bOK->setEnabled(true);
+
+    lst = table->getFields(id);
+
+    ListCol->clear();
+
+    fname  = lst;
+    idlist = table->getFields(id, true);
+
+    ListCol->addItems(lst);
+
+    cwidth.clear();
+    QString defWidth = QString::number(table->getDefColWidth());
+
+    for (int i = 0; i < lst.count(); ++i)
+        cwidth << defWidth;
+
+    findDeletedFields(id, idlist);
+}
+
+void eDBTable::getData(wDBTable *t)
+{
+    QStringList lst;
+
+    if (ComboBoxTable->count())
+    {
+        t->setTblInd(t->getTableId(ComboBoxTable->currentIndex() - 1));
+
+        // очищаем таблицу
+        t->clear();
+        t->setColumnCount(0);
+
+        for (int j = 0; j < ListCol->count(); ++j)
+        {
+            QString header = ListCol->item(j)->text();
+            lst << header;
+
+            int col = t->columnCount();
+            t->insertColumn(col);
+
+            QTableWidgetItem *item = new QTableWidgetItem(header);
+            t->setHorizontalHeaderItem(col, item);
+
+            t->setColumnWidth(col, cwidth[j].toInt());
+        }
+
+        t->setDefHeaders(lst);
+        t->setDefFields(fname);
+        t->setDefIdList(idlist);
+        t->setColWidth(cwidth);
+    }
+    else
+    {
+        t->setTblInd(-1);
+    }
 }
 
 
-void eDBTable::getData( wDBTable *t )
+void eDBTable::setData(wDBTable *t, aCfg *md)
 {
-QStringList lst;
-QString str, str2;
-int i;
-const Q3SqlFieldInfo *f;
-	if(ComboBoxTable->count())
-	{
-	//	t->setProperty("TableInd", tables[ComboBoxTable->currentItem()].section("\t",0,0).toInt())
-		t->setProperty("TableInd",t->getTableId(ComboBoxTable->currentItem()-1));
-		i=0;
-		while(i<t->numCols())
-		{
-			t->removeColumn(0);
-			++i;
-		}
-		t->cur->clear();
-		for(uint j=0; j<ListCol->count(); j++)
-		{
-			ListCol->setCurrentItem(j);
-			str = ListCol->currentText();
-			lst << str;
-			f = new Q3SqlFieldInfo(fname[j]);
-			t->cur->append(*f);
-			t->setSqlCursor(t->cur);
-			t->addColumn(f->name(),str,atoi(cwidth[j].ascii()));
-			t->refresh(Q3DataTable::RefreshColumns);
-		}
-		t->setProperty("DefHeaders",lst);
-		t->setProperty("DefFields",fname);
-		t->setProperty("DefIdList",idlist);
-		t->setProperty("ColWidth", cwidth);
-	}
-	else
-	{
-		t->setProperty("TableInd",-1);
-	}
+    QStringList lst;
+    int idTable;
+    bool ok;
+
+    table = t;
+
+    ComboBoxTable->insertItems(1, table->list_available_tables);
+
+    idTable = table->property("TableInd").toInt(&ok);
+
+    ComboBoxTable->setCurrentIndex(1 + t->getTableInd(idTable));
+
+    if (ok && idTable > -1)
+    {
+        lst = table->property("DefHeaders").toStringList();
+        ListCol->insertItems(0, lst);
+
+        cwidth = table->property("ColWidth").toStringList();
+        fname  = table->property("DefFields").toStringList();
+        idlist = table->property("DefIdList").toStringList();
+
+        findDeletedFields(idTable, idlist);
+    }
+    else
+    {
+        ColumnUpd();
+    }
+
+    ListCol->setFocus();
 }
 
 
-void eDBTable::setData( wDBTable * t, aCfg *md )
-
+void eDBTable::ColumnTextUpd(const QString &s)
 {
-QStringList sl;
-QString ft,h,n;
-int idTable;
-bool ok;
-QStringList lst,lst_full;
-aCfgItem own;
-aWidget *wo;
-         table = t;
-//        md->print();
-//		own =
-	//	wo = aWidget::parentContainer( t );
-	//	if ( !wo ) return;
-	//	tables = md->objTables( wo->getId() );
-	//	QString wotype = wo->className();
-//		if ( wotype == "wDocument" ) tables.remove( tables[0] );
-//		if ( wotype == "wCatalogue" ) tables.remove( tables[1] );
-//		printf("tables=\n%s\n", ( const char *) tables.join("\n") );
-//		for ( unsigned int i=0; i < tables.count(); i++ ) {
-//		    ComboBoxTable->insertItem( tables[ i ].section("\t", 1 ) );
-//		}
-//	ComboBoxTable->insertItem("None");
-	ComboBoxTable->insertStringList(table->list_available_tables, 1);
-	idTable = table->property("TableInd").toInt(&ok);
-        //    printf("table ind = %i, id table =%i\n", t->getTableInd(idTable), idTable );
+    CHECK_POINT
 
-        	ComboBoxTable->setCurrentItem(1+t->getTableInd(idTable));
-	if(ok && idTable>-1)
-	{
-        //	v = new  QVariant(lst);
-        //	}
-        //	else
-        //	{
-	//	        table->setFields(t->getTableId(0));
-	        //	v = new  QVariant(lst);
-        		//table->setProperty("DefFields",*v);
-        //	}
-  //      	v = new  QVariant(lst);
-//		table->setProperty("DefHeaders",*v);
-	//	table->setProperty("ColWidth",*v);
-	//ComboBoxTable->setFocus();
-//       	tmp_table = *t;
-		lst = table->property("DefHeaders").toStringList();
-		ListCol->insertStringList(lst,0);
-		cwidth = table->property("ColWidth").toStringList();
-		fname = table->property("DefFields").toStringList();
-		idlist = table->property("DefIdList").toStringList();
-		findDeletedFields(idTable,idlist);
-	}
-	else
-	{
-		ColumnUpd();
-	}
-	ListCol->setFocus();
-	/*	if(!ListCol->isEmpty())
-		{
-			ColumnSel(0);
-		}
-	*/
-	/*
-		if (!t->getDefineCols().isEmpty()) {
-			sl = QStringList::split("\n",t->getDefineCols());
-			for (i = 0; i < sl.count(); i++) {
-				sscanf((const char *)sl[i].section("|",3,3),"%s %d %d", st, &l, &d);
-				if (st[0]=='O') ft.sprintf("O %d",l);
-				else ft=st;
-				w = sl[i].section("|",2,2).toInt();
-				h = sl[i].section("|",5,5);
-				n = sl[i].section("|",4,4);
-				for (idxt = otypes.count()-1; idxt>0; idxt--) {
-					if (ft[0]=='O' && otypes[idxt]==ft) break;
-					else if (otypes[idxt][0]==ft[0]) break;
-				}
-				printf("set data %i = %s %s %i %i %i\n", i,
-				(const char *)h, (const char *)n, idxt, w, l);
-				insertColumn(h,n,idxt,w,l,d);
-			}
-		}
-	*/
+    int idx = ListCol->currentRow();
+    if (idx == -1) return;
 
-
-}
-
-
-void eDBTable::ColumnTextUpd( const QString &s )
-{
-CHECK_POINT
-
-	int idx;
-	idx = ListCol->currentItem();
-	if (idx == -1) return;
-	ListCol->blockSignals( TRUE );
-	ListCol->changeItem(s, ListCol->currentItem());
-	ListCol->blockSignals( FALSE );
-
+    ListCol->blockSignals(true);
+    ListCol->item(idx)->setText(s);
+    ListCol->blockSignals(false);
 }
 
 
@@ -457,61 +319,64 @@ void eDBTable::doOK()
 
 void eDBTable::ColumnAdd()
 {
-QString s;
-QString idx;
-QStringList::Iterator it;
-	addfdialog e( this->topLevelWidget());
-	e.setData(deletedFields,deletedFields,deletedFieldsId);
-	if ( e.exec()==QDialog::Accepted )
-	{
-		idx = e.getData(false);
-//		printf(">>>idx = %s\n",idx.ascii());
-		if(idx=="0") return;
-		s = table->getFieldName(idx.toInt());
-		idlist << idx;
-//		printf(">>> add field = '%s'\n",s.ascii());
-		ListCol->insertItem(s,ListCol->count());
-		fname << s;
-		cwidth << table->property("DefaultColWidth").toString();
-		it = deletedFields.find(s);
-		deletedFields.remove(it);
-		it = deletedFieldsId.find(idx);
-		deletedFieldsId.remove(it);
-//		table->addColumn(s,s,100);
-	}
+    QString s;
+    QString idx;
+
+    addfdialog e(this->topLevelWidget(), 0);
+    e.setData(deletedFields, deletedFields, deletedFieldsId);
+
+    if (e.exec() == QDialog::Accepted)
+    {
+        idx = e.getData(false);
+
+        if (idx == "0")
+            return;
+
+        s = table->getFieldName(idx.toInt());
+
+        idlist << idx;
+
+        ListCol->insertItem(ListCol->count(), s);
+
+        fname << s;
+        cwidth << table->property("DefaultColWidth").toString();
+
+        deletedFields.removeAll(s);
+        deletedFieldsId.removeAll(idx);
+    }
 }
 
-
-void eDBTable::ColWidthChange( int value )
+void eDBTable::ColWidthChange(int value)
 {
-	int ind;
-	QString num;
-	ind = ListCol->currentItem();
-	if(ind!=-1)
-	{
-		cwidth[ind] = num.setNum(value);
-	}
+    int ind = ListCol->currentRow();
 
+    if (ind != -1)
+    {
+        cwidth[ind] = QString::number(value);
+    }
 }
 
-
-QStringList
-eDBTable::findDeletedFields( int t_num ,QStringList idls)
+QStringList eDBTable::findDeletedFields(int t_num, const QStringList &idls)
 {
-	QStringList lst_full;
-	deletedFields.clear();
-	//formiruem list udalennix poley
-	lst_full = table->getFields(t_num,true);
-	for(unsigned int i=0;i<lst_full.count();i++)
-	{
-//		printf(">>>field '%s'\n",lst_full[i].ascii());
-		if(idls.find(lst_full[i])==idls.end())
-		{
-			deletedFieldsId << lst_full[i];
-			deletedFields << table->getFieldName(lst_full[i].toInt());
-		}
-	}
-return deletedFields;
+    QStringList lst_full;
+    deletedFields.clear();
+    deletedFieldsId.clear();
+
+    // формируем список удалённых полей
+    lst_full = table->getFields(t_num, true);
+
+    for (int i = 0; i < lst_full.count(); ++i)
+    {
+        const QString &fieldId = lst_full.at(i);
+
+        if (!idls.contains(fieldId))
+        {
+            deletedFieldsId << fieldId;
+            deletedFields << table->getFieldName(fieldId.toInt());
+        }
+    }
+
+    return deletedFields;
 }
 
 

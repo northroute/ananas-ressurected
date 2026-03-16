@@ -15,10 +15,6 @@
 **
 ****************************************************************************/
 
-#include <QDesignerFormEditorInterface>
-
-#include <QAction>
-
 #include "wdocument_taskmenu.h"
 #include "wdocument.h"
 #include "edocument.h"

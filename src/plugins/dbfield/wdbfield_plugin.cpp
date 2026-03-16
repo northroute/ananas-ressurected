@@ -19,10 +19,6 @@
 
 #include "wdbfield_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wdbfield_taskmenu.h"
 #include "wdbfield.h"
 

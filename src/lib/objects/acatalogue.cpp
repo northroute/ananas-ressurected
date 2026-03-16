@@ -74,7 +74,7 @@ aCatalogue::initObject()
 }
 
 /*
-Q_ULLONG
+qulonglong
 aCatalogue::getCatGroup()
 {
 	aSQLTable * t = table();

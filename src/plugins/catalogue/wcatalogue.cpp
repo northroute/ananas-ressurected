@@ -28,11 +28,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <q3toolbar.h>
-#include <qaction.h>
 //--#include <qfocusdata.h>
 #include "adatabase.h"
 #include "wcatalogue.h"
@@ -63,43 +58,42 @@ wCatalogue::~wCatalogue()
 
 
 
-void
-wCatalogue::initObject( aDatabase *adb )
+void wCatalogue::initObject(aDatabase *adb)
 {
-	aWidget::initObject( adb );
-	QObject *obj;
-	QObjectList lb = this->queryList( "QWidget" );
-	QListIterator<QObject*> itb( lb ); // iterate over all wDBFields
-	while ( itb.hasNext() )
+	aWidget::initObject(adb);
+
+	QList<QWidget*> widgets = this->findChildren<QWidget*>();
+	QListIterator<QWidget*> itb(widgets);
+
+	while (itb.hasNext())
 	{
-		obj = itb.next();
-		if(obj->inherits("wDBField"))
+		QWidget *obj = itb.next();
+		if (!obj) continue;
+
+		if (obj->inherits("wDBField"))
 		{
-//		if ( (wActionButtton*) obj )->isActionUpdate() )
-			connect( (wDBField *)obj, SIGNAL(valueChanged( const QVariant & )),
-				this, SLOT(valueChanged( const QVariant & )) );
+			connect((wDBField*)obj, SIGNAL(valueChanged(const QVariant &)),
+				this, SLOT(valueChanged(const QVariant &)));
 		}
-		if(obj->inherits("wGroupTree"))
+
+		if (obj->inherits("wGroupTree"))
 		{
 			((wGroupTree*)obj)->setId(getId());
-			connect( (wGroupTree *)obj, SIGNAL(selectionChanged( const qulonglong )),
-				this, SLOT(selectionChanged( const qulonglong )) );
-
+			connect((wGroupTree*)obj, SIGNAL(selectionChanged(const qulonglong)),
+				this, SLOT(selectionChanged(const qulonglong)));
 		}
-		if(obj->inherits("wDBTable"))
+
+		if (obj->inherits("wDBTable"))
 		{
-			connect( this, SIGNAL(newSelectionFilter( const QString&  )),
-				(wDBTable*)obj, SLOT(newFilter( const QString& )) );
-			connect( this, SIGNAL(newSelectionGroupId( const qulonglong  )),
-				(wDBTable*)obj, SLOT(newDataId( const qulonglong )) );
+			connect(this, SIGNAL(newSelectionFilter(const QString&)),
+				(wDBTable*)obj, SLOT(newFilter(const QString&)));
 
+			connect(this, SIGNAL(newSelectionGroupId(const qulonglong)),
+				(wDBTable*)obj, SLOT(newDataId(const qulonglong)));
 		}
-
 	}
-	//--delete lb; // delete the list, not the objects
-	//--focusData()->next()->setFocus();
-	focusNextChild();
 
+	focusNextChild();
 }
 
 
@@ -124,12 +118,13 @@ wCatalogue::initObject( aDatabase *adb )
  *\~
  *\param value - \~english new field value. \~russian новое значение поля. \~
  */
-void
-wCatalogue::valueChanged( const QVariant & value )
+void wCatalogue::valueChanged(const QVariant &value)
 {
-	if ( sender()->className() != QString("wDBField") ) return;
-	wDBField * fld = ( wDBField * ) sender();
-	aCfgItem o_field,o_parent;
+	if (!sender() || sender()->metaObject()->className() != QString("wDBField"))
+		return;
+
+	wDBField *fld = static_cast<wDBField*>(sender());
+	aCfgItem o_field, o_parent;
 	QString parent_name;
 	QVariant val = value;
 
@@ -137,30 +132,28 @@ wCatalogue::valueChanged( const QVariant & value )
 	o_parent = md->parent(o_field);
 	const QString fname = fld->getFieldName();
 
-	parent_name = md->objClass( o_parent );
-	if( parent_name == QString(md_group) )
+	parent_name = md->objClass(o_parent);
+
+	if (parent_name == QString(md_group))
 	{
-
-		if (dbobj)// && dbobj->className() == QString("aCatalogue") )
-		{
-			aLog::print(aLog::Debug, tr("wCatalogue group value changed to %1").arg(value.toString()));
-			((aCatalogue*)dbobj)->GroupSetValue( fname, value );
-		}
-
-
-	}
-
-	else
-	{
-
 		if (dbobj)
 		{
-			aLog::print(aLog::Debug, tr("wCatalogue element value changed to %1").arg(value.toString()));
-			dbobj->SetValue( fname, val );
+			aLog::print(aLog::Debug,
+				tr("wCatalogue group value changed to %1").arg(value.toString()));
+			((aCatalogue*)dbobj)->GroupSetValue(fname, value);
+		}
+	}
+	else
+	{
+		if (dbobj)
+		{
+			aLog::print(aLog::Debug,
+				tr("wCatalogue element value changed to %1").arg(value.toString()));
+			dbobj->SetValue(fname, val);
 		}
 	}
 
-	emit aWidget::valueChanged( fname, value );
+	emit aWidget::valueChanged(fname, value);
 }
 
 
@@ -258,40 +251,28 @@ wCatalogue::createDBObject(  aCfgItem obj, aDatabase *adb )
 }
 
 
-ERR_Code
-wCatalogue::Select( qulonglong id )
+ERR_Code wCatalogue::Select(qulonglong id)
 {
+	QList<wDBTable*> tables = this->findChildren<wDBTable*>();
+	QListIterator<wDBTable*> itb(tables);
 
-	//if ( formMode()==0 ) {
-
-	QObject *obj;
-	QObjectList lb = this->queryList( "wDBTable" );
-	QListIterator<QObject*> itb( lb ); // iterate over all wDBTable
-	while ( itb.hasNext() )
+	while (itb.hasNext())
 	{
-		obj = itb.next();
-		( (wDBTable *)obj )->setFocus();
-		( (wDBTable *)obj )->Select( id );
-//		if ( (wActionButtton*) obj )->isActionUpdate() )
-//		connect( (wDBTable *)obj, SIGNAL(valueChanged( const QVariant & )),
-//				this, SLOT(valueChanged( const QVariant & )) );
+		wDBTable *table = itb.next();
+		if (!table) continue;
+
+		table->setFocus();
+		table->Select(id);
 	}
-	//--delete lb; // delete the list, not the objects
-	//--lb=0;
-//	return 0;
 
+	blockSignals(true);
+	ERR_Code err = aWidget::Select(id);
 
-
-//}
-//
-//
-	blockSignals( true );
-	ERR_Code err = aWidget::Select ( id ); //table()->select( id ); //aWidget::Select ( id );
-
-	blockSignals( true );
+	blockSignals(true);
 	NewValues();
-	blockSignals( false );
-	return err_noerror;
+	blockSignals(false);
+
+	return err;
 }
 
 
@@ -324,47 +305,42 @@ wCatalogue::SelectGroup( qulonglong id )
  *	используется при открытии формы или смене каталога.
  *\~
  */
-void
-wCatalogue::NewValues()
+void wCatalogue::NewValues()
 {
 	aLog::print(aLog::Debug, tr("wCatalogue set new values for all fields"));
-	QString fname;
-	QObjectList l = this->queryList( "wDBField" );
-	QListIterator<QObject*> it( l );
-	QObject *obj;
-	//--obj = it.toFirst();
-	aCfgItem o_field,o_parent;
+
+	QList<wDBField*> fields = this->findChildren<wDBField*>();
+	QListIterator<wDBField*> it(fields);
+
+	aCfgItem o_field, o_parent;
 	QString parent_name;
-	while ( it.hasNext() )
+
+	while (it.hasNext())
 	{
-		//++it;
-		//obj = it.current();
-		obj= it.next();
-		fname=((wDBField *)obj)->getFieldName();
-		o_field = md->find(((wDBField *)obj)->getId());
+		wDBField *field = it.next();
+		if (!field) continue;
+
+		QString fname = field->getFieldName();
+		o_field = md->find(field->getId());
 		o_parent = md->parent(o_field);
-		//printf( "field name %s\n",(const char*)fname.local8Bit() );
-		parent_name = md->objClass( o_parent );
-		//printf("parent_name = %s\n", (const char*)parent_name );
-		if( parent_name == QString(md_group) )
+		parent_name = md->objClass(o_parent);
+
+		if (parent_name == QString(md_group))
 		{
-//			debug_message("group set value\n");
-			if (dbobj)// && dbobj->className() == QString("aCatalogue") )
+			if (dbobj)
 			{
-
-				aLog::print(aLog::Debug, tr("wCatalogue set new values for group field %1").arg(fname));
-				((wDBField*)obj)->setValue(((aCatalogue*)dbobj)->GroupValue( fname ).toString());
+				aLog::print(aLog::Debug,
+					tr("wCatalogue set new values for group field %1").arg(fname));
+				field->setValue(((aCatalogue*)dbobj)->GroupValue(fname).toString());
 			}
-
 		}
 		else
 		{
-			aLog::print(aLog::Debug, tr("wCatalogue value for element field %1 ").arg(fname));
-			((wDBField*)obj)->setValue(dbobj->Value(fname).toString());
+			aLog::print(aLog::Debug,
+				tr("wCatalogue value for element field %1 ").arg(fname));
+			field->setValue(dbobj->Value(fname).toString());
 		}
 	}
-	//--delete l; // delete the list, not the objects
-	//--l=0;
 }
 
 
@@ -379,8 +355,7 @@ wCatalogue::setFormMode( int Mode )
 /*!
  * Create toolbar for Catalogue.
  */
-Q3ToolBar*
-wCatalogue::createToolBar( Q3MainWindow * owner )
+QToolBar* wCatalogue::createToolBar( QMainWindow * owner )
 {
 	/*
 	QAction *a;

@@ -31,14 +31,20 @@
 #ifndef WTABLE_H
 #define WTABLE_H
 
-#include <qwidget.h>
+
 #include <qwidgetplugin.h>
-#include <qobject.h>
-#include <q3scrollview.h>
-#include <q3table.h>
-#include <qlabel.h>
-#include <qevent.h>
-#include <q3datatable.h>
+
+#include <QWidget>
+#include <QObject>
+
+#include <QTableWidget>
+#include <QLabel>
+#include <QEvent>
+#include <QLayout>
+#include <QString>
+#include <QVariant>
+#include <QHeaderView>
+
 #include "acfg.h"
 #include "aobject.h"
 #include "awidget.h"
@@ -60,13 +66,13 @@
  */
 
 
-class QT_WIDGET_PLUGIN_EXPORT wTable : public Q3Table
+class QT_WIDGET_PLUGIN_EXPORT wTable : public QTableWidget
 {
 	Q_OBJECT
 
 public:
 
-	wTable(QWidget* parent, const char * name);
+	wTable(QWidget *parent);
 	virtual ~wTable();
 public slots:
 	virtual void setDocument(int row, aObject *object);

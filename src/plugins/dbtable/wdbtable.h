@@ -73,7 +73,12 @@ private:
 	wDBTable *t;
 };
 
-
+enum DbOp
+{
+    DbInsert,
+    DbUpdate,
+    DbDelete
+};
 
 /*!
  * \en	Class for editing documents tables. \_en
@@ -150,6 +155,7 @@ public:
 	void	setTblInd( int ind );
 	void 	setOpenEditor( bool fn );
 	void 	setDefColWidth( int fn );
+	bool confirmDelete();
 
 	QString	getEditFormName() const	{ return vEditFormName;};
 	void 	setEditFormName( QString name)	{ vEditFormName = name;	};
@@ -162,7 +168,7 @@ public slots:
 	QList<int> getBindList();
 	void 	setWFieldEditor();
 	void	setAvailableTables();
-	void lineUpdate(QSqlTableModel::EditStrategy mode);
+	void lineUpdate(DbOp mode);
 	void	newFilter(const QString & );
 	void	newDataId(const qulonglong );
 	QVariant Value( const QString &colname );
@@ -174,87 +180,40 @@ public slots:
 protected slots:
 	void doubleClickEventHandler(int , int , int, const QPoint& ); //parametrs not used
 	virtual void updateTableCellHandler(int, int);
-signals:
-
-/*!
- *	\~english
- *	Signal emitted after table line update.
- *	\~russian
- *	Сигнал испускается после обновлении строки таблицы.
- *	\~
- */
-	void saveLine(QSqlRecord *rec);
-
-/*!
- *	\~english
- *	Signal emitted after table line delete.
- *	\~russian
- *	Сигнал испускается после удаления строки таблицы.
- *	\~
- */
-	void deleteLine(QSqlRecord *rec);
-/*!
- *	\~english
- *	Signal emitted after select another document.
- *	\~russian
- *	Сигнал испускается после выбора документа.
- *	\~
- */
-	void selected( qulonglong uid );
-/*!
- *	\~english
- *	Signal emitted after change line.
- *	\~russian
- *	Сигнал испускается после изменения строки.
- *	\~
- */
-	void selectRecord ( qulonglong );
-/*!
- *	\~english
- *	Signal emitted after update cell.
- *	\~russian
- *	Сигнал испускается после обновления ячейки с номером \a row, \a col.
- *	\~
- */
-	void updateCurr(int row, int col);
-//<<<<<<< wdbtable.h
-
-	//signals from context menu for connecting to wJournal
-	//if container has another type, then do QDataTable context menu
-	//and this signal no emitted
-//=======
-
-/*!
- *	\~english
- *	signals from context menu for connecting to wJournal
- *	if container has another type, then do QDataTable context menu
- *	and this signal no emitted
- *	\~russian
- *	Сигналы от контекстного меню для присоединения к wJournal
- *	Если контейнер другого типа, то вызывается стандартное меню,
- *	и эти сигналы не испускаются.
- *	\~
- *	\see updateRequest(); deleteRequest(); viewRequest();
- *
-*/
-//>>>>>>> 1.45.2.4
-	void insertRequest();
-/*!
- *	\see insertRequest();
-*/
-	void updateRequest();
-/*!
- *	\see insertRequest();
-*/
-	void deleteRequest();
-/*!
- *	\see insertRequest();
-*/
-	void viewRequest();
-	// end
 
 private slots:
-	//void select( Q_ULLONG group );
+    void onCellDoubleClicked(int row, int col);
+	
+signals:
+    /*!
+     *  \~english
+     *  Signal emitted after table line update.
+     *  \~russian
+     *  Сигнал испускается после обновлении строки таблицы.
+     *  \~
+     */
+    void saveLine(const QSqlRecord &rec);
+
+    /*!
+     *  \~english
+     *  Signal emitted after table line delete.
+     *  \~russian
+     *  Сигнал испускается после удаления строки таблицы.
+     *  \~
+     */
+    void deleteLine(const QSqlRecord &rec);
+
+    void selected(qulonglong uid);
+    void selectRecord(qulonglong);
+    void updateCurr(int row, int col);
+
+    void insertRequest();
+    void updateRequest();
+    void deleteRequest();
+    void viewRequest();
+
+private slots:
+	//void select( qulonglong group );
 	void lineChange(int, int);
 	void lineInsert(QSqlRecord*);
 	void updateItem( ANANAS_UID db_uid );
@@ -314,14 +273,14 @@ private:
 class aEditorFactory : public QItemEditorFactory
 {
 public:
-/*!
- * \~english	Constructor
- * \~russian 	Конструктор \~
- */
-	aEditorFactory(QObject *parent = 0) : QItemEditorFactory() {}
-	QWidget * createEditor (QWidget * parent, const QSqlField * field);
-	void setMd(aCfg *md);
+    aEditorFactory() : QItemEditorFactory(), md(0) {}
+
+    QWidget *createEditor(QWidget *parent, const QSqlField *field);
+    void setMd(aCfg *m) { md = m; }
+
 private:
-	aCfg * md;
+    aCfg *md;
 };
+
+
 #endif

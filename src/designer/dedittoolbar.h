@@ -4,7 +4,7 @@
 #include "ui_dedittoolbar.h"
 
 
-class dEditToolbar : public Q3MainWindow, public Ui::dEditToolbar
+class dEditToolbar : public QMainWindow, public Ui::dEditToolbar
 {
     Q_OBJECT
 

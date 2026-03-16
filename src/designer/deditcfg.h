@@ -4,7 +4,7 @@
 #include "ui_deditcfg.h"
 
 
-class dEditCfg : public Q3MainWindow, public Ui::dEditCfg
+class dEditCfg : public QMainWindow, public Ui::dEditCfg
 {
     Q_OBJECT
 

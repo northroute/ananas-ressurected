@@ -66,7 +66,7 @@ protected:
 	virtual aCfgItem displayStringContext();
 
 private:
-//	Q_ULLONG getCatGroup();
+//	qulonglong getCatGroup();
 	qulonglong getGroup();
 	qulonglong getOwner();
 	ERR_Code setOwner( qulonglong ido );

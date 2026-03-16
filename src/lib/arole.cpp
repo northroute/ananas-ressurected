@@ -52,7 +52,7 @@ aRole::aRole( qulonglong roleId, aDatabase * adb ):aObject("",adb)
  *	Constructor.
  *	\_en
  *	\ru
- *	Конструктор. Создает экземпляр роли. Для работы необходимо выбрать нужную роль с помощью функции Select( Q_ULLONG id ).
+ *	Конструктор. Создает экземпляр роли. Для работы необходимо выбрать нужную роль с помощью функции Select( qulonglong id ).
  *	\param adb - ссылка на базу данных.
  *	\_ru
  */
@@ -223,7 +223,7 @@ aRole::delPermission( aPermission p )
 	setSelected(true, md_right_roles);
 //	tg->select(parentId);
 //	setSelected(true,md_group);
-	Q_ULLONG idg;
+	qulonglong idg;
 	QSqlRecord* rec = tg->primeInsert(); // get edit buffer for table groups
 	idg = rec->value("id").toULongLong();
 	//printf( "idg=%lu\n", idg );

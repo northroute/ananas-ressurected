@@ -27,14 +27,6 @@
 **
 **********************************************************************/
 
-#include <qobject.h>
-#include <q3sqlcursor.h>
-#include <q3sqlpropertymap.h>
-#include <qmessagebox.h>
-#include <qaction.h>
-#include <q3datetimeedit.h>
-//Added by qt3to4:
-#include <q3mimefactory.h>
 #include "adatabase.h"
 #include "wjournal.h"
 #include "ejournal.h"
@@ -46,11 +38,11 @@
 
 
 
-wJournal::wJournal( QWidget *parent, Qt::WFlags fl )
-:aWidget( parent, "wJournal", fl )
+wJournal::wJournal(QWidget *parent, Qt::WindowFlags fl)
+    : aWidget(parent, "wJournal", fl)
 {
-	dSelectType = new eSelectDocType();
-	setInited( false );
+    dSelectType = new eSelectDocType(this, 0);
+    setInited(false);
 }
 
 
@@ -61,63 +53,66 @@ wJournal::~wJournal()
 }
 
 
-
-void
-wJournal::initObject( aDatabase *adb )
+void wJournal::initObject(aDatabase *adb)
 {
-	eSelectDocType *d = ( eSelectDocType *)dSelectType;
-	aWidget::initObject( adb );
-	d->setJournal( &adb->cfg, getId() );
+    eSelectDocType *d = qobject_cast<eSelectDocType *>(dSelectType);
 
+    aWidget::initObject(adb);
 
-	if(((aDocJournal*)dbobj)->type()==0 && toolbar)
-	{
-		date_from = new Q3DateEdit(toolbar);
-		date_to = new Q3DateEdit(toolbar);
-		QDate current = QDate::currentDate();
-		date_to->setMinimumWidth(100);
-		date_from->setMinimumWidth(100);
-		date_to->setDate(current);
-		date_from->setDate(current.addMonths(-1));
-		connect(date_from, SIGNAL(valueChanged(const QDate &)), this, SLOT(setFilterByDate()));
-		connect(date_to, SIGNAL(valueChanged(const QDate &)), this, SLOT(setFilterByDate()));
-	}
-	else
-	{
-		date_from = date_to = 0;
-	}
-	setFilterByDate();
-	QObject *obj;
-	uint i = 0;
-	QObjectList lb = this->queryList( "wDBTable", 0, false, false );
-	QListIterator<QObject*> itb( lb ); // iterate over the buttons
-	i = 0;
-	while ( itb.hasNext() )
-	{
-		obj = itb.next();
-		//printf("wDBTable #%u found\n",++i);
-		aLog::print(aLog::Info, tr("wDBTable #%1 found ").arg(++i));
-		connect( (wDBTable *)obj, SIGNAL(selectRecord( qulonglong )),
-			 this, SLOT(select( qulonglong )) );
-		connect( (wDBTable *)obj, SIGNAL( insertRequest()),
-			 this, SLOT(insert()) );
-		connect( (wDBTable *)obj, SIGNAL(updateRequest()),
-			 this, SLOT(update()) );
-		connect( (wDBTable *)obj, SIGNAL(viewRequest()),
-			 this, SLOT(view()) );
-		connect( (wDBTable *)obj, SIGNAL(deleteRequest()),
-			 this, SLOT(markDelete()) );
-//<<<<<<< wjournal.cpp
-//		((QWidget *)obj)->setFocus(); // set focus to wDBTable
+    if (d)
+        d->setJournal(&adb->cfg, getId());
 
-//=======
-		//((QWidget *)obj)->setFocus(); // set focus to wDBTable
+    if (((aDocJournal*)dbobj)->type() == 0 && toolbar)
+    {
+        date_from = new QDateEdit(toolbar);
+        date_to   = new QDateEdit(toolbar);
 
-//>>>>>>> 1.15.2.6
-	}
-	//--delete lb; // delete the list, not the objects
-	//--lb=0;
+        QDate current = QDate::currentDate();
 
+        date_to->setMinimumWidth(100);
+        date_from->setMinimumWidth(100);
+
+        date_to->setDate(current);
+        date_from->setDate(current.addMonths(-1));
+
+        toolbar->addWidget(date_from);
+        toolbar->addWidget(date_to);
+
+        connect(date_from, SIGNAL(dateChanged(const QDate &)),
+                this, SLOT(setFilterByDate()));
+        connect(date_to, SIGNAL(dateChanged(const QDate &)),
+                this, SLOT(setFilterByDate()));
+    }
+    else
+    {
+        date_from = 0;
+        date_to = 0;
+    }
+
+    setFilterByDate();
+
+    QList<wDBTable*> tables = findChildren<wDBTable*>();
+    uint i = 0;
+
+    for (QList<wDBTable*>::iterator it = tables.begin(); it != tables.end(); ++it)
+    {
+        wDBTable *obj = *it;
+        if (!obj)
+            continue;
+
+        aLog::print(aLog::Info, tr("wDBTable #%1 found ").arg(++i));
+
+        connect(obj, SIGNAL(selectRecord(qulonglong)),
+                this, SLOT(select(qulonglong)));
+        connect(obj, SIGNAL(insertRequest()),
+                this, SLOT(insert()));
+        connect(obj, SIGNAL(updateRequest()),
+                this, SLOT(update()));
+        connect(obj, SIGNAL(viewRequest()),
+                this, SLOT(view()));
+        connect(obj, SIGNAL(deleteRequest()),
+                this, SLOT(markDelete()));
+    }
 }
 
 
@@ -132,74 +127,49 @@ wJournal::checkStructure()
 /*!
  * Create toolbar for Journal.
  */
-Q3ToolBar*
-wJournal::createToolBar( Q3MainWindow * owner )
+QToolBar *wJournal::createToolBar(QMainWindow *owner)
 {
-	QAction *a,*b,*c,*d, *e;
-	toolbar = new Q3ToolBar( owner, "JournalTools" );
-	a = new QAction(
-	rcIcon("doc_new.png"),
-	tr("New"),
-	QKeySequence(QString("Insert")),
-	toolbar,
-	tr("New document")
-	);
-	a->setToolTip(tr("New document <Ins>"));
-	a->addTo( toolbar );
-	connect( a, SIGNAL( activated() ), this, SLOT( insert() ) );
-	b = new QAction(
-	rcIcon("doc_edit.png"),
-	tr("Edit"),
-	QKeySequence(Qt::Key_Return),
-	toolbar,
-	tr("Edit document")
-	);
-	b->setToolTip(tr("Edit document <Enter>"));
-	b->addTo( toolbar );
-	connect( b, SIGNAL( activated() ), this, SLOT( update() ) );
-	c = new QAction(
-	rcIcon("doc_view.png"),
-	tr("View"),
-	QKeySequence(Qt::SHIFT + Qt::Key_Return),
-	toolbar,
-	tr("View document")
-	);
-	c->setToolTip(tr("View document <Shift+Enter>"));
-	c->addTo( toolbar );
-	connect( c, SIGNAL( activated() ), this, SLOT( view() ) );
-	d = new QAction(
-	rcIcon("doc_delete.png"),
-	tr("Delete"),
-	QKeySequence(QString("Del")),
-	toolbar,
-	tr("Delete document")
-	);
-	d->setToolTip(tr("Delete document <Delete>"));
-	d->addTo( toolbar );
-	connect( d, SIGNAL( activated() ), this, SLOT( markDelete() ) );
+    QAction *a, *b, *c, *d, *e;
 
-	e = new QAction(
-	rcIcon("doc_copy.png"),
-	tr("Copy"),
-	QKeySequence(Qt::CTRL+Qt::Key_D),
-	toolbar,
-	tr("Copy document")
-	);
-	e->setToolTip(tr("Duplicate document <Ctrl+D>"));
-	e->addTo( toolbar );
-	connect( e, SIGNAL( activated() ), this, SLOT( copy() ) );
+    toolbar = new QToolBar("JournalTools", owner);
 
-	return toolbar;
+    a = new QAction(rcIcon("doc_new.png"), tr("New"), toolbar);
+    a->setShortcut(QKeySequence("Insert"));
+    a->setToolTip(tr("New document <Ins>"));
+    toolbar->addAction(a);
+    connect(a, SIGNAL(triggered()), this, SLOT(insert()));
+
+    b = new QAction(rcIcon("doc_edit.png"), tr("Edit"), toolbar);
+    b->setShortcut(QKeySequence(Qt::Key_Return));
+    b->setToolTip(tr("Edit document <Enter>"));
+    toolbar->addAction(b);
+    connect(b, SIGNAL(triggered()), this, SLOT(update()));
+
+    c = new QAction(rcIcon("doc_view.png"), tr("View"), toolbar);
+    c->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Return));
+    c->setToolTip(tr("View document <Shift+Enter>"));
+    toolbar->addAction(c);
+    connect(c, SIGNAL(triggered()), this, SLOT(view()));
+
+    d = new QAction(rcIcon("doc_delete.png"), tr("Delete"), toolbar);
+    d->setShortcut(QKeySequence("Del"));
+    d->setToolTip(tr("Delete document <Delete>"));
+    toolbar->addAction(d);
+    connect(d, SIGNAL(triggered()), this, SLOT(markDelete()));
+
+    e = new QAction(rcIcon("doc_copy.png"), tr("Copy"), toolbar);
+    e->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+    e->setToolTip(tr("Duplicate document <Ctrl+D>"));
+    toolbar->addAction(e);
+    connect(e, SIGNAL(triggered()), this, SLOT(copy()));
+
+    return toolbar;
 }
 
-
-
-QDialog*
-wJournal::createEditor( QWidget *parent )
+QDialog *wJournal::createEditor(QWidget *parent)
 {
-    return new eJournal( parent );
+    return new eJournal(parent, 0);
 }
-
 
 int
 wJournal::select( qulonglong id )
@@ -227,7 +197,7 @@ wJournal::insert()
 			if ( engine ) {
 				f = engine->openForm( md_id, 0, md_action_new, 0, 0, (aWidget*)this );
 				if ( f ) {
-//					connect(f, SIGNAL(selected( Q_ULLONG )), this, SLOT(on_selected( Q_ULLONG )));
+//					connect(f, SIGNAL(selected( qulonglong )), this, SLOT(on_selected( qulonglong )));
 //					f->closeAfterSelect = true;
 				}
 			} else printf("engine = NULL\n");
@@ -332,20 +302,21 @@ wJournal::createDBObject(  aCfgItem obj, aDatabase *adb )
 	return new aDocJournal( obj, adb );
 }
 
-void
-wJournal::setFilterByDate()
+void wJournal::setFilterByDate()
 {
-	if(date_from && date_to)
-	{
-		QObject *obj;
-		QObjectList lb = this->queryList( "wDBTable" );
-		QListIterator<QObject*> itb( lb ); // iterate over the buttons
-		while ( itb.hasNext() )
-		{
-			obj = itb.next();
-			((wDBTable *)obj)->setFilter(QString("ddate>='%1T00:00:00' AND ddate<='%2T23:59:59'").arg(date_from->date().toString(Qt::ISODate)).arg(date_to->date().toString(Qt::ISODate)));
-		}
-		//--delete lb; // delete the list, not the objects
-	}
-	Refresh();
+    if (date_from && date_to)
+    {
+        QList<wDBTable*> tables = findChildren<wDBTable*>();
+
+        QString filter = QString("ddate>='%1T00:00:00' AND ddate<='%2T23:59:59'")
+                         .arg(date_from->date().toString(Qt::ISODate))
+                         .arg(date_to->date().toString(Qt::ISODate));
+
+        for (QList<wDBTable*>::iterator it = tables.begin(); it != tables.end(); ++it)
+        {
+            (*it)->newFilter(filter);
+        }
+    }
+
+    Refresh();
 }

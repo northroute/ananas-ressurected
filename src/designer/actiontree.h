@@ -28,7 +28,7 @@
 
 #ifndef ACTIONTREE_H
 #define ACTIONTREE_H
-#include <q3listview.h>
+#include <QTreeWidget.h>
 #include <q3intdict.h>
 //#include "acfg.h"
 #include "atreeitems.h"
@@ -43,7 +43,7 @@ public:
 	QWidget *editor;
 	aCfg *md;
 */
-	ActionListViewItem( Q3ListView *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
+	ActionListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name = QString::null );
 	ActionListViewItem( ananasListViewItem *parent, ananasListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj,
 						const QString &name = QString::null );
 	void loadTree();

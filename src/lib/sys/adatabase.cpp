@@ -988,7 +988,7 @@ aDatabase::markDeleted ( quint64 uid )
  *      \~russian
  *      Удаляет все помеченные записи.
  *      \~
- *      \see markDeleted(Q_ULLONG uid)
+ *      \see markDeleted(qulonglong uid)
  */
 void
 aDatabase::deleteMarked()

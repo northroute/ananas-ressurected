@@ -27,25 +27,9 @@
 ** not clear to you.
 **
 **********************************************************************/
-#include <qsinterpreter.h>
-#include <qsinputdialogfactory.h>
-#include <qobject.h>
-#include <q3valuelist.h>
-#include <qstringlist.h>
-#include <qstring.h>
-#include <stdlib.h>
-#include <qfile.h>
-#include <qsproject.h>
-#include <qsscript.h>
-#include <qdialog.h>
+
 //--#include <qwidgetfactory.h>
-#include <qobject.h>
-#include <qsutilfactory.h>
-#include <qsinputdialogfactory.h>
-#include <qapplication.h>
-//Added by qt3to4:
-#include <QTimerEvent>
-#include <Q3PopupMenu>
+
 
 #include "ananas.h"
 #include "wcatalogeditor.h"
@@ -71,46 +55,15 @@
  *	\arg \c ATime объект для работы со временем
  *	\~
  */
-aObjectsFactory::aObjectsFactory( aEngine *e )
+aObjectsFactory::aObjectsFactory(aEngine *e)
 {
 	engine = e;
-        if ( ! engine ) return;
-        db = e->db;
-        if ( ! db ) return;
+	db = 0;
 
+	if (!engine)
+		return;
 
-	registerClass("MetaObject",&AMetaObject::staticMetaObject);
-	registerClass("MetaGroup",&AMetaGroup::staticMetaObject);
-	registerClass("Documents",&AMetaDocuments::staticMetaObject);
-	registerClass("Catalogues",&AMetaCatalogues::staticMetaObject);
-	registerClass("MetaInfo",&AMetaInfo::staticMetaObject);
-	registerClass("MetaGlobal",&AMetaGlobal::staticMetaObject);
-
-
-	registerClass("PopupMenu",&Q3PopupMenu::staticMetaObject);
-//	registerClass("PopupMenu","QApopupmenu");
-	registerClass("Document",&aDocument::staticMetaObject);
-	registerClass("Catalogue",&aCatalogue::staticMetaObject);
-	registerClass("CatalogEditor",&wCatalogEditor::staticMetaObject);
-	registerClass("Report",&aReport::staticMetaObject);
-	registerClass("ARegister",&aARegister::staticMetaObject);
-	registerClass("IRegister",&aIRegister::staticMetaObject);
-	registerClass("ATime",&aTime::staticMetaObject);
-	registerClass("DataField",&aDataField::staticMetaObject);
-//	registerClass("reg","QAreg");
-	registerClass("Journal",&aDocJournal::staticMetaObject);
-	registerClass("ComboBox",&AComboBox::staticMetaObject);
-//registerClass("djournalview","QAjournview");
-//	registerClass("djournalview","QAdocjournal");
-//	registerClass("form","AForms");
-//	registerClass("report","QAreport");
-//	registerClass("table","QAnanasTable");
-
-//Register extensions classes
-	QStringList extlist = AExtensionFactory::keys();
-	for ( int i=0; i<extlist.count(); i++){
-	    registerClass(extlist[i], AExtensionFactory::metaObject( extlist[i] ));
-	}
+	db = engine->db;
 }
 
 
@@ -126,77 +79,95 @@ aObjectsFactory::aObjectsFactory( aEngine *e )
  *	\param context - \~english running context \~russian контекст, в котором выполняется скрипт \~
  *	\~
  */
-QObject *
-aObjectsFactory::create( const QString &className,
-                     const QVariantList &arguments, QObject *context )
+QObject *aObjectsFactory::create(const QString &className,
+                        const QVariantList &arguments, QObject *context)
 {
-	QObject * res = 0;
-//	context=context;
-	if (className=="PopupMenu") {
-//			return new QApopupmenu();
-			res = new Q3PopupMenu();
-	}else if (className=="Document") {
-		if (arguments.size()>0) {
-			res = new aDocument(arguments[0].toString(), db );
+	QObject *res = 0;
+	Q_UNUSED(context)
+
+	if (className == "PopupMenu") {
+		res = new QMenu();
+	}
+	else if (className == "Document") {
+		if (arguments.size() > 0) {
+			res = new aDocument(arguments[0].toString(), db);
 		}
-	}else if (className=="Catalogue") {
-		if (arguments.size()>0) {
-			res = new aCatalogue( arguments[0].toString(), db );
+	}
+	else if (className == "Catalogue") {
+		if (arguments.size() > 0) {
+			res = new aCatalogue(arguments[0].toString(), db);
 		}
-	}else if ( className=="Report" ) {
-		if ( arguments.size()>0 )
-		{
-			if(arguments.size()==2) {
-				res = new aReport( arguments[0].toString(),(aReport::RT_type)arguments[1].toInt(), engine );
-			}else{
-				res = new aReport( arguments[0].toString(),aReport::RT_text, engine );
+	}
+	else if (className == "Report") {
+		if (arguments.size() > 0) {
+			if (arguments.size() == 2) {
+				res = new aReport(arguments[0].toString(),
+				                  (aReport::RT_type) arguments[1].toInt(),
+				                  engine);
 			}
- 		}
-	}else if (className =="CatalogEditor") {
-		if (arguments.size()>0) {
+			else {
+				res = new aReport(arguments[0].toString(),
+				                  aReport::RT_text,
+				                  engine);
+			}
+		}
+	}
+	else if (className == "CatalogEditor") {
+		if (arguments.size() > 0) {
 			aCfgItem it;
 			it = db->cfg.find(QString("Catalogue.%1").arg(arguments[0].toString()));
-			if(!it.isNull()) {
-				wCatalogEditor * w = new wCatalogEditor(engine->ws,db->cfg.id(it));
+			if (!it.isNull()) {
+				wCatalogEditor *w = new wCatalogEditor(engine->ws, db->cfg.id(it));
 				w->initCat(db);
 				res = w;
 			}
 		}
-	}else if (className == "ARegister") {
+	}
+	else if (className == "ARegister") {
 		if (arguments.size() > 0) {
 			res = new aARegister(arguments[0].toString(), db);
 		}
-
-	}else if (className == "IRegister") {
+	}
+	else if (className == "IRegister") {
 		if (arguments.size() > 0) {
 			res = new aIRegister(arguments[0].toString(), db);
 		}
-
-	} else if (className == "Journal") {
+	}
+	else if (className == "Journal") {
 		if (arguments.size() > 0) {
 			res = new aDocJournal(arguments[0].toString(), db);
 		}
-
-	} else if (className == "ATime") {
-		  res = new aTime();
-	} else if (className == "DataField") {
-		  res = new aDataField();
-	} else if ( AExtensionFactory::keys().contains( className )) {
-//		printf("create extension object %s\n",(const char*) className);
-		AExtension *obj = AExtensionFactory::create( className );
-		// Insert check existence signal in future!!!!
-		QObject::connect( obj, SIGNAL(event(const QString&)),
-			 engine, SLOT( on_event(const QString&)));
+	}
+	else if (className == "ATime") {
+		res = new aTime();
+	}
+	else if (className == "DataField") {
+		res = new aDataField();
+	}
+	else if (AExtensionFactory::keys().contains(className)) {
+		AExtension *obj = AExtensionFactory::create(className);
+		QObject::connect(obj, SIGNAL(event(const QString&)),
+		                 engine, SLOT(on_event(const QString&)));
 		obj->init(db);
 		res = obj;
-	} else if ( className == "ComboBox" ) {
-		if (arguments.size() == 1) {
-			res = new AComboBox( 0, arguments[0].toString());
-		} else {
-			res = new AComboBox();
+	}
+	else if (className == "ComboBox") {
+		res = new AComboBox();
+
+		if (arguments.size() > 0) {
+			res->setObjectName(arguments[0].toString());
 		}
 	}
-	if(!res) aLog::print(aLog::Error,QObject::tr("Unknown classname '%1' or metaobject '%2'").arg(className).arg(arguments[0].toString()));
+
+	if (!res) {
+		aLog::print(
+			aLog::Error,
+			QObject::tr("Unknown classname '%1' or metaobject '%2'")
+				.arg(className)
+				.arg(arguments.size() > 0 ? arguments[0].toString() : QString())
+		);
+	}
+
 	return res;
 }
 
@@ -214,8 +185,10 @@ aObjectsFactory::create( const QString &className,
  *	\endcode
  *\_ru
  */
-aEngine::aEngine():QObject(0,"sys")
+aEngine::aEngine() : QObject(0)
 {
+	setObjectName("sys");
+
 	md = 0;
 	next_obj_id = 1;
 	db = aDatabase::database();
@@ -247,47 +220,45 @@ aEngine::~aEngine()
  * \~
  */
 bool
-aEngine::init( const QString &rcfile )
+aEngine::init(const QString &rcfile)
 {
-//	QString mGlobal;
-	aCfgItem gobj, obj, obj0;
-	QString sysf =
-//	"function Message( t, msg ){ sys.Message( t, msg );}"
-//	"function StatusMessage( msg ){ sys.StatusMessage( msg );}"
-//	"function Date(){ return sys.Date();}"
-//	"function Time(){ return sys.Time();}"
-//	"function Exit(){ return sys.Exit();}"
-	"";
+	QString sysf = "";
 
-	bool ok = false;
-	if ( db->init( rcfile ) ) {
-		md = &db->cfg;
-		code = project.interpreter();
-//		code->setErrorMode(QSInterpreter::Notify);
-		code->setErrorMode(QSInterpreter::Nothing);
-		connect(code, SIGNAL( error ( const QString &, QObject *, const QString &, int )),
-			this, SLOT  ( error ( const QString &, QObject *, const QString &, int )));
-		code->addObjectFactory( new QSInputDialogFactory );
-		code->addObjectFactory( new aObjectsFactory( this ) );
-		code->addObjectFactory( new QSUtilFactory );
-		project.addObject( this );
-		project.addObject( md );
-		project.addObject( AMetaData::metadata() );
-		mGlobal = md->sText( md->find( md->find( mdc_metadata ), md_globals, 0 ), md_sourcecode );
-		if ( ! mGlobal.isEmpty() ) {
-//			project.createScript("global", mGlobal);
-//			project.createScript(this, mGlobal );
-//			project.createScript( "globalmodule", sysf );
-//			project.createScript( this, sourcePreprocessor(mGlobal));
-			project.createScript( "globalmodule", sysf+sourcePreprocessor(mGlobal));
-//			code->evaluate(sourcePreprocessor(mGlobal));
-		} else {
-//                        printf("Global module is empty\n");
-                }
-	} else return false;
+	if (!db->init(rcfile))
+		return false;
+
+	md = &db->cfg;
+
+	project = new QScriptEngine(this);
+	code = project;
+
+	project->globalObject().setProperty("sys", project->newQObject(this));
+	project->globalObject().setProperty("md", project->newQObject(md));
+	project->globalObject().setProperty("metadata",
+	project->newQObject(AMetaData::metadata()));
+
+	mGlobal = md->sText(
+		md->find(md->find(mdc_metadata), md_globals, 0),
+		md_sourcecode
+	);
+
+	if (!mGlobal.isEmpty())
+	{
+		project->evaluate(sysf + sourcePreprocessor(mGlobal), "globalmodule");
+
+		if (project->hasUncaughtException())
+		{
+			error(
+				project->uncaughtException().toString(),
+				this,
+				"globalmodule",
+				project->uncaughtExceptionLineNumber()
+			);
+		}
+	}
+
 	return true;
 }
-
 
 
 /*!
@@ -314,26 +285,33 @@ aEngine::done()
  *	\see on_systemstop()
  *\_ru
  */
-int
-aEngine::on_systemstart(){
+int aEngine::on_systemstart()
+{
+	QScriptValue func = project->globalObject().property("on_systemstart");
 
-	if (project.interpreter()->functions().findIndex("on_systemstart")!=-1) {
-		project.interpreter()->call("on_systemstart",QVariantList());
+	if (func.isFunction())
+	{
+		func.call();
 	}
+
 	return 0;
 }
 
 
-void
-aEngine::on_event( const QString &data )
+void aEngine::on_event(const QString &data)
 {
-	Q3ValueList<QVariant> lst;
-	lst <<  sender()->name();
+	QVariantList lst;
+	lst << sender()->objectName();
 	lst << data;
-	if (project.interpreter()->functions().findIndex("on_event")!=-1) {
-		project.interpreter()->call("on_event", QVariantList(lst));
+
+	QScriptValue func = project->globalObject().property("on_event");
+
+	if (func.isFunction())
+	{
+		func.call(QScriptValue(), project->toScriptValue(lst));
 	}
-	emit event( sender()->name(), data );
+
+	emit event(sender()->objectName(), data);
 }
 
 
@@ -348,11 +326,15 @@ aEngine::on_event( const QString &data )
  *	\see on_systemstart()
  *\_ru
  */
-int
-aEngine::on_systemstop(){
-	if (project.interpreter()->functions().findIndex("on_systemstop")!=-1) {
-		project.interpreter()->call("on_systemstop",QVariantList());
+int aEngine::on_systemstop()
+{
+	QScriptValue func = project->globalObject().property("on_systemstop");
+
+	if (func.isFunction())
+	{
+		func.call();
 	}
+
 	return 0;
 }
 
@@ -429,10 +411,9 @@ aEngine::Exit() {
  *	\~
  *	\see cfg_message(int msgtype, const char *msgfmt,...)
  */
-void
-aEngine::Message(int n, const QString &msg)
+void aEngine::Message(int n, const QString &msg)
 {
-	cfg_message(n, (const char *) msg.utf8());
+	cfg_message(n, msg.toUtf8().constData());
 }
 
 
@@ -511,83 +492,64 @@ aEngine::on_MenuBar( int id )
  *	\param context - контекст выполнения действия.
  *\_ru
  */
-void aEngine::execAction( aCfgItem &act, QObject *context )
+void
+aEngine::execAction(aCfgItem &act, QObject *context)
 {
 	QString aModule, arg;
 	int atype, satype;
 	long oid, foid;
-	//aForm *form;
 	aCfgItem gobj, obj;
 
-	if ( ! act.isNull() ) {
-		atype = md->attr( act, mda_type ).toInt();
-//		printf("atype=%i\n",atype);
-		switch ( atype ){
+	if (!act.isNull())
+	{
+		atype = md->attr(act, mda_type).toInt();
+
+		switch (atype)
+		{
 		case 0:
-			satype = md->sText( act, md_actiontype ).toInt();
-			oid = md->sText( act, md_objectid ).toLong();
-			foid = md->sText( act, md_formid ).toLong();
-			arg = md->sText( act, md_argument );
-//			printf("satype=%d, oid=%d,foid=%d,arg=%s",satype,oid,foid,arg.ascii());
-			gobj =  md->find( oid );
-			if ( foid == 0 )
+			satype = md->sText(act, md_actiontype).toInt();
+			oid = md->sText(act, md_objectid).toLong();
+			foid = md->sText(act, md_formid).toLong();
+			arg = md->sText(act, md_argument);
+
+			gobj = md->find(oid);
+
+			if (foid == 0)
 			{
-				foid = md->getDefaultFormId( gobj, satype );
-				break;
+				foid = md->getDefaultFormId(gobj, satype);
+				if (foid <= 0)
+					break;
 			}
-			if ( foid == 1 )
+
+			if (foid == 1)
 			{
-				openEmbedCatalogueEditor(oid, NULL, false); //open to edit
+				openEmbedCatalogueEditor(oid, NULL, false);
 				break;
 			}
 
-			openForm(oid, foid, satype, 0, 0, 0 );
+			openForm(oid, foid, satype, 0, 0, 0);
 			break;
-/*			if ( !arg.isEmpty() ) {
-				obj = md->findName( md->find( gobj, md_forms ), md_form, arg );
-				foid = md->id( obj );
-//				if ( !obj.isNull() ) printf("form found\n");
-//				else printf("! not found %s\n", (const char *) arg );
-			}*/
-			/*
-			if ( wl->find( foid ) )
+
+		case 1:
+			aModule = md->sText(act, md_sourcecode);
+			if (!aModule.isEmpty())
 			{
-				printf("form already exist,set focus \n");
-				wl->get( foid )->setFocus();
-			}
-			else
-			{
-				printf("execute action\n");
-			if ( oid )
-				switch ( satype )
+				code->evaluate(sourcePreprocessor(aModule));
+				if (code->hasUncaughtException())
 				{
-				case md_action_new://create new
-					printf("create new\n");
-					form = new aForm( ws, this, foid );
-//					form->init();
-					form->New();
-					form->show();
-					break;
-				case md_action_view://view
-					printf("view\n");
-					form = new aForm( ws, this, foid );
-										//form->init();
-					form->show();
-					break;
+					error(
+						code->uncaughtException().toString(),
+						context,
+						md->attr(act, mda_name),
+						code->uncaughtExceptionLineNumber()
+					);
 				}
 			}
 			break;
-			*/
-		case 1:
-			aModule = md->sText( act, md_sourcecode );
-			if ( !aModule.isEmpty() ) {
-				code->evaluate( sourcePreprocessor(aModule), context, md->attr( act, mda_name ) );
-			}
-			break;
+
 		case 2:
 			break;
 		}
-//		printf("executed %s\n", ( const char *) md->attr( act, mda_name ).local8Bit() );
 	}
 }
 
@@ -612,24 +574,30 @@ void aEngine::execAction( aCfgItem &act, QObject *context )
  *\return \~english link on new form or 0 if form not created.
  			\~russian ссылку на новую форму или 0, если форма не создана.\~
  */
-aForm*
-aEngine::OpenForm(QString fname, int mode, aObject* selecter)//Q_ULLONG ido)
+aForm* aEngine::OpenForm(QString fname, int mode, aObject* selecter)
 {
 	aCfgItem object, form;
 
 	form = md->find(fname);
-	if(!form.isNull())
+	if (!form.isNull())
 	{
 		object = md->parent(md->parent(form));
-		if(object.isNull()) return 0;
-		qulonglong ido =0;
-		if(selecter) ido = selecter->sysValue("id").toULongLong();
-		return openForm(atoi(md->attr(object,mda_id)), atoi(md->attr(form,mda_id)), mode, mode, ido);
+		if (object.isNull()) return 0;
+
+		qulonglong ido = 0;
+		if (selecter)
+			ido = selecter->sysValue("id").toULongLong();
+
+		return openForm(
+			md->attr(object, mda_id).toInt(),
+			md->attr(form, mda_id).toInt(),
+			mode,
+			mode,
+			ido
+		);
 	}
-	else
-	{
-		return 0;
-	}
+
+	return 0;
 }
 
 
@@ -776,10 +744,15 @@ aEngine::openEmbedCatalogueEditor(int oid, QWidget* parent,const bool toSelect)
  *	Печатает сообщение об ощибке.
  *\_ru
  */
-void
-aEngine::error ( const QString & message, QObject * context, const QString & scriptName, int lineNumber )
+void aEngine::error(const QString &message, QObject *context, const QString &scriptName, int lineNumber)
 {
-	Message( 2, tr("Line:%1 Message:%2 Stack:(%3)").arg(lineNumber).arg(message).arg(code->stackTraceString()) );
+	Q_UNUSED(context)
+	Q_UNUSED(scriptName)
+
+	Message(2,
+		tr("Line:%1 Message:%2")
+			.arg(lineNumber)
+			.arg(message));
 }
 
 
@@ -825,13 +798,9 @@ aEngine::sourcePreprocessor( const QString &src )
  * Получение значения глобальной переменной.
  *\_ru
  */
-QVariant
-aEngine::value( const QString &name )
+QVariant aEngine::value(const QString &name)
 {
-	QVariant v, *pv;
-	pv = values.find( name );
-	if ( pv ) return *pv;
-	return v;
+    return values.value(name);
 }
 
 
@@ -842,11 +811,12 @@ aEngine::value( const QString &name )
  * Установка значения глобальной переменной.
  *\_ru
  */
-void
-aEngine::setValue( const QString &name, QVariant value )
+void aEngine::setValue(const QString &name, QVariant value)
 {
-    values.remove( name );
-    if ( !value.isValid() ) values.insert( name, new QVariant( value ) );
+    values.remove(name);
+
+    if (value.isValid())
+        values.insert(name, value);
 }
 
 
@@ -857,20 +827,35 @@ aEngine::setValue( const QString &name, QVariant value )
  * Установка значения глобальной переменной.
  *\_ru
  */
-aDataField*
-aEngine::enterValue( const QString &FieldType, const QString &title )
+aDataField* aEngine::enterValue(const QString &FieldType, const QString &title)
 {
-	aDataField *f = new aDataField( "", FieldType );
-	QDialog *d = new QDialog( ws, title, true );
-	wField *wf = new wField( d, "" );
-	QPushButton *b_ok = new QPushButton( d, tr("OK") );
-	QPushButton *b_cancel =new QPushButton( d, tr("Cancel") );
-	connect( b_ok, SIGNAL( pressed() ), d, SLOT( accept() ) );
-	connect( b_cancel, SIGNAL( pressed() ), d, SLOT( reject() ) );
-	if ( d->exec() == QDialog::Accepted ) {
-//		printf("accepted\n");
+	aDataField *f = new aDataField("", FieldType);
+
+	QDialog *d = new QDialog(ws);
+	d->setWindowTitle(title);
+	d->setModal(true);
+
+	wField *wf = new wField(d, "");
+	QPushButton *b_ok = new QPushButton(tr("OK"), d);
+	QPushButton *b_cancel = new QPushButton(tr("Cancel"), d);
+
+	QVBoxLayout *layout = new QVBoxLayout(d);
+	layout->addWidget(wf);
+
+	QHBoxLayout *buttons = new QHBoxLayout();
+	buttons->addStretch();
+	buttons->addWidget(b_ok);
+	buttons->addWidget(b_cancel);
+
+	layout->addLayout(buttons);
+
+	connect(b_ok, SIGNAL(clicked()), d, SLOT(accept()));
+	connect(b_cancel, SIGNAL(clicked()), d, SLOT(reject()));
+
+	if (d->exec() == QDialog::Accepted) {
+		f->setValue(wf->value());
 	}
+
 	delete d;
 	return f;
 }
-

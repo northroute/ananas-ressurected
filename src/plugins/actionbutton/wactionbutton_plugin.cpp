@@ -19,10 +19,6 @@
 
 #include "wactionbutton_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wactionbutton_taskmenu.h"
 #include "wactionbutton.h"
 

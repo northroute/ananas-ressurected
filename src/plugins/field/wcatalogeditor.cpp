@@ -28,15 +28,6 @@
 **
 **********************************************************************/
 
-#include <qlineedit.h>
-#include <qlayout.h>
-#include <qvalidator.h>
-#include <qlabel.h>
-#include <q3listview.h>
-#include <qsizepolicy.h>
-//Added by qt3to4:
-#include <Q3Frame>
-#include <QPixmap>
 #include "ananas.h"
 #include "wcatalogeditor.h"
 #include "wfield.h"
@@ -58,25 +49,39 @@
  * 	\param name - \en name \_en \ru имя \_ru
  * 	\param catname \en not used \_en \ru не используется \_ru
  */
-wCatalogEditor::wCatalogEditor(	wField *parent,
-				const char *name,
-				const char *catname) : QWidget(parent, name)
+wCatalogEditor::wCatalogEditor(wField *parent,
+                               const char *name,
+                               const char *catname)
+    : QWidget(parent)
 {
-  QWidget* w =0;
-  md = NULL;
-  QString str;
-  label = new QLabel(parent, name);
-	label->setFrameShape(Q3Frame::Box);
-	w =(QWidget*) parent->parent()->parent();
-	str = parent->getFieldType();
-	catId = atoi(str.remove(0,2));// gets catalog id.
-   	if(w)
-   	{
-		if(strcmp(w->className(),"wDBTable")==0) // wField is element wDBTable
-		{
-			initCat(((wDBTable*)w)->db);
-		}
-   }
+    Q_UNUSED(catname);
+
+    if (name)
+        setObjectName(name);
+
+    QWidget *w = 0;
+    md = 0;
+    QString str;
+
+    label = new QLabel(parent);
+    if (name)
+        label->setObjectName(name);
+
+    label->setFrameShape(QFrame::Box);
+
+    if (parent && parent->parent() && parent->parent()->parent())
+        w = qobject_cast<QWidget *>(parent->parent()->parent());
+
+    str = parent->getFieldType();
+    str.remove(0, 2);
+    catId = str.toInt();
+
+    if (w)
+    {
+        wDBTable *table = qobject_cast<wDBTable *>(w);
+        if (table)
+            initCat(table->db);
+    }
 }
 
 wCatalogEditor::wCatalogEditor(QWidget* parent,int cat) : QWidget()
@@ -143,196 +148,200 @@ wCatalogEditor::edit()
 	openForm(false);
 }
 
-void
-wCatalogEditor::openForm(const bool toSelect)
+void wCatalogEditor::openForm(const bool toSelect)
 {
+    aLog::print(aLog::Debug, tr("wCatalog Editor open form for select=%1 ").arg((int)toSelect));
 
+    MainForm *mainform = 0;
+    if (parent())
+    {
+        mainform = qobject_cast<MainForm *>(topLevelWidget());
+        if (mainform)
+            ws = mainform->ws;
+    }
 
-	aLog::print(aLog::Debug, tr("wCatalog Editor open form for select=%1 ").arg((int)toSelect));
-	MainForm *mainform;
-	if(parent())
-	{
-		mainform = (MainForm*) topLevelWidget();
-		ws = mainform->ws;
-	}
-//  aWindowsList *wl = mainform->wl;
-	int objid = catId;
-/*	if ( wl->find( objid ) )
-    	{
-//		wl->remove(objid);
-		wl->get( objid )->setFocus();
-		return;
-    	}
-	else
-	{
-  		CatalogForm* newform = new CatalogForm(ws,0, WDestructiveClose);
-		wl->insert( objid, newform );
-	}*/
-	CatalogForm* newform = new CatalogForm(ws,0, Qt::WDestructiveClose);
+    CatalogForm *newform = new CatalogForm((QWidget *)ws);
+	newform->setAttribute(Qt::WA_DeleteOnClose, true);
 
-	connect( newform,	SIGNAL(selected(qulonglong)),
-  		 this,		SLOT(on_selected( qulonglong )));
-	connect( newform, 	SIGNAL(destroyed()),
-  	  	 this,		SLOT(on_destroyed_form()));
+    connect(newform, SIGNAL(selected(qulonglong)),
+            this, SLOT(on_selected(qulonglong)));
+    connect(newform, SIGNAL(destroyed()),
+            this, SLOT(on_destroyed_form()));
 
-	aCatalogue *cat = new aCatalogue(md->find(catId),db);
-	int count=0;
-	bool est=true;
-	QMap<qulonglong,Q3ListViewItem*> map, map_el;
-	aCfgItem tmp, tmp_f,tmp_el,tmp_group, o;
-	Q3ListViewItem * item;
-	Q3ListViewItem * p_item;
-	qulonglong idGrForm=0, idElForm=0;
-	QStringList listPos, listPosGroup;
-	newform->ListHint->hide();
-	QPixmap pixmap(newform->getGroupPixmap());
-	QPixmap pixmap_mark_deleted(newform->getMarkDeletedPixmap());
-	tmp = md->find(catId);
-	newform->setCaption(md->attr(tmp,mda_name));
-	o = md->findChild(tmp, md_forms); // get obj forms
-  	if(!o.isNull())
-  	{
-		count = md->count(o,md_form);
-		for(int i=0; i<count; i++)
-		{
-			tmp_f = md->findChild(o,md_form,i);
-			if(!tmp_f.isNull()
-			   && atoi(md->attr(tmp_f,mda_type).ascii())==md_form_elem)
-	 		{
-				aLog::print(aLog::Debug, tr("wCatalog Editor found element forms"));
-				idElForm = md->id(tmp_f);
-//				 continue;
-	 		}
-			if(!tmp_f.isNull()
-			   && atoi(md->attr(tmp_f,mda_type).ascii())==md_form_group)
-	 		{
-				aLog::print(aLog::Debug, tr("wCatalog Editor found group forms"));
-				idGrForm = md->id(tmp_f);
-	 		}
-		}
-  	}
-	else
-	{
-		aLog::print(aLog::Error, tr("wCatalog Editor meta object forms not found"));
-	}
-	tmp_el = md->findChild(tmp, md_element);
-	tmp_group = md->findChild(tmp,md_group);
-	tmp = md->findChild(tmp_el, md_field);
-	int count_fields = md->count(tmp_el,md_field);
-	listPosGroup = cat->getGroupUserFields();
-	int i,level = 0;
-	cat->Select();
-  	while(est) // add group in tree on levels
-  	{
-		est = false;
-		++level;
-		cat->selectByLevel(level-1);
+    aCatalogue *cat = new aCatalogue(md->find(catId), db);
+    int count = 0;
+    bool est = true;
+    QMap<qulonglong, QTreeWidgetItem*> map, map_el;
+    aCfgItem tmp, tmp_f, tmp_el, tmp_group, o;
+    QTreeWidgetItem *item = 0;
+    QTreeWidgetItem *p_item = 0;
+    qulonglong idGrForm = 0, idElForm = 0;
+    QStringList listPos, listPosGroup;
 
-  		if(!cat->FirstInGroupTable()) break;
-  		do
-  		{
-			if(cat->GroupSysValue("level").toInt()==level-1) //all groups, having this level
-			{
-				est = true;
-				QString displayString;
-				displayString= cat->GroupSysValue(listPosGroup[0]).toString();
-				if(map.contains(cat->GroupSysValue("idp").toULongLong()))
-				{
-					p_item = map[(cat->GroupSysValue("idp").toULongLong())];
-					item = new Q3ListViewItem(p_item);
-				}
-				else
-				{
-					item = new Q3ListViewItem(newform->ListView);
-					newform->ListView->insertItem(item);
-				}
-				item->setText(0, displayString);
-				if(cat->isGroupMarkDeleted())
-					item->setPixmap(0,pixmap_mark_deleted);
-				else
-					item->setPixmap(0,pixmap);
+    newform->ListHint->hide();
 
-				map.insert(cat->GroupSysValue("id").toULongLong(),item);
-			//printf("%lu\n",cat->GroupSysValue("id").toULongLong());
+    QIcon icon(newform->getGroupPixmap());
+    QIcon icon_mark_deleted(newform->getMarkDeletedPixmap());
 
-			}
+    tmp = md->find(catId);
+    newform->setWindowTitle(md->attr(tmp, mda_name));
 
+    o = md->findChild(tmp, md_forms);
+    if (!o.isNull())
+    {
+        count = md->count(o, md_form);
+        for (int i = 0; i < count; ++i)
+        {
+            tmp_f = md->findChild(o, md_form, i);
+            if (!tmp_f.isNull() && md->attr(tmp_f, mda_type).toInt() == md_form_elem)
+            {
+                aLog::print(aLog::Debug, tr("wCatalog Editor found element forms"));
+                idElForm = md->id(tmp_f);
+            }
+            if (!tmp_f.isNull() && md->attr(tmp_f, mda_type).toInt() == md_form_group)
+            {
+                aLog::print(aLog::Debug, tr("wCatalog Editor found group forms"));
+                idGrForm = md->id(tmp_f);
+            }
+        }
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("wCatalog Editor meta object forms not found"));
+    }
 
-		}while(cat->NextInGroupTable());
+    tmp_el = md->findChild(tmp, md_element);
+    tmp_group = md->findChild(tmp, md_group);
+    tmp = md->findChild(tmp_el, md_field);
 
-	}
-  	listPos = cat->getUserFields();
-	checkUserFields(listPos);
-	int fid;
-	//sets column name
-	for(uint i=0; i<listPos.count(); i++)
-  	{
-		fid = atoi(listPos[i].remove("uf",false).ascii());
-		if(!fid)
-		{
-//			printf("listPos[]=%s",listPos[i].remove("text_uf",false).ascii());
-			fid = (listPos[i].remove("text_",false)).toInt();
-			//tmp = md->find(fid);
-		}
-		if(fid)
-		{
-			tmp = md->find(fid);
-			newform->ListView->addColumn(md->attr(tmp,mda_name));
-		}
-  	}
+    int count_fields = md->count(tmp_el, md_field);
+    Q_UNUSED(count_fields);
+    Q_UNUSED(tmp_group);
+    Q_UNUSED(map_el);
 
-	listPos.clear();
-	listPos = cat->getUserFields();
-	checkUserFields(listPos);
-  	//Q_ULLONG res = 0;
-   	// cat deleted in function catalogform::destroy();
+    listPosGroup = cat->getGroupUserFields();
 
- 	 newform->setData(	cat,
-		   		map,
-		   		listPos,
-		   		cat->getGroupUserFields(),
-		   		idElForm,
-		   		idGrForm,
-				toSelect);
+    int level = 0;
+    cat->Select();
 
-	newform->setId(value().toULongLong());
-	//--
-	if (ws)
-        ((QWorkspace*)ws)->addWindow(newform);
-	newform->show();
-	((QWidget*)newform->parent())->move(0,0);
+    while (est)
+    {
+        est = false;
+        ++level;
+        cat->selectByLevel(level - 1);
+
+        if (!cat->FirstInGroupTable())
+            break;
+
+        do
+        {
+            if (cat->GroupSysValue("level").toInt() == level - 1)
+            {
+                est = true;
+
+                QString displayString = cat->GroupSysValue(listPosGroup[0]).toString();
+
+                if (map.contains(cat->GroupSysValue("idp").toULongLong()))
+                {
+                    p_item = map[cat->GroupSysValue("idp").toULongLong()];
+                    item = new QTreeWidgetItem(p_item);
+                }
+                else
+                {
+                    item = new QTreeWidgetItem(newform->ListView);
+                }
+
+                item->setText(0, displayString);
+
+                if (cat->isGroupMarkDeleted())
+                    item->setIcon(0, icon_mark_deleted);
+                else
+                    item->setIcon(0, icon);
+
+                map.insert(cat->GroupSysValue("id").toULongLong(), item);
+            }
+        }
+        while (cat->NextInGroupTable());
+    }
+
+    listPos = cat->getUserFields();
+    checkUserFields(listPos);
+
+    int fid;
+    for (int i = 0; i < listPos.count(); ++i)
+    {
+        QString fieldName = listPos[i];
+
+        if (fieldName.startsWith("text_"))
+            fieldName.remove(0, 5);
+
+        if (fieldName.startsWith("uf"))
+            fieldName.remove(0, 2);
+
+        fid = fieldName.toInt();
+
+        if (fid)
+        {
+            tmp = md->find(fid);
+            newform->ListView->headerItem()->setText(i, md->attr(tmp, mda_name));
+        }
+    }
+
+    listPos.clear();
+    listPos = cat->getUserFields();
+    checkUserFields(listPos);
+
+    newform->setData(cat,
+                     map,
+                     listPos,
+                     cat->getGroupUserFields(),
+                     idElForm,
+                     idGrForm,
+                     toSelect);
+
+    newform->setId(value().toULongLong());
+
+    if (ws)
+        ((QWorkspace *)ws)->addWindow(newform);
+
+    newform->show();
+
+    if (newform->parentWidget())
+        newform->parentWidget()->move(0, 0);
 }
-void
-wCatalogEditor::checkUserFields( QStringList &lst)
+
+void wCatalogEditor::checkUserFields(QStringList &lst)
 {
-	aCfgItem item = md->find(catId);
-	int fid;
-	if(item.isNull()) return;
-	item = md->findChild(item,md_element);
-	for(int i=0; i< md->count(item,md_field); i++)
-  	{
-		aCfgItem mdi = md->findChild(item,md_field,i);
-		int ind = lst.findIndex(QString("uf%1").arg(md->attr(mdi,mda_id)));
-		if(ind!=-1)
-		{
-			//--lst.insert(lst.at(i),lst[ind]);
-			lst.insert(i,lst[ind]);
-			lst.remove(lst.at(ind+1));
+    aCfgItem item = md->find(catId);
+    if (item.isNull())
+        return;
 
-		}
-		else
-		{
-			ind = lst.findIndex(QString("text_uf%1").arg(md->attr(mdi,mda_id)));
-			if(ind!=-1)
-			{
-				//--lst.insert(lst.at(i),lst[ind]);
-				lst.insert(i,lst[ind]);
-				lst.remove(lst.at(ind+1));
+    item = md->findChild(item, md_element);
 
-			}
-		}
-  	}
+    for (int i = 0; i < md->count(item, md_field); ++i)
+    {
+        aCfgItem mdi = md->findChild(item, md_field, i);
 
+        QString uf = QString("uf%1").arg(md->attr(mdi, mda_id));
+        int ind = lst.indexOf(uf);
+
+        if (ind != -1)
+        {
+            lst.insert(i, lst[ind]);
+            lst.removeAt(ind + 1);
+        }
+        else
+        {
+            QString tuf = QString("text_uf%1").arg(md->attr(mdi, mda_id));
+            ind = lst.indexOf(tuf);
+
+            if (ind != -1)
+            {
+                lst.insert(i, lst[ind]);
+                lst.removeAt(ind + 1);
+            }
+        }
+    }
 }
 
 void

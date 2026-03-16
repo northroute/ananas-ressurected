@@ -4,7 +4,7 @@
 #include "ui_deditcommand.h"
 
 
-class dEditCommand : public Q3MainWindow, public Ui::dEditCommand
+class dEditCommand : public QMainWindow, public Ui::dEditCommand
 {
     Q_OBJECT
 

@@ -4,7 +4,7 @@
 #include "ui_deditimagecollection.h"
 
 
-class dEditImageCollection : public Q3MainWindow, public Ui::dEditImageCollection
+class dEditImageCollection : public QMainWindow, public Ui::dEditImageCollection
 {
     Q_OBJECT
 

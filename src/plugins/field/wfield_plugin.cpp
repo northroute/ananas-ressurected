@@ -19,10 +19,6 @@
 
 #include "wfield_plugin.h"
 
-#include <QtPlugin>
-#include <QDesignerFormEditorInterface>
-#include <QExtensionManager>
-
 #include "wfield_taskmenu.h"
 #include "wfield.h"
 

@@ -29,13 +29,7 @@
 
 #include "wactionbutton.h"
 #include "eactionbutton.h"
-#include <q3mainwindow.h>
-#include <q3header.h>
-#include <qvariant.h>
-#include "qobject.h"
-#include "qobject.h"
-//Added by qt3to4:
-#include <QKeyEvent>
+
 
 //--#include "command.h"
 //--#include "formwindow.h"
@@ -44,14 +38,15 @@
 
 #include "adatabase.h"
 
-wActionButton::wActionButton( QWidget *parent, const char *name )
-    : QPushButton( parent, "wActionButton")
+wActionButton::wActionButton(QWidget *parent, const char *name) : QPushButton(parent)
 {
-    action = true;
-    actionId=0;
-    actionUpdate = actionTurnOn = actionClose = false;
-    connect( this, SIGNAL(clicked()), this, SLOT(onClick()) );
+    setObjectName(name ? name : "wActionButton");
 
+    action = true;
+    actionId = 0;
+    actionUpdate = actionTurnOn = actionClose = false;
+
+    connect(this, SIGNAL(clicked()), this, SLOT(onClick()));
 }
 
 
@@ -83,24 +78,23 @@ wActionButton::onClick()
 //CHECK_POINT
 }
 
-void
-wActionButton::keyPressHandler ( QKeyEvent * e )
+void wActionButton::keyPressHandler(QKeyEvent *e)
 {
 	CHECK_POINT
-	switch(e->key())
+
+	switch (e->key())
 	{
 		case Qt::Key_Return:
-		break;
+			break;
+
 		case Qt::Key_Escape:
-			if(accel() == QKeySequence(Qt::Key_Escape))
+			if (shortcut() == QKeySequence(Qt::Key_Escape))
 			{
-				emit(clicked());
+				emit clicked();
 				e->accept();
 			}
-		break;
-
+			break;
 	}
-	//printf("key pressed %c",e->ascii());
-	//QWidget::keyPressEvent ( e );
+
 	e->ignore();
 }

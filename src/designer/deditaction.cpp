@@ -18,7 +18,7 @@
  *
  */
 dEditAction::dEditAction(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : Q3MainWindow(parent, name, fl)
+    : QMainWindow(parent, name, fl)
 {
     setupUi(this);
 
@@ -256,7 +256,7 @@ void dEditAction::bSetActive_clicked()
 //    fd->setContentsPreviewEnabled( TRUE );  // prepair file dialog
 //    fd->setCaption( tr("Open image dialog" ) );
 //    fd->setMode( QFileDialog::ExistingFiles );
- name= Q3FileDialog::getOpenFileName("", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", this,
+ name= QFileDialog::getOpenFileName("", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", this,
    tr("Open image dialog"),
    tr("Choose an image") );
 //    if ( fd->exec() == QDialog::Accepted ) { // if accepted
@@ -285,7 +285,7 @@ void dEditAction::bSetPassive_clicked()
 {
     QString st;
     QPixmap pix;
-    Q3FileDialog *fd = new Q3FileDialog( "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", 0, 0, TRUE );
+    QFileDialog *fd = new QFileDialog( "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp)", 0, 0, TRUE );
     QByteArray ba;
     QString name;
     QFile f;
@@ -293,10 +293,10 @@ void dEditAction::bSetPassive_clicked()
     aCfgItem passive;
 
     fd->setContentsPreview( p, p );
-    fd->setPreviewMode( Q3FileDialog::Contents );
+    fd->setPreviewMode( QFileDialog::Contents );
     fd->setContentsPreviewEnabled( TRUE );
     fd->setCaption( tr("Open image dialog" ) );
-    fd->setMode( Q3FileDialog::ExistingFiles );
+    fd->setMode( QFileDialog::ExistingFiles );
     if ( fd->exec() == QDialog::Accepted ) {
  name = fd->selectedFile();
  if ( !name.isEmpty() ) {

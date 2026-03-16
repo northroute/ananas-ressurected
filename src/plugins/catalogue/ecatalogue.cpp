@@ -1,9 +1,5 @@
 #include "ecatalogue.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 /*
  *  Constructs a eCatalogue as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -11,10 +7,15 @@
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  true to construct a modal dialog.
  */
-eCatalogue::eCatalogue(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl)
-    : QDialog(parent, name, modal, fl)
+eCatalogue::eCatalogue(QWidget* parent, const char* name, bool modal, Qt::WindowFlags fl) : QDialog(parent, fl)
 {
     setupUi(this);
+
+	if(name)
+		setObjectName(name);
+
+	if(modal)
+		setModal(modal);
 
     init();
 }
@@ -130,74 +131,68 @@ void eCatalogue::init()
 }
 */
 
-void
-eCatalogue::setData( QWidget *o, aCfg *md )
+void eCatalogue::setData(QWidget *o, aCfg *md)
 {
-//    const QObject *o = sender();
-    if ( o ) {
-	if ( o->className() != QString("wCatalogue") || !md ) {
-	    reject();
-	    return;
+	if (!o)
+	{
+		reject();
+		return;
 	}
-    }
-    else {
-	reject();
-	return;
-    }
-    wCatalogue *f = ( wCatalogue*) o;
-    int w=0, d=0, idx=0;
-    unsigned int i;
-    long oid , id;
 
-    id = f->getId();
-
-    QStringList tlist = md->types( md_catalogue );
-    otypes.clear();
-    eType->clear();
-    for ( QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it ) {
-	otypes.append( (*it).section( "\t", 0, 0 ) );
-	eType->insertItem( (*it).section("\t", 1, 1 ), idx++ );
-    }
-    for ( i = 0 ; i < otypes.count(); i++ ) {
-	oid = 0;
-	if( otypes[i][0] == 'O' ) {
-	    sscanf( (const char *)otypes[ i ], "O %d", &oid );
-	    if ( oid == id ) {
-		eType->setCurrentItem( i );
-		break;
-	    }
+	if (o->metaObject()->className() != QString("wCatalogue") || !md)
+	{
+		reject();
+		return;
 	}
-    }
-}
 
+	wCatalogue *f = static_cast<wCatalogue*>(o);
+	int idx = 0;
+	unsigned int i;
+	long oid, id;
 
-void eCatalogue::getData( QWidget * o )
-{
+	id = f->getId();
 
-/*	int idx=eType->currentItem();
-	long oid = 0;
+	QStringList tlist = md->types(md_catalogue);
+	otypes.clear();
+	eType->clear();
 
-	if (f) {
-		if( otypes[idx][0] == 'O' ) {
-			sscanf( (const char *)otypes[ idx ], "O %d", &oid );
-			f->setId( oid );
+	for (QStringList::Iterator it = tlist.begin(); it != tlist.end(); ++it)
+	{
+		otypes.append((*it).section("\t", 0, 0));
+		eType->insertItem(idx++, (*it).section("\t", 1, 1));
+	}
+
+	for (i = 0; i < (unsigned int)otypes.count(); i++)
+	{
+		oid = 0;
+		if (!otypes[(int)i].isEmpty() && otypes[(int)i][0] == 'O')
+		{
+			sscanf(otypes[(int)i].toLatin1().constData(), "O %ld", &oid);
+			if (oid == id)
+			{
+				eType->setCurrentIndex((int)i);
+				break;
+			}
 		}
 	}
-*/
-//    const QObject *o = sender();
-    if ( !o ) return;
-    if ( o->className() != QString("wCatalogue") ) return;
-    wCatalogue *f = ( wCatalogue*) o;
-
-    int idx=eType->currentItem();
-    long oid = 0;
-
-    if (f) {
-	if( otypes[idx][0] == 'O' ) {
-	    sscanf( (const char *)otypes[ idx ], "O %d", &oid );
-	    f->setId( oid );
-	}
-    }
-
 }
 
+void eCatalogue::getData(QWidget *o)
+{
+	if (!o) return;
+	if (o->metaObject()->className() != QString("wCatalogue")) return;
+
+	wCatalogue *f = static_cast<wCatalogue*>(o);
+
+	int idx = eType->currentIndex();
+	long oid = 0;
+
+	if (f && idx >= 0 && idx < otypes.count())
+	{
+		if (!otypes[idx].isEmpty() && otypes[idx][0] == 'O')
+		{
+			sscanf(otypes[idx].toLatin1().constData(), "O %ld", &oid);
+			f->setId(oid);
+		}
+	}
+}

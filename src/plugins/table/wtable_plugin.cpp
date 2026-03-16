@@ -19,8 +19,6 @@
 
 #include "wtable_plugin.h"
 
-#include <QtPlugin>
-
 #include "wtable.h"
 
 
@@ -50,8 +48,7 @@ void wTablePlugin::initialize(QDesignerFormEditorInterface *core)
 
 QWidget *wTablePlugin::createWidget(QWidget *parent)
 {
-    wTable *w = new wTable(parent, 0);
-    return w;
+    return new wTable(parent);
 }
 
 QString wTablePlugin::name() const
