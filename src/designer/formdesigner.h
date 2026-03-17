@@ -29,10 +29,10 @@
 #ifndef FORMDESIGNER_H
 #define FORMDESIGNER_H
 
+
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include <QMainWindow>
-
 
 class QDesignerWorkbench;
  

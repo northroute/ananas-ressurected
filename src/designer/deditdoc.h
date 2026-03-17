@@ -1,20 +1,27 @@
 #ifndef DEDITDOC_H
 #define DEDITDOC_H
 
+
 #include "ui_deditdoc.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QScriptEngine>
+#include <QHash>
 
 class dEditDoc : public QMainWindow, public Ui::dEditDoc
 {
     Q_OBJECT
 
 public:
-    dEditDoc(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditDoc(QWidget* parent, Qt::WindowFlags fl);
     ~dEditDoc();
 
     aListViewItem *item;
     aAliasEditor *al;
-    Q3IntDict<int> fields;
+    QHash<int, int> fields;
     aRoleEditor *re;
 
 public slots:
@@ -26,7 +33,7 @@ protected slots:
     virtual void languageChange();
 
     virtual void init();
-    virtual void destroy();
+    virtual void closeEditor();
 
 
 };

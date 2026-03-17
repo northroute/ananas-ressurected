@@ -27,12 +27,6 @@
 **
 **********************************************************************/
 
-#include <QTreeWidget>
-#include <q3header.h>
-#include <QMenu>
-#include <qlabel.h>
-#include <qcursor.h>
-
 #include "atreeitems.h"
 #include "alog.h"
 
@@ -68,19 +62,11 @@ ananasListViewItem::ananasListViewItem( QTreeWidget *parent, QTreeWidgetItem *af
 	id = md->id(obj);
 }
 
-void
-ananasListViewItem::clearTree()
+void ananasListViewItem::clearTree()
 {
-	QTreeWidgetItem	*item, *nextitem;
-
-	// clear tree
-	item = firstChild();
-	while( item )
-	{
-		nextitem = item->nextSibling();
-		delete item;
-		item = nextitem;
-	}
+    while (childCount() > 0) {
+        delete takeChild(0);
+    }
 }
 
 /*
@@ -94,77 +80,101 @@ CHECK_POINT
 	((ananasListViewItem*)after)->obj = temp2;
 }
 */
-void
-ananasListViewItem::moveUp ()
-{
-	if(!previousSibling()) return; // not previous item! - no changes
-	aCfgItem item = previousSibling()->obj;
 
-	if ( obj.isNull() )
-	{
-		aLog::print(aLog::Error, QObject::tr(" Ananas List View Item %1 is null").arg(md->attr(obj,mda_name)));
-		return;
-	}
-	if( md->swap( obj, item ) )
-	{
-		previousSibling()->moveItem( this );
-		aLog::print(aLog::Debug, QObject::tr("Ananas List View Item swaping"));
-	}
-	else
-	{
-		aLog::print(aLog::Error, QObject::tr("Ananas List View Item swaping"));
-	}
+void ananasListViewItem::moveUp()
+{
+    ananasListViewItem *prev = previousSibling();
+    if (!prev) return; // no previous item
+
+    aCfgItem item = prev->obj;
+
+    if (obj.isNull())
+    {
+        aLog::print(aLog::Error,
+                    QObject::tr(" Ananas List View Item %1 is null").arg(md->attr(obj, mda_name)));
+        return;
+    }
+
+    if (md->swap(obj, item))
+    {
+        QTreeWidgetItem *p = parent();
+        if (p) {
+            int idx = p->indexOfChild(this);
+            if (idx > 0) {
+                p->takeChild(idx);
+                p->insertChild(idx - 1, this);
+            }
+        }
+        aLog::print(aLog::Debug, QObject::tr("Ananas List View Item swaping"));
+    }
+    else
+    {
+        aLog::print(aLog::Error, QObject::tr("Ananas List View Item swaping"));
+    }
 }
 
-void
-ananasListViewItem::moveDown ()
+void ananasListViewItem::moveDown()
 {
-	if(!nextSibling()) return; // not next item! - no changes
-	aCfgItem item = nextSibling()->obj;
-	if ( item.isNull() )
-	{
-		aLog::print(aLog::Error, QObject::tr(" Ananas List View Item %1 is null").arg(md->attr(obj,mda_name)));
-		return;
-	}
-	if( md->swap( obj, item ) )
-	{
-		moveItem( nextSibling() );
-		aLog::print(aLog::Debug, QObject::tr("Ananas List View Item swaping"));
-	}
-	else
-	{
-		aLog::print(aLog::Error, QObject::tr("Ananas List View Item swaping"));
-	}
+    ananasListViewItem *next = nextSibling();
+    if (!next) return; // no next item
+
+    aCfgItem item = next->obj;
+    if (item.isNull())
+    {
+        aLog::print(aLog::Error,
+                    QObject::tr(" Ananas List View Item %1 is null").arg(md->attr(obj, mda_name)));
+        return;
+    }
+
+    if (md->swap(obj, item))
+    {
+        QTreeWidgetItem *p = parent();
+        if (p) {
+            int idx = p->indexOfChild(this);
+            if (idx >= 0 && idx < p->childCount() - 1) {
+                p->takeChild(idx);
+                p->insertChild(idx + 1, this);
+            }
+        }
+        aLog::print(aLog::Debug, QObject::tr("Ananas List View Item swaping"));
+    }
+    else
+    {
+        aLog::print(aLog::Error, QObject::tr("Ananas List View Item swaping"));
+    }
 }
 
-ananasListViewItem *
-ananasListViewItem::previousSibling() // becose QListViewItem not have function previousSibling();
+ananasListViewItem *ananasListViewItem::previousSibling()
 {
-	QTreeWidgetItem *parent, *item;
-	parent = this->parent();
-	item = parent->firstChild();
-	while ( item )
-		if ( (ananasListViewItem *)item->nextSibling() == this )
-			return (ananasListViewItem *) item;
-		else item = item->nextSibling();
-	return 0;
+    QTreeWidgetItem *p = parent();
+    if (!p) return 0;
+
+    int idx = p->indexOfChild(this);
+    if (idx > 0)
+        return static_cast<ananasListViewItem*>(p->child(idx - 1));
+
+    return 0;
 }
 
-ananasListViewItem*
-ananasListViewItem::nextSibling()
+ananasListViewItem *ananasListViewItem::nextSibling()
 {
-	return (ananasListViewItem *)QTreeWidgetItem::nextSibling();
+    QTreeWidgetItem *p = parent();
+    if (!p) return 0;
+
+    int idx = p->indexOfChild(this);
+    if (idx < p->childCount() - 1)
+        return static_cast<ananasListViewItem*>(p->child(idx + 1));
+
+    return 0;
 }
 
-
-void
-ananasListViewItem::okRename( int col )
+void ananasListViewItem::okRename(int col)
 {
-	QTreeWidgetItem::okRename( col );
-	if ( id && !obj.isNull() && col == 0 ) {
-		setText( 0, text( 0 ).stripWhiteSpace() );
-		md->setAttr( obj, mda_name, text( 0 ) );
-	}
+    if (id && !obj.isNull() && col == 0) {
+        QString t = text(0).trimmed();
+        setText(0, t);
+        md->setAttr(obj, mda_name, t);
+    }
 }
 
 /*
@@ -185,90 +195,66 @@ ananasListViewItem::getLastChild( QListViewItem * parent )
 };
 */
 
-ananasListViewItem*
-ananasListViewItem::getLastChild()
+ananasListViewItem *ananasListViewItem::getLastChild()
 {
-	QTreeWidgetItem *item, *nextitem;
-	item = firstChild();
-	while( item )
-	{
-		nextitem = item->nextSibling();
-		if ( nextitem )
-			item = nextitem;
-		else
-			return (ananasListViewItem*) item;
-	}
-	return 0;
-};
-
-
-ananasTreeView::ananasTreeView ( QWidget *parent, aCfg *cfgmd )
-:QTreeWidget ( parent )
-{
-	md = cfgmd;
-	addColumn( "" );
-	header()->hide();
-	setSorting ( -1 );
-	setSelectionMode( Single );
-};
-
-
-void
-ananasTreeView::ContextMenuAdd( QMenu * m )
-{
-	//--QLabel *caption = new QLabel( tr("<font color=darkblue><u><b>" "Context Menu</b></u></font>"), this );
-	//--caption->setAlignment( Qt::AlignCenter );
-	//--m->insertItem( caption );
-	m->insertItem( tr("&Rename"), this, SLOT( itemRename() ), Qt::CTRL+Qt::Key_R);
-	m->insertItem( tr("&Edit"),  this, SLOT( itemEdit() ), Qt::CTRL+Qt::Key_E );
-	m->insertItem( tr("&Delete"), this, SLOT( itemDelete() ), Qt::CTRL+Qt::Key_D );
-	m->insertItem( tr("&MoveUp"), this, SLOT( itemMoveUp() ), Qt::CTRL+Qt::Key_U );
-	m->insertItem( tr("&MoveDown"), this, SLOT( itemMoveDown() ), Qt::CTRL+Qt::Key_M );
-	m->insertItem( tr("&SaveItem"), this, SLOT( itemSave() ) );
-	m->insertItem( tr("&LoadItem"), this, SLOT( itemLoad() ) );
-	m->insertSeparator();
-};
-
-void
-ananasTreeView::deleteItem()
-{
-	ananasListViewItem *i = (ananasListViewItem *) selectedItem();
-	if ( i )
-	{
-		if ( i->id ) {
-			md->remove( i->obj );
-			delete i;
-		}
-	}
-};
-
-void
-ananasTreeView::moveUpItem()
-{
-	ananasListViewItem *i = (ananasListViewItem *) selectedItem();
-	if ( i )
-	{
-		if ( i->id ) {
-			i->moveUp();
-		}
-	}
+    int count = childCount();
+    if (count > 0)
+        return static_cast<ananasListViewItem*>(child(count - 1));
+    return 0;
 }
 
-void
-ananasTreeView::moveDownItem()
+
+ananasTreeView::ananasTreeView(QWidget *parent, aCfg *cfgmd)
+    : QTreeWidget(parent)
 {
-	ananasListViewItem *i = (ananasListViewItem *) selectedItem();
-	if ( i )
-	{
-		if ( i->id ) {
-			i->moveDown();
-		}
-	}
+    md = cfgmd;
+
+    setColumnCount(1);
+    header()->hide();
+    setSortingEnabled(false);
+    setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
-void
-ananasTreeView::renameItem()
+void ananasTreeView::ContextMenuAdd(QMenu *m)
 {
-	if ( selectedItem() ) selectedItem()->startRename( 0 );
+    m->addAction(tr("&Rename"), this, SLOT(itemRename()), QKeySequence(Qt::CTRL + Qt::Key_R));
+    m->addAction(tr("&Edit"), this, SLOT(itemEdit()), QKeySequence(Qt::CTRL + Qt::Key_E));
+    m->addAction(tr("&Delete"), this, SLOT(itemDelete()), QKeySequence(Qt::CTRL + Qt::Key_D));
+    m->addAction(tr("&MoveUp"), this, SLOT(itemMoveUp()), QKeySequence(Qt::CTRL + Qt::Key_U));
+    m->addAction(tr("&MoveDown"), this, SLOT(itemMoveDown()), QKeySequence(Qt::CTRL + Qt::Key_M));
+    m->addAction(tr("&SaveItem"), this, SLOT(itemSave()));
+    m->addAction(tr("&LoadItem"), this, SLOT(itemLoad()));
+    m->addSeparator();
 }
 
+void ananasTreeView::deleteItem()
+{
+    ananasListViewItem *i = static_cast<ananasListViewItem*>(currentItem());
+    if (i && i->id) {
+        md->remove(i->obj);
+        delete i;
+    }
+}
+
+void ananasTreeView::moveUpItem()
+{
+    ananasListViewItem *i = static_cast<ananasListViewItem*>(currentItem());
+    if (i && i->id) {
+        i->moveUp();
+    }
+}
+
+void ananasTreeView::moveDownItem()
+{
+    ananasListViewItem *i = static_cast<ananasListViewItem*>(currentItem());
+    if (i && i->id) {
+        i->moveDown();
+    }
+}
+
+void ananasTreeView::renameItem()
+{
+    ananasListViewItem *i = static_cast<ananasListViewItem*>(currentItem());
+    if (i)
+        editItem(i, 0);
+}

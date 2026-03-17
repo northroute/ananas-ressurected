@@ -1,15 +1,21 @@
 #ifndef DEDITROLE_H
 #define DEDITROLE_H
 
+
 #include "ui_deditrole.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QScriptEngine>
 
 class dEditRole : public QMainWindow, public Ui::dEditRole
 {
     Q_OBJECT
 
 public:
-    dEditRole(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditRole(QWidget* parent, Qt::WindowFlags fl);
     ~dEditRole();
 
 public slots:
@@ -25,7 +31,7 @@ private:
     int roleCount;
 
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 

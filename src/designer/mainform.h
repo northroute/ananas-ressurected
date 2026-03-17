@@ -3,17 +3,29 @@
 
 #include "ui_mainform.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QToolButton>
+#include <QApplication>
+#include <QSettings>
+#include <QFileDialog>
+#include <QStatusBar>
+#include <QMessageBox>
+#include <QCloseEvent>
+#include <QFrame>
+#include <QMenu>
 
 class MainForm : public QMainWindow, public Ui::MainForm
 {
     Q_OBJECT
 
 public:
-    MainForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    MainForm(QWidget* parent, Qt::WindowFlags fl);
     ~MainForm();
 
     QLabel *msg;
-    QWorkspace *ws;
+    QMdiArea *ws;
     CfgForm *cfgform;
     QString rcfile;
     aCfg *md;
@@ -52,10 +64,10 @@ public slots:
     virtual void addTab( int uid, const QString & winName );
     // -- Help for add to workspace
     virtual void addTab(QWidget* window) {
-        ws->addWindow(window);
+        ws->addSubWindow(window);
         window->show();
         addTab(++lastTabId, window->objectName());
-    };
+    }
     virtual void removeTab( const QString & winName );
     virtual void closeChildWindows();
     virtual void fileNewAction_activated();

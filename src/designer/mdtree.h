@@ -28,8 +28,25 @@
 
 #ifndef MDTREE_H
 #define MDTREE_H
+
+
 #include <QTreeWidget>
-#include <q3intdict.h>
+#include <QHash>
+#include <QLabel>
+#include <QPixmap>
+#include <QMenu>
+#include <QStatusBar>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QList>
+#include <QImage>
+#include <QBitmap>
+#include <QDrag>
+#include <QHeaderView>
+#include <QFont>
+#include <QCursor>
+#include <QLayout>
+
 #include "acfg.h"
 #include "formdesigner.h"
 #include "atreeitems.h"
@@ -109,7 +126,7 @@ public slots:
 private slots:
 	void on_collapsed( QTreeWidgetItem *item );
 private:
-	Q3IntDict<QWidget> editors;
+	QHash<int, QWidget*> editors;
 };
 
 #endif

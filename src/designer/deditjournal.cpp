@@ -1,10 +1,5 @@
 #include "deditjournal.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
-#include <qstatusbar.h>
 #include "acfg.h"
 
 /*
@@ -12,8 +7,8 @@
  *  name 'name' and widget flags set to 'f'.
  *
  */
-dEditJournal::dEditJournal(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QMainWindow(parent, name, fl)
+dEditJournal::dEditJournal(QWidget* parent, Qt::WindowFlags fl)
+    : QMainWindow(parent, fl)
 {
     setupUi(this);
 
@@ -39,62 +34,69 @@ void dEditJournal::languageChange()
     retranslateUi(this);
 }
 
-void dEditJournal::setData( aListViewItem *o )
+void dEditJournal::setData(aListViewItem *o)
 {
     item = o;
     md = o->md;
     obj = o->obj;
+
     aCfgItem cobj, doc, docs;
     int i, j, n;
-    aAliasEditor *a = new aAliasEditor( md, obj, tAliases );
+
+    aAliasEditor *a = new aAliasEditor(md, obj, tAliases);
     al = a;
     al->setData();
-    aRoleEditor *r = new aRoleEditor( md, obj, tRoles, md_journal );
+
+    aRoleEditor *r = new aRoleEditor(md, obj, tRoles, md_journal);
     re = r;
     re->setData();
-    setCaption( tr("Journal:") + md->attr( obj, mda_name ) );
-    eName->setText( md->attr( obj, mda_name ) );
-    eDescription->setText( md->sText( obj, md_description ) );
 
-    i = md->attr ( obj, mda_type ).toInt();
-    cbType-> setCurrentItem(i);
+    setWindowTitle(tr("Journal:") + md->attr(obj, mda_name));
+    eName->setText(md->attr(obj, mda_name));
+    eDescription->setPlainText(md->sText(obj, md_description));
 
-    journalDocs = new ananasTreeView( tabWidget18->page(2),  md  );
-    journalDocs->setSorting( -1 );
-    // TODO Fix me!!!
-    //--layout28->addWidget( journalDocs, 0, 0 );
-    n = md->count( obj, md_used_doc );
-    for ( j = 0; j < n; j++ )
+    i = md->attr(obj, mda_type).toInt();
+    cbType->setCurrentIndex(i);
+
+    journalDocs = new ananasTreeView(tabWidget18->widget(2), md);
+    journalDocs->setSortingEnabled(false);
+    // layout28->addWidget(journalDocs, 0, 0);
+
+    n = md->count(obj, md_used_doc);
+    for (j = 0; j < n; j++)
     {
-	cobj = md->find( obj, md_used_doc, j );
-	if ( cobj.isNull() )
-	    continue;
-//		did = md->text(cobj).toLong();
-	doc = md->find(md->text(cobj).toLong());
-	if ( doc.isNull() )
-	    md->remove(cobj);
-	else
-	    new ananasListViewItem( journalDocs, journalDocs->lastItem(), md, doc );
+        cobj = md->find(obj, md_used_doc, j);
+        if (cobj.isNull())
+            continue;
+
+        doc = md->find(md->text(cobj).toLong());
+        if (doc.isNull())
+            md->remove(cobj);
+        else
+            new ananasListViewItem(journalDocs, 0, md, doc);
     }
 
-    allDocs = new ananasTreeView( tabWidget18->page(2),  md  );
-    allDocs->setSorting( -1 );
-    // TODO Fix me!!!
-    //--layout29->add( allDocs );
-    docs = md->find(md->find(mdc_metadata),md_documents,0);
-    n = md->count( docs, md_document );
-    for ( j = 0; j < n; j++ )
+    allDocs = new ananasTreeView(tabWidget18->widget(2), md);
+    allDocs->setSortingEnabled(false);
+    // layout29->addWidget(allDocs, 0, 0);
+
+    docs = md->find(md->find(mdc_metadata), md_documents, 0);
+    n = md->count(docs, md_document);
+
+    for (j = 0; j < n; j++)
     {
-	cobj = md->find( docs, md_document, j );
-	if ( cobj.isNull() )
-	    return;
-	//		did = md->id(cobj);
-	doc = md->find(md->id(cobj));
-	new ananasListViewItem( allDocs, allDocs->lastItem(), md, doc );
+        cobj = md->find(docs, md_document, j);
+        if (cobj.isNull())
+            continue;
+
+        doc = md->find(md->id(cobj));
+        new ananasListViewItem(allDocs, 0, md, doc);
     }
-    docPage = tabWidget18->page(2);
-    if ( cbType->currentItem() != 1 )
-	typeChange();
+
+    docPage = tabWidget18->widget(2);
+
+    if (cbType->currentIndex() != 1)
+        typeChange();
 }
 
 
@@ -103,95 +105,114 @@ void dEditJournal::init()
     statusBar()->hide();
 }
 
-
 void dEditJournal::updateMD()
 {
     aCfgItem doc, docs;
-    int i;
 
     al->updateMD();
     re->updateMD();
-    item->setText( 0, eName->text().stripWhiteSpace() );
-    md->setAttr( obj, mda_name, eName->text().stripWhiteSpace() );
-    md->setSText( obj, md_description, eDescription->text() );
-    md->setAttr( obj, mda_type, cbType->currentItem() );
-    docs = md->find(obj,md_columns,0);
+
+    item->setText(0, eName->text().trimmed());
+    md->setAttr(obj, mda_name, eName->text().trimmed());
+    md->setSText(obj, md_description, eDescription->toPlainText());
+    md->setAttr(obj, mda_type, QString::number(cbType->currentIndex()));
+
+    docs = md->find(obj, md_columns, 0);
+
     do
     {
-	doc = md->findChild( docs, md_used_doc, 0 );
-	if ( !doc.isNull() )
-	    md->remove( doc );
-    } while ( !doc.isNull() );
-    if ( cbType->currentItem() != 1 )
-	return;
-    ananasListViewItem *aitem = (ananasListViewItem *)journalDocs->firstChild();
-    for ( i = 0; i < journalDocs->childCount(); i++ )
-    {
-	doc = md->insert( docs, md_used_doc, QString::null, -1 );
-	md->setText( doc, QString( "%1" ).arg( aitem->id ) );
-	aitem = (ananasListViewItem *)aitem->nextSibling();
-    }
+        doc = md->findChild(docs, md_used_doc, 0);
+        if (!doc.isNull())
+            md->remove(doc);
+    } while (!doc.isNull());
 
+    if (cbType->currentIndex() != 1)
+        return;
+
+    for (int i = 0; i < journalDocs->topLevelItemCount(); i++)
+    {
+        ananasListViewItem *aitem =
+            static_cast<ananasListViewItem*>(journalDocs->topLevelItem(i));
+
+        if (!aitem)
+            continue;
+
+        doc = md->insert(docs, md_used_doc, QString(), -1);
+        md->setText(doc, QString("%1").arg(aitem->id));
+    }
 }
 
-void dEditJournal::destroy()
+void dEditJournal::closeEditor()
 {
     updateMD();
-    ( (MainForm*)this->topLevelWidget() )->wl->remove( this );
-    ( (MainForm*)this->topLevelWidget() )->removeTab(name());
+    ((MainForm*)topLevelWidget())->wl->remove(this);
+    ((MainForm*)topLevelWidget())->removeTab(windowTitle());
 }
-
-
 
 
 void dEditJournal::typeChange()
 {
-    if ( cbType->currentItem() != 1 )
-	tabWidget18->removePage(tabWidget18->page(2));
-    else
-	tabWidget18->insertTab(docPage,QObject::tr("Documents"));
+    if (cbType->currentIndex() != 1) {
+        int index = tabWidget18->indexOf(docPage);
+        if (index != -1)
+            tabWidget18->removeTab(index);
+    } else {
+        if (tabWidget18->indexOf(docPage) == -1)
+            tabWidget18->addTab(docPage, QObject::tr("Documents"));
+    }
 }
 
 
 void dEditJournal::addDoc()
 {
-    ananasListViewItem *cur = (ananasListViewItem *)allDocs->selectedItem();
+    ananasListViewItem *cur =
+        static_cast<ananasListViewItem*>(allDocs->currentItem());
+
     if (!cur)
-	return;
-    if ( md->objClass( cur->obj ) != md_document )
-	return;
-    new ananasListViewItem(journalDocs, journalDocs->lastItem(), md, cur->obj );
+        return;
+
+    if (md->objClass(cur->obj) != md_document)
+        return;
+
+    new ananasListViewItem(journalDocs, 0, md, cur->obj);
 }
 
 
 void dEditJournal::removeDoc()
 {
-    journalDocs->removeItem( journalDocs->selectedItem() );
+    QTreeWidgetItem *item = journalDocs->currentItem();
+    if (!item)
+        return;
+
+    delete item;
 }
 
 
 void dEditJournal::moveUp()
 {
-    ananasListViewItem *aitem, *after;
+    QTreeWidgetItem *item = journalDocs->currentItem();
+    if (!item)
+        return;
 
-    aitem = (ananasListViewItem *) journalDocs->selectedItem();
-    if ( aitem )
-    {
-	after = (ananasListViewItem *)aitem->itemAbove();
-	if ( after )
-	    after->moveItem( aitem );
+    int index = journalDocs->indexOfTopLevelItem(item);
+    if (index > 0) {
+        journalDocs->takeTopLevelItem(index);
+        journalDocs->insertTopLevelItem(index - 1, item);
+        journalDocs->setCurrentItem(item);
     }
 }
 
 
 void dEditJournal::moveDown()
 {
-    ananasListViewItem *aitem, *after;
-    aitem = (ananasListViewItem *)journalDocs->selectedItem();
-    if ( aitem )
-    {
-	after = (ananasListViewItem *)aitem->itemBelow();
-	if ( after )
-	    aitem->moveItem( after );
+    QTreeWidgetItem *item = journalDocs->currentItem();
+    if (!item)
+        return;
+
+    int index = journalDocs->indexOfTopLevelItem(item);
+    if (index < journalDocs->topLevelItemCount() - 1) {
+        journalDocs->takeTopLevelItem(index);
+        journalDocs->insertTopLevelItem(index + 1, item);
+        journalDocs->setCurrentItem(item);
     }
 }

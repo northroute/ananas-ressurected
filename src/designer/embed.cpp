@@ -25,13 +25,14 @@
 **********************************************************************/
 
 #include "uic.h"
-#include <qfile.h>
-#include <qimage.h>
-#include <qstringlist.h>
-#include <qdatetime.h>
-#include <qfileinfo.h>
-//Added by qt3to4:
-#include <Q3PtrList>
+
+#include <QFile>
+#include <QImage>
+#include <QStringList>
+#include <QDateTime>
+#include <QFileInfo>
+#include <QList>
+
 #include <stdio.h>
 #include <ctype.h>
 

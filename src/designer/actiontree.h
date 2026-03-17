@@ -28,8 +28,17 @@
 
 #ifndef ACTIONTREE_H
 #define ACTIONTREE_H
-#include <QTreeWidget.h>
-#include <q3intdict.h>
+
+
+#include <QTreeWidget>
+#include <QHeaderView>
+#include <QMenu>
+#include <QLabel>
+#include <QCursor>
+#include <QPixmap>
+#include <QHash>
+#include <QMdiArea>
+
 //#include "acfg.h"
 #include "atreeitems.h"
 

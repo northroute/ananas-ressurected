@@ -27,81 +27,104 @@
 **
 **********************************************************************/
 
-#include <q3header.h>
 #include "roleeditor.h"
 #include "acfg.h"
 
 
-aRoleEditor::aRoleEditor( aCfg *c, aCfgItem o, Q3Table *t, const char *p )
+aRoleEditor::aRoleEditor(aCfg *c, aCfgItem o, QTableWidget *t, const char *p)
 {
     ac = c;
     obj = o;
     tRoles = t;
-    tRoles->setNumRows( 0 );
-    tRoles->setNumCols( 1 );
-    tRoles->horizontalHeader()->setLabel( 0, tr("Read") );
     parent = p;
-    if ( !strcmp( parent, md_document ) ) {
-	tRoles->setNumCols( 5 );
-	tRoles->horizontalHeader()->setLabel( 1, tr("Write") );
-	tRoles->horizontalHeader()->setLabel( 2, tr("Delete") );
-	tRoles->horizontalHeader()->setLabel( 3, tr("Turn On") );
-	tRoles->horizontalHeader()->setLabel( 4, tr("Turn Off") );
-    }
-    if ( !strcmp( parent, md_catalogue ) ) {
-	tRoles->setNumCols( 3 );
-	tRoles->horizontalHeader()->setLabel( 1, tr("Write") );
-	tRoles->horizontalHeader()->setLabel( 2, tr("Delete") );
+
+    tRoles->setRowCount(0);
+    tRoles->setColumnCount(1);
+    tRoles->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Read")));
+
+    if (QString(parent) == md_document) {
+        tRoles->setColumnCount(5);
+        tRoles->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Write")));
+        tRoles->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Delete")));
+        tRoles->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Turn On")));
+        tRoles->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Turn Off")));
     }
 
+    if (QString(parent) == md_catalogue) {
+        tRoles->setColumnCount(3);
+        tRoles->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Write")));
+        tRoles->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Delete")));
+    }
 }
 
 aRoleEditor::~aRoleEditor()
 {
 }
 
-void
-aRoleEditor::setData()
+void aRoleEditor::setData()
 {
     int i, j, n;
     aCfgItem orole, roles, role;
     QString rolename, right;
 
-    roles = ac->find( ac->find( mdc_root ), md_roles, 0 );
-    roleCount = ac->count( roles, md_role );
-    n = ac->countChild( obj, md_role );
-    tRoles->setNumRows( roleCount );
-    for ( i = 0; i < roleCount; i++ ) {
-	role = ac->findChild( roles, md_role, i );
-	rolename = ac->attr( role, mda_name );
-	tRoles->verticalHeader()->setLabel( i, rolename );
-	Q3CheckTableItem *r = new Q3CheckTableItem( tRoles, QString::null );
-	tRoles->setItem( i, 0, r );
-	Q3CheckTableItem *w = new Q3CheckTableItem( tRoles, QString::null );
-    	Q3CheckTableItem *d = new Q3CheckTableItem( tRoles, QString::null );
-    	Q3CheckTableItem *on = new Q3CheckTableItem( tRoles, QString::null );
-    	Q3CheckTableItem *off = new Q3CheckTableItem( tRoles, QString::null );
-	if ( !strcmp( parent, md_catalogue ) ) {
-		tRoles->setItem( i, 1, w );
-		tRoles->setItem( i, 2, d );
-	    }
-	if ( !strcmp( parent, md_document ) ) {
-		tRoles->setItem( i, 1, w );
-		tRoles->setItem( i, 2, d );
-		tRoles->setItem( i, 3, on );
-		tRoles->setItem( i, 4, off );
-	    }
-	for ( j = 0; j < n; j++) {
-	    orole = ac->findChild( obj, md_role, j );
-	    if ( rolename == ac->attr( orole, mda_name ) ) {
-		right = ac->attr( orole, mda_rights );
-		if ( right.find( "-r" ) > -1 ) r->setChecked( TRUE );
-		if ( right.find( "-w" ) > -1 ) w->setChecked( TRUE );
-		if ( right.find( "-d" ) > -1 ) d->setChecked( TRUE );
-		if ( right.find( "-on" ) > -1 ) on->setChecked( TRUE );
-		if ( right.find( "-off" ) > -1 ) off->setChecked( TRUE );
-	    }
-	}
+    roles = ac->find(ac->find(mdc_root), md_roles, 0);
+    roleCount = ac->count(roles, md_role);
+    n = ac->countChild(obj, md_role);
+
+    tRoles->setRowCount(roleCount);
+
+    for (i = 0; i < roleCount; ++i) {
+        role = ac->findChild(roles, md_role, i);
+        rolename = ac->attr(role, mda_name);
+
+        QTableWidgetItem *headerItem = new QTableWidgetItem(rolename);
+        tRoles->setVerticalHeaderItem(i, headerItem);
+
+        QTableWidgetItem *r = new QTableWidgetItem();
+        r->setFlags(r->flags() | Qt::ItemIsUserCheckable);
+        r->setCheckState(Qt::Unchecked);
+        tRoles->setItem(i, 0, r);
+
+        QTableWidgetItem *w = new QTableWidgetItem();
+        w->setFlags(w->flags() | Qt::ItemIsUserCheckable);
+        w->setCheckState(Qt::Unchecked);
+
+        QTableWidgetItem *d = new QTableWidgetItem();
+        d->setFlags(d->flags() | Qt::ItemIsUserCheckable);
+        d->setCheckState(Qt::Unchecked);
+
+        QTableWidgetItem *on = new QTableWidgetItem();
+        on->setFlags(on->flags() | Qt::ItemIsUserCheckable);
+        on->setCheckState(Qt::Unchecked);
+
+        QTableWidgetItem *off = new QTableWidgetItem();
+        off->setFlags(off->flags() | Qt::ItemIsUserCheckable);
+        off->setCheckState(Qt::Unchecked);
+
+        if (QString(parent) == md_catalogue) {
+            tRoles->setItem(i, 1, w);
+            tRoles->setItem(i, 2, d);
+        }
+
+        if (QString(parent) == md_document) {
+            tRoles->setItem(i, 1, w);
+            tRoles->setItem(i, 2, d);
+            tRoles->setItem(i, 3, on);
+            tRoles->setItem(i, 4, off);
+        }
+
+        for (j = 0; j < n; ++j) {
+            orole = ac->findChild(obj, md_role, j);
+            if (rolename == ac->attr(orole, mda_name)) {
+                right = ac->attr(orole, mda_rights);
+
+                if (right.contains("-r"))   r->setCheckState(Qt::Checked);
+                if (right.contains("-w"))   w->setCheckState(Qt::Checked);
+                if (right.contains("-d"))   d->setCheckState(Qt::Checked);
+                if (right.contains("-on"))  on->setCheckState(Qt::Checked);
+                if (right.contains("-off")) off->setCheckState(Qt::Checked);
+            }
+        }
     }
 }
 
@@ -111,25 +134,32 @@ void aRoleEditor::updateMD()
     aCfgItem role;
 
     do {
-	role = ac->findChild( obj, md_role, 0 ) ;
-	if ( !role.isNull() ) ac->remove( role );
-    } while ( !role.isNull() );
-    for ( i = 0; i < tRoles->numRows(); i++ ) {
-	QString right;
-	Q3CheckTableItem *q;
-	role = ac->insert( obj, md_role, tRoles->text( i, 0 ), -1 );
-	ac->setAttr( role, mda_name, tRoles->verticalHeader()->label( i ));
-	q = (Q3CheckTableItem *)tRoles->item( i, 4 );
-	if ( q ) if ( q->isChecked() ) right.insert( 0, "-off" );
-	q = (Q3CheckTableItem *)tRoles->item( i, 3 );
-	if ( q ) if ( q->isChecked() ) right.insert( 0, "-on" );
-	q = (Q3CheckTableItem *)tRoles->item( i, 2 );
-	if ( q ) if ( q->isChecked() ) right.insert( 0, "-d" );
-	q = (Q3CheckTableItem *)tRoles->item( i, 1 );
-	if ( q ) if ( q->isChecked() ) right.insert( 0, "-w" );
-	q = (Q3CheckTableItem *)tRoles->item( i, 0 );
-	if ( q ) if ( q->isChecked() ) right.insert( 0, "-r" );
-	ac->setAttr( role, mda_rights, right );
+        role = ac->findChild(obj, md_role, 0);
+        if (!role.isNull())
+            ac->remove(role);
+    } while (!role.isNull());
+
+    for (i = 0; i < tRoles->rowCount(); ++i) {
+        QString right;
+
+        role = ac->insert(obj, md_role, tRoles->item(i, 0) ? tRoles->item(i, 0)->text() : QString(), -1);
+        ac->setAttr(role, mda_name, tRoles->verticalHeaderItem(i) ? tRoles->verticalHeaderItem(i)->text() : QString());
+
+        QTableWidgetItem *q = tRoles->item(i, 4);
+        if (q && q->checkState() == Qt::Checked) right.insert(0, "-off");
+
+        q = tRoles->item(i, 3);
+        if (q && q->checkState() == Qt::Checked) right.insert(0, "-on");
+
+        q = tRoles->item(i, 2);
+        if (q && q->checkState() == Qt::Checked) right.insert(0, "-d");
+
+        q = tRoles->item(i, 1);
+        if (q && q->checkState() == Qt::Checked) right.insert(0, "-w");
+
+        q = tRoles->item(i, 0);
+        if (q && q->checkState() == Qt::Checked) right.insert(0, "-r");
+
+        ac->setAttr(role, mda_rights, right);
     }
 }
-

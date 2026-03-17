@@ -144,9 +144,9 @@ aWidget::createDBObject(  aCfgItem , aDatabase * )
  *	Пока ничего не делает. Возвращает 0;
  *\_ru
  */
-QToolBar *aWidget::createToolBar(QMainWindow *)
+QToolBar *aWidget::createToolBar(QMainWindow *parent)
 {
-    return 0;
+    return new QToolBar(parent);
 }
 
 

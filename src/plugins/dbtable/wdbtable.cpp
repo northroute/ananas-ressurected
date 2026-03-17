@@ -309,7 +309,10 @@ wDBTable::setDefColWidth( int fn )
 	defColWidth = fn;
 }
 
-
+QSqlTableModel::EditStrategy wDBTable::confirmEdit(QSqlTableModel::EditStrategy m)
+{
+    return m;
+}
 
 /*!
  * \en	Creates property editor dialog window. \_en

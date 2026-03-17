@@ -35,7 +35,6 @@ class QAction;
 class QActionGroup;
 class QDesignerFormEditorInterface;
 class QDesignerFormWindowInterface;
-class QAssistantClient;
 
 class QDesignerActions: public QObject
 {
@@ -162,7 +161,7 @@ private:
     enum { MaxRecentFiles = 10 };
     QDesignerWorkbench *m_workbench;
     QDesignerFormEditorInterface *m_core;
-    QAssistantClient *m_assistantClient;
+    // QAssistantClient *m_assistantClient;
     QString m_openDirectory;
 
     QActionGroup *m_fileActions;
