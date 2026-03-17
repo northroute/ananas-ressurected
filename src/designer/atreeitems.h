@@ -29,9 +29,15 @@
 
 #ifndef ATREEITEMS_H
 #define ATREEITEMS_H
+
+
 #include <QMenu>
 #include <QTreeWidget>
-#include <q3intdict.h>
+#include <QHeaderView>
+#include <QLabel>
+#include <QCursor>
+#include <QHash>
+
 #include "acfg.h"
 
 class QWidget;
@@ -61,8 +67,7 @@ protected:
 	virtual void okRename( int col );
 };
 
-class ananasTreeView
-: public QTreeWidget
+class ananasTreeView : public QTreeWidget
 {
     Q_OBJECT
 public:

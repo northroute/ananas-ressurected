@@ -26,22 +26,6 @@
 **
 **********************************************************************/
 
-#include <QTreeWidget>
-#include <qlabel.h>
-#include <qpixmap.h>
-#include <QMenu>
-#include <qstatusbar.h>
-#include <qlineedit.h>
-#include <qmessagebox.h>
-#include <q3valuelist.h>
-#include <qimage.h>
-#include <qbitmap.h>
-#include <q3dragobject.h>
-#include <q3header.h>
-#include <qfont.h>
-#include <qcursor.h>
-#include <qlayout.h>
-
 #include "adatabase.h"
 #include "mainform.h"
 #include "deditfield.h"
@@ -118,10 +102,9 @@ aListViewItem::compare( QTreeWidgetItem *i, int col, bool accending ) const
 }
 
 
-void
-aListViewItem::setup()
+void aListViewItem::setup()
 {
-	QTreeWidgetItem::setup();
+    // QTreeWidgetItem::setup() не существует в Qt4 — удалено
 }
 
 
@@ -135,204 +118,232 @@ aListViewItem::update()
 }
 
 
-void
-aListViewItem::loadTree()
+void aListViewItem::loadTree()
 {
-	aListViewItem *item, *nextitem;
-	QString oclass, ldclass="";
-	int i, n;
-	aCfgItem cobj;
+    QString oclass;
+    QString ldclass;
+    int i, n;
+    aCfgItem cobj;
 
-	// clear tree
-       item = (aListViewItem *) firstChild();
-        while( item ) {
-		nextitem = (aListViewItem *) item->nextSibling();
-		delete item;
-		item = nextitem;
+    while (childCount() > 0)
+        delete takeChild(0);
+
+    if (!md)
+        return;
+
+    if (id)
+	{
+		setFlags(flags() | Qt::ItemIsEditable);
+	}
+
+    oclass = md->objClass(obj);
+
+    if (oclass == md_metadata)
+    {
+        cobj = md->find(mdc_metadata);
+        setIcon(0, QIcon(rcIcon("project.png")));
+        setExpanded(true);
+
+        cobj = md->find(obj, md_catalogues, 0);
+        if (cobj.isNull())
+            cobj = md->insert(obj, md_catalogues, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Catalogues"));
+
+        cobj = md->find(obj, md_documents, 0);
+        if (cobj.isNull())
+            cobj = md->insert(obj, md_documents, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Documents"));
+
+        cobj = md->find(obj, md_reports, 0);
+        if (cobj.isNull())
+            cobj = md->insert(obj, md_reports, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Reports"));
+
+        cobj = md->find(obj, md_journals, 0);
+        if (cobj.isNull())
+            cobj = md->insert(obj, md_journals, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Journals"));
+
+        cobj = md->find(obj, md_registers, 0);
+        if (cobj.isNull())
+            cobj = md->insert(obj, md_registers, QString(), -1);
+
+        cobj = md->find(obj, md_iregisters, 0);
+        if (cobj.isNull())
+            cobj = md->insert(md->find(obj, md_registers, 0), md_iregisters, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Information registers"));
+
+        cobj = md->find(obj, md_aregisters, 0);
+        if (cobj.isNull())
+            cobj = md->insert(md->find(obj, md_registers, 0), md_aregisters, QString(), -1);
+        new aListViewItem(this,
+                          childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                          md, cobj, QObject::tr("Accumulation registers"));
+    }
+
+    if (oclass == md_catalogues)
+    {
+        setIcon(0, QIcon(rcIcon("cat_g.png")));
+        ldclass = md_catalogue;
+    }
+    if (oclass == md_documents)
+    {
+        setIcon(0, QIcon(rcIcon("doc_g.png")));
+        ldclass = md_document;
+    }
+    if (oclass == md_reports)
+    {
+        setIcon(0, QIcon(rcIcon("report_g.png")));
+        ldclass = md_report;
+    }
+    if (oclass == md_journals)
+    {
+        setIcon(0, QIcon(rcIcon("journ_g.png")));
+        ldclass = md_journal;
+    }
+    if (oclass == md_iregisters)
+    {
+        setIcon(0, QIcon(rcIcon("reg_g.png")));
+        ldclass = md_iregister;
+    }
+    if (oclass == md_aregisters)
+    {
+        setIcon(0, QIcon(rcIcon("regs_g.png")));
+        ldclass = md_aregister;
+    }
+
+    if (!ldclass.isEmpty())
+    {
+        n = md->count(obj, ldclass);
+        for (i = 0; i < n; i++)
+        {
+            cobj = md->find(obj, ldclass, i);
+            if (!cobj.isNull())
+            {
+                new aListViewItem(this,
+                                  childCount() > 0 ? static_cast<aListViewItem*>(child(childCount() - 1)) : 0,
+                                  md, cobj, QString());
+            }
         }
-	if ( !md ) return;
-	if (id) setRenameEnabled(0, true);
-	oclass = md->objClass( obj );
-	if ( oclass == md_metadata ){
-		cobj = md->find ( mdc_metadata );
-		setPixmap(0, rcIcon("project.png"));
-		setOpen(true);
-		cobj = md->find ( obj, md_catalogues, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( obj, md_catalogues, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Catalogues") );
-		cobj = md->find ( obj, md_documents, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( obj, md_documents, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Documents") );
-		cobj = md->find ( obj, md_reports, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( obj, md_reports, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Reports") );
-		cobj = md->find ( obj, md_journals, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( obj, md_journals, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Journals") );
-		cobj = md->find ( obj, md_registers, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( obj, md_registers, QString::null, -1 );
-		}
-		cobj = md->find ( obj, md_iregisters, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( md->find (obj, md_registers, 0 ), md_iregisters, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Information registers") );
-		cobj = md->find ( obj, md_aregisters, 0 );
-		if ( cobj.isNull() )
-		{
-			cobj = md->insert( md->find (obj, md_registers, 0 ), md_aregisters, QString::null, -1 );
-		}
-		new aListViewItem( this, getLastChild(), md, cobj, QObject::tr("Accumulation registers") );
-	}
-	if ( oclass == md_catalogues ){
-		setPixmap(0, rcIcon("cat_g.png") );
-		ldclass = md_catalogue;
-	}
-	if ( oclass == md_documents ){
-		setPixmap(0, rcIcon("doc_g.png"));
-		ldclass = md_document;
-	}
-	if ( oclass == md_reports ){
-		setPixmap(0, rcIcon("report_g.png"));
-		ldclass = md_report;
-	}
-	if ( oclass == md_journals ){
-		setPixmap(0, rcIcon("journ_g.png"));
-		ldclass = md_journal;
-	}
-	if ( oclass == md_iregisters ){
-		setPixmap(0, rcIcon("reg_g.png"));
-		ldclass = md_iregister;
-	}
-	if ( oclass == md_aregisters ){
-		setPixmap(0, rcIcon("regs_g.png"));
-		ldclass = md_aregister;
-	}
-	if ( !ldclass.isEmpty() ) {
-//		printf("%s\n",(const char *) md->toString().local8Bit() );
-		n = md->count( obj, ldclass );
-//		printf(" objclass=%s ldclass = %s count = %d\n", (const char *) oclass, (const char *) ldclass, n);
-		for ( i = 0; i<n; i++ ) {
-			cobj = md->find( obj, ldclass, i );
-			if ( !cobj.isNull() ) {
-//				printf("%d ok\n", i);
-//				new aListViewItem( this, md, md->find( obj, ldclass, i ), QString::null );
-				new aListViewItem( this, getLastChild(), md,  cobj, QString::null );
-			}
-		}
-	}
+    }
 
-	if ( oclass == md_tables ){
-		setPixmap(0, rcIcon("table_g.png"));
-		return;
-	}
-	if ( oclass == md_forms ){
-		setPixmap(0, rcIcon("form_g.png"));
-		return;
-	}
-	if ( oclass == md_form ){
-		setPixmap(0, rcIcon("form.png"));
-		return;
-	}
-	if ( oclass == md_webforms ){
-		setPixmap(0, rcIcon("webform_g.png"));
-		return;
-	}
-	if ( oclass == md_webform ){
-		setPixmap(0, rcIcon("webform.png"));
-		return;
-	}
-	if ( oclass == md_table )
-	{
-		setPixmap(0, rcIcon("table.png"));
-		return;
-	}
+    if (oclass == md_tables)
+    {
+        setIcon(0, QIcon(rcIcon("table_g.png")));
+        return;
+    }
+    if (oclass == md_forms)
+    {
+        setIcon(0, QIcon(rcIcon("form_g.png")));
+        return;
+    }
+    if (oclass == md_form)
+    {
+        setIcon(0, QIcon(rcIcon("form.png")));
+        return;
+    }
+    if (oclass == md_webforms)
+    {
+        setIcon(0, QIcon(rcIcon("webform_g.png")));
+        return;
+    }
+    if (oclass == md_webform)
+    {
+        setIcon(0, QIcon(rcIcon("webform.png")));
+        return;
+    }
+    if (oclass == md_table)
+    {
+        setIcon(0, QIcon(rcIcon("table.png")));
+        return;
+    }
 
-// elements
-	if ( oclass == md_catalogue ){
-		setPixmap(0, rcIcon("cat.png"));
-		loadCatalogue ();
-		return;
-	}
-	if ( oclass == md_document ){
-		setPixmap(0, rcIcon("doc.png"));
-		loadDocument ();
-		return;
-	}
-	if ( oclass == md_aregister ){
-		setPixmap(0, rcIcon("regs.png"));
-		loadARegister ();
-		return;
-	}
-	if ( oclass == md_iregister ){
-		setPixmap(0, rcIcon("reg.png"));
-		loadIRegister ();
-		return;
-	}
-	if ( oclass == md_journal ){
-		setPixmap(0, rcIcon("journ.png"));
-		loadJournal ();
-		return;
-	}
-	if ( oclass == md_report ){
-		setPixmap(0, rcIcon("report.png"));
-		loadReport ();
-		return;
-	}
-	if ( oclass == md_field ){
-		setPixmap(0, rcIcon("field.png"));
-		return;
-	}
-	if ( oclass == md_header )
-	{
-		setPixmap(0, rcIcon("doc_h.png"));
-		return;
-	}
-	if ( oclass == md_element)
-	{
-		setPixmap(0, rcIcon("element.png"));
-		return;
-	}
-    if( oclass == md_columns )
-	{
-		setPixmap(0, rcIcon("columns.png"));
-		return;
-	}
-	if ( oclass == md_resources )
-	{
-		setPixmap(0, rcIcon("resourses.png"));
-		return;
-	}
-	if ( oclass == md_dimensions )
-	{
-		setPixmap(0, rcIcon("dimensions.png"));
-		return;
-	}
-	if ( oclass == md_information )
-	{
-		setPixmap(0, rcIcon("information.png"));
-		return;
-	}
-	if (oclass == md_group)
-	{
-		setPixmap(0, rcIcon("group.png"));
-		return;
-	}
+    if (oclass == md_catalogue)
+    {
+        setIcon(0, QIcon(rcIcon("cat.png")));
+        loadCatalogue();
+        return;
+    }
+    if (oclass == md_document)
+    {
+        setIcon(0, QIcon(rcIcon("doc.png")));
+        loadDocument();
+        return;
+    }
+    if (oclass == md_aregister)
+    {
+        setIcon(0, QIcon(rcIcon("regs.png")));
+        loadARegister();
+        return;
+    }
+    if (oclass == md_iregister)
+    {
+        setIcon(0, QIcon(rcIcon("reg.png")));
+        loadIRegister();
+        return;
+    }
+    if (oclass == md_journal)
+    {
+        setIcon(0, QIcon(rcIcon("journ.png")));
+        loadJournal();
+        return;
+    }
+    if (oclass == md_report)
+    {
+        setIcon(0, QIcon(rcIcon("report.png")));
+        loadReport();
+        return;
+    }
+    if (oclass == md_field)
+    {
+        setIcon(0, QIcon(rcIcon("field.png")));
+        return;
+    }
+    if (oclass == md_header)
+    {
+        setIcon(0, QIcon(rcIcon("doc_h.png")));
+        return;
+    }
+    if (oclass == md_element)
+    {
+        setIcon(0, QIcon(rcIcon("element.png")));
+        return;
+    }
+    if (oclass == md_columns)
+    {
+        setIcon(0, QIcon(rcIcon("columns.png")));
+        return;
+    }
+    if (oclass == md_resources)
+    {
+        setIcon(0, QIcon(rcIcon("resourses.png")));
+        return;
+    }
+    if (oclass == md_dimensions)
+    {
+        setIcon(0, QIcon(rcIcon("dimensions.png")));
+        return;
+    }
+    if (oclass == md_information)
+    {
+        setIcon(0, QIcon(rcIcon("information.png")));
+        return;
+    }
+    if (oclass == md_group)
+    {
+        setIcon(0, QIcon(rcIcon("group.png")));
+        return;
+    }
 }
 
 void
@@ -510,672 +521,715 @@ aListViewItem::loadColumns ( aListViewItem *parent )
 /*
 *edit selected object
 */
-
-void
-aListViewItem::edit()
+void aListViewItem::edit()
 {
-    QWorkspace *ws = mainform->ws;
+    QMdiArea *ws = mainform->ws;
     aWindowsList *wl = mainform->wl;
-    QString oclass = md->objClass( obj );
-    int objid = md->id( obj );
-    if ( wl->find( objid ) ) {
-	wl->get( objid )->setFocus();
-	return;
+    QString oclass = md->objClass(obj);
+    int objid = md->id(obj);
+
+    if (wl->find(objid))
+    {
+        QWidget *w = wl->get(objid);
+        if (w)
+        {
+            QMdiSubWindow *sub = qobject_cast<QMdiSubWindow*>(w->parentWidget());
+            if (sub)
+                ws->setActiveSubWindow(sub);
+            w->setFocus();
+        }
+        return;
     }
 
-	if ( oclass == md_metadata )
-	{
-	    dEditCfg *e = new dEditCfg( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	   // mainform->addTab();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	}
-//	if ( !md || !id ) return;
-	if ( oclass == md_document)
-	{
-	    dEditDoc *e = new dEditDoc( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_iregister)
-	{
-	    dEditIReg *e = new dEditIReg( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_aregister)
-	{
-	    dEditAReg *e = new dEditAReg( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_catalogue)
-	{
-	    dEditCat *e = new dEditCat( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	   // mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_field )
-	{
-	    dEditField *e = new dEditField( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_report )
-	{
-	    dEditReport *e = new dEditReport( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_journal )
-	{
-	    dEditJournal *e = new dEditJournal( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId, e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_form )
-	{
-	    dEditDialog *e = new dEditDialog( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    e->setData( this );
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_webform )
-	{
-	    dEditWebForm *e = new dEditWebForm( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	};
-	if ( oclass == md_column )
-	{
-	    dEditColumns *e = new dEditColumns( ws, 0, Qt::WDestructiveClose );
-	    wl->insert( objid, e );
-	    editor = e;
-	    QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	    e->setData( this );
-	    e->show();
-	    //mainform->updateTabs();
-	    //--mainform->addTab(++mainform->lastTabId,e->name());
-	    mainform->addTab(e);
-	    e->parentWidget()->setGeometry(0,0,e->parentWidget()->frameSize().width(),
-		e->parentWidget()->frameSize().height());
-	    return;
-	}
+    if (oclass == md_metadata)
+    {
+        dEditCfg *e = new dEditCfg(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_document)
+    {
+        dEditDoc *e = new dEditDoc(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_iregister)
+    {
+        dEditIReg *e = new dEditIReg(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_aregister)
+    {
+        dEditAReg *e = new dEditAReg(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_catalogue)
+    {
+        dEditCat *e = new dEditCat(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_field)
+    {
+        dEditField *e = new dEditField(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_report)
+    {
+        dEditReport *e = new dEditReport(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_journal)
+    {
+        dEditJournal *e = new dEditJournal(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_form)
+    {
+        dEditDialog *e = new dEditDialog(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        e->setData(this);
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_webform)
+    {
+        dEditWebForm *e = new dEditWebForm(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
+
+    if (oclass == md_column)
+    {
+        dEditColumns *e = new dEditColumns(0, Qt::WindowFlags());
+        QMdiSubWindow *sub = ws->addSubWindow(e);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        sub->setGeometry(0, 0, sub->frameSize().width(), sub->frameSize().height());
+        return;
+    }
 }
 
 void aListViewItem::newObject()
 {
-	QString oclass = md->objClass( obj );
-//	printf("oclass = %s\n",( const char *) oclass );
-	if ( 	oclass == md_header || oclass == md_table ||
-		oclass == md_element || oclass == md_group ||
-		oclass == md_resources || oclass == md_dimensions || oclass == md_information ||
-		oclass == md_columns )
-			newField();
-	if ( oclass == md_documents ) newDocument();
-	if ( oclass == md_catalogues ) newCatalogue();
-	if ( oclass == md_journals ) newJournal();
-	if ( oclass == md_iregisters ) newIRegister();
-	if ( oclass == md_aregisters ) newARegister();
-	if ( oclass == md_reports ) newReport();
-	if ( oclass == md_forms ) newForm();
-	if ( oclass == md_webforms ) newWebForm();
-	if ( oclass == md_tables ) newTable();
-	if ( oclass == md_columns ) newColumn();
+    QString oclass = md->objClass(obj);
+
+    if (oclass == md_header || oclass == md_table ||
+        oclass == md_element || oclass == md_group ||
+        oclass == md_resources || oclass == md_dimensions ||
+        oclass == md_information || oclass == md_columns)
+        newField();
+
+    if (oclass == md_documents)  newDocument();
+    if (oclass == md_catalogues) newCatalogue();
+    if (oclass == md_journals)   newJournal();
+    if (oclass == md_iregisters) newIRegister();
+    if (oclass == md_aregisters) newARegister();
+    if (oclass == md_reports)    newReport();
+    if (oclass == md_forms)      newForm();
+    if (oclass == md_webforms)   newWebForm();
+    if (oclass == md_tables)     newTable();
+    if (oclass == md_columns)    newColumn();
 }
 
 void aListViewItem::saveItem()
 {
+    QString oclass = md->objClass(obj);
 
-	//md->saveOneObject()
-	QString oclass = md->objClass( obj );
-	if ( 	oclass == md_field ||
-		oclass == md_document ||
-		oclass == md_catalogue ||
-		oclass == md_journal ||
-		oclass == md_iregister ||
-		oclass == md_aregister ||
-		oclass == md_report ||
-		oclass == md_webform ||
-		oclass == md_form ||
-		oclass == md_table)
-	{
+    if (oclass == md_field ||
+        oclass == md_document ||
+        oclass == md_catalogue ||
+        oclass == md_journal ||
+        oclass == md_iregister ||
+        oclass == md_aregister ||
+        oclass == md_report ||
+        oclass == md_webform ||
+        oclass == md_form ||
+        oclass == md_table)
+    {
+        QString defaultName = oclass + md->attr(obj, mda_id);
 
-		QString fname;
-		QFileDialog fd( QString::null,
-  			QObject::tr("any files (*)"),
-			0, 0, TRUE );
-		fd.setMode(QFileDialog::AnyFile);
-//		fd.addFilter(tr(" (*.bsa)"));
-		fd.setSelection( oclass + md->attr(obj,mda_id) );
-		if ( fd.exec() == QDialog::Accepted )
-		{
-			fname = QDir::convertSeparators(fd.selectedFile());
-			md->saveOneObject(obj,fname);
-		}
-	}
+        QString fname = QFileDialog::getSaveFileName(
+            0,
+            QObject::tr("Save file"),
+            defaultName,
+            QObject::tr("Any files (*)")
+        );
+
+        if (!fname.isEmpty())
+            md->saveOneObject(obj, fname);
+    }
 }
 
 void aListViewItem::loadItem()
 {
+    QString oclass = md->objClass(obj);
 
-	QString oclass = md->objClass( obj );
+    if (oclass == md_header ||
+        oclass == md_table ||
+        oclass == md_element ||
+        oclass == md_group ||
+        oclass == md_resources ||
+        oclass == md_dimensions ||
+        oclass == md_information ||
+        oclass == md_columns ||
+        oclass == md_documents ||
+        oclass == md_catalogues ||
+        oclass == md_journals ||
+        oclass == md_iregisters ||
+        oclass == md_aregisters ||
+        oclass == md_reports ||
+        oclass == md_forms ||
+        oclass == md_webforms ||
+        oclass == md_tables ||
+        oclass == md_columns)
+    {
+        QString fname = QFileDialog::getOpenFileName(
+            0,
+            QObject::tr("Open file"),
+            QString(),
+            QObject::tr("Any files (*)")
+        );
 
-	if ( 	oclass == md_header ||
-		oclass == md_table ||
-		oclass == md_element ||
-		oclass == md_group ||
-		oclass == md_resources ||
-		oclass == md_dimensions ||
-		oclass == md_information ||
-		oclass == md_columns ||
-		oclass == md_documents ||
-		oclass == md_catalogues ||
-		oclass == md_journals ||
-		oclass == md_iregisters ||
-		oclass == md_aregisters ||
-		oclass == md_reports ||
-		oclass == md_forms ||
-		oclass == md_webforms ||
-		oclass == md_tables ||
-		oclass == md_columns )
-	{
+        if (fname.isEmpty())
+            return;
 
-		QString fname;
-		QFileDialog fd( QString::null,
-  			QObject::tr("any files (*)"),
-			0, 0, TRUE );
-		fd.setMode(QFileDialog::ExistingFiles);
-		aCfgItem loadObj;
-//		fd.addFilter(tr(" (*.bsa)"));
-//		fd.setSelection( QDir::convertSeparators(eCfgName->text()));
-		if ( fd.exec() == QDialog::Accepted )
-		{
-			fname = QDir::convertSeparators(fd.selectedFile());
-			// load object from file
-			// aCfgItem loadObj = c.loadOneObject("catalogue_copy.xml");
-			// change name
-			// c.setAttr(loadObj, mda_name, "CATALOGUE1 COPY!!!");
-			// append to cfg
-			// c.importCfgItem( c.find(c.find(0), md_catalogues) , loadObj);
-			//
-			loadObj = md->loadOneObject(fname);
-			if(loadObj.isNull())
-			{
-				return;
-			}
-			else
-			{
-				md->setAttr(loadObj, mda_name, QString("%1_copy").arg(md->attr(loadObj, mda_name)));
-				QString loclass = md->objClass(loadObj);
-				if ( loclass==md_field	&&
-						(oclass == md_header || oclass == md_table ||
-						oclass == md_element || oclass == md_group ||
-						oclass == md_resources || oclass == md_dimensions ||
-						oclass == md_information || oclass == md_columns ))
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//					newitem->setOpen( TRUE );
-				}
-				if ( loclass==md_document &&  oclass == md_documents )
-				{
-					//md->importCfgItem( obj, loadObj );
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_catalogue && oclass == md_catalogues )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_journal && oclass == md_journals )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_iregister && oclass == md_iregisters )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_aregister &&  oclass == md_aregisters )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_report && oclass == md_reports )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_form &&  oclass == md_forms )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_webform && oclass == md_webforms )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-				if ( loclass==md_table &&  oclass == md_tables )
-				{
-					aCfgItem newobj = md->importCfgItem( obj, loadObj );
-					aListViewItem *newitem = new aListViewItem( this, getLastChild(), md, newobj );
-				}
-			}
-		}
-	}
+        aCfgItem loadObj = md->loadOneObject(fname);
+        if (loadObj.isNull())
+            return;
+
+        md->setAttr(loadObj, mda_name,
+                    QString("%1_copy").arg(md->attr(loadObj, mda_name)));
+
+        QString loclass = md->objClass(loadObj);
+        aListViewItem *after = 0;
+
+        if (childCount() > 0)
+            after = static_cast<aListViewItem*>(child(childCount() - 1));
+
+        if (loclass == md_field &&
+            (oclass == md_header || oclass == md_table ||
+             oclass == md_element || oclass == md_group ||
+             oclass == md_resources || oclass == md_dimensions ||
+             oclass == md_information || oclass == md_columns))
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_document && oclass == md_documents)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_catalogue && oclass == md_catalogues)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_journal && oclass == md_journals)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_iregister && oclass == md_iregisters)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_aregister && oclass == md_aregisters)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_report && oclass == md_reports)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_form && oclass == md_forms)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_webform && oclass == md_webforms)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+        else if (loclass == md_table && oclass == md_tables)
+        {
+            aCfgItem newobj = md->importCfgItem(obj, loadObj);
+            new aListViewItem(this, after, md, newobj);
+        }
+    }
 }
 
-
-void
-aListViewItem::newField()
+void aListViewItem::newField()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	QString oclass = md->objClass( obj );
-	if (oclass == md_header || oclass == md_table ||
-		oclass == md_element || oclass == md_group ||
-		oclass == md_resources || oclass == md_dimensions || oclass == md_information)
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_field, QObject::tr("New field") );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->edit();
-	}
+    QString oclass = md->objClass(obj);
+    if (oclass == md_header || oclass == md_table ||
+        oclass == md_element || oclass == md_group ||
+        oclass == md_resources || oclass == md_dimensions || oclass == md_information)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_field, QObject::tr("New field"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+            newitem->edit();
+    }
 }
 
-
-void
-aListViewItem::newDocument()
+void aListViewItem::newDocument()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_documents ) {
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insertDocument(  QObject::tr("New document") );
-/*		md->insert( newobj, md_header, QString::null, -1 );
-		md->insert( newobj, md_tables, QString::null, -1 );
-		md->insert( newobj, md_forms, QString::null, -1 );
-		md->insert( newobj, md_webforms, QString::null, -1 );
-*/		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_documents)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insertDocument(QObject::tr("New document"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-
-void
-aListViewItem::newCatalogue()
+void aListViewItem::newCatalogue()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_catalogues ) {
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insertCatalogue( QObject::tr("New catalogue") );
-/*		md->insert( newobj, md_element, QString::null, -1 );
-		md->insert( newobj, md_group, QString::null, -1 );
-		md->insert( newobj, md_forms, QString::null, -1 );
-		md->insert( newobj, md_webforms, QString::null, -1 );*/
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_catalogues)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insertCatalogue(QObject::tr("New catalogue"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newJournal()
+void aListViewItem::newJournal()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_journals ) {
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insertJournal( QObject::tr("New journal") );
-/*		md->insert( newobj, md_columns, QString::null, -1 );
-		md->insert( newobj, md_forms, QString::null, -1 );
-		md->insert( newobj, md_webforms, QString::null, -1 );*/
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_journals)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insertJournal(QObject::tr("New journal"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newIRegister()
+void aListViewItem::newIRegister()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_iregisters )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insertIRegister(  QObject::tr("New information register") );
-/*		md->insert( newobj, md_resources, QString::null, -1 );
-		md->insert( newobj, md_dimensions, QString::null, -1 );
-		md->insert( newobj, md_information, QString::null, -1 );*/
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_iregisters)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insertIRegister(QObject::tr("New information register"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newARegister()
+void aListViewItem::newARegister()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_aregisters )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insertARegister( QObject::tr("New accumulation register") );
-/*		md->insert( newobj, md_resources, QString::null, -1 );
-		md->insert( newobj, md_dimensions, QString::null, -1 );
-		md->insert( newobj, md_information, QString::null, -1 );*/
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_aregisters)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insertARegister(QObject::tr("New accumulation register"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newReport()
+void aListViewItem::newReport()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_reports )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_report, QObject::tr("New report") );
-		md->insert( newobj, md_forms, QString::null, -1 );
-		md->insert( newobj, md_webforms, QString::null, -1 );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_reports)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_report, QObject::tr("New report"));
+
+        md->insert(newobj, md_forms, QString(), -1);
+        md->insert(newobj, md_webforms, QString(), -1);
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newForm()
+void aListViewItem::newForm()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_forms )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_form, QObject::tr("New form") );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_forms)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_form, QObject::tr("New form"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newWebForm()
+void aListViewItem::newWebForm()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_webforms )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_webform, QObject::tr("New web form") );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_webforms)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_webform, QObject::tr("New web form"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newTable()
+void aListViewItem::newTable()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_tables )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_table, QObject::tr("New Table") );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->setOpen( TRUE );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_tables)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_table, QObject::tr("New Table"));
+
+        aListViewItem *after = (childCount() > 0)
+            ? static_cast<aListViewItem*>(child(childCount() - 1))
+            : 0;
+
+        newitem = new aListViewItem(this, after, md, newobj);
+
+        if (newitem)
+        {
+            newitem->setExpanded(true);
+            newitem->edit();
+        }
+    }
 }
 
-void
-aListViewItem::newColumn()
+void aListViewItem::newColumn()
 {
-	aListViewItem *newitem;
-	aCfgItem newobj;
+    aListViewItem *newitem;
+    aCfgItem newobj;
 
-	if ( md->objClass( obj ) == md_columns )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_column, QObject::tr("New Column") );
-		newitem = new aListViewItem( this, getLastChild(), md, newobj );
-		newitem->edit();
-	}
+    if (md->objClass(obj) == md_columns)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_column, QObject::tr("New Column"));
+
+        newitem = new aListViewItem(
+            this,
+            static_cast<aListViewItem*>(child(childCount() - 1)),
+            md,
+            newobj
+        );
+
+        if (newitem)
+            newitem->edit();
+    }
 }
 
-aMetadataTreeView::aMetadataTreeView(  QWidget *parent, aCfg *cfgmd )
-:ananasTreeView( parent, cfgmd )
+aMetadataTreeView::aMetadataTreeView(QWidget *parent, aCfg *cfgmd)
+    : ananasTreeView(parent, cfgmd)
 {
-	aListViewItem *conf;
+    if (!md)
+        return;
 
-	if ( !md ) return;
-	conf = new aListViewItem( this, md, md->find( mdc_metadata ), md->info( mda_name ));
-	conf->setOpen( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( QTreeWidgetItem* ) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem* ) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( collapsed( QTreeWidgetItem* ) ), this, SLOT( on_collapsed( QTreeWidgetItem* ) ) );
+    aListViewItem *conf = new aListViewItem(
+        this,
+        md,
+        md->find(mdc_metadata),
+        md->info(mda_name)
+    );
+
+    conf->setExpanded(true);
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
+            this, SLOT(ContextMenu()));
+
+    connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
+            this, SLOT(itemEdit()));
+
+    connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
+            this, SLOT(itemEdit()));
+
+    connect(this, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+            this, SLOT(on_collapsed(QTreeWidgetItem*)));
 }
 
-void
-aMetadataTreeView::on_collapsed( QTreeWidgetItem * item )
+void aMetadataTreeView::on_collapsed(QTreeWidgetItem *item)
 {
-	aListViewItem *i = (aListViewItem *) item;
-	if ( i )
-	{
-		QString oclass = md->objClass( i->obj );
-		if ( oclass == md_metadata ) setOpen( i, true );
-	}
+    aListViewItem *i = static_cast<aListViewItem*>(item);
+    if (!i)
+        return;
+
+    QString oclass = md->objClass(i->obj);
+    if (oclass == md_metadata)
+        i->setExpanded(true);
 }
 
-
-void
-aMetadataTreeView::ContextMenu()
+void aMetadataTreeView::ContextMenu()
 {
+    QMenu *m = new QMenu(this);
+    Q_CHECK_PTR(m);
 
-	QMenu *m=new QMenu( this, "PopupMenu" );
-	Q_CHECK_PTR(m);
+    ContextMenuAdd(m);
 
-/*    	QLabel *caption = new QLabel( "<font color=darkblue><u><b>"
-		"Context Menu</b></u></font>", this );
-		caption->setAlignment( Qt::AlignCenter );
-    	m->insertItem( caption );
-    	m->insertItem( "&New",  this, SLOT( itemNew() ), CTRL+Key_N );
-		m->insertItem( "&Rename", this, SLOT( itemRename() ), CTRL+Key_O);
-		m->insertItem( "&Edit",  this, SLOT( itemEdit() ), CTRL+Key_N );
-    	m->insertItem( "&Delete", this, SLOT( itemDelete() ), CTRL+Key_O );*/
+    QAction *newAct = m->addAction(tr("&New"), this, SLOT(itemNew()));
+    newAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 
-		ContextMenuAdd(m);
-		m->insertItem( tr("&New"),  this, SLOT( itemNew() ), Qt::CTRL+Qt::Key_N );
-		m->exec( QCursor::pos() );
-		delete m;
+    m->exec(QCursor::pos());
+    delete m;
 }
 
-
-void
-aMetadataTreeView::itemRename()
+void aMetadataTreeView::itemRename()
 {
-	renameItem();
+    renameItem();
 }
 
-void
-aMetadataTreeView::itemNew()
+void aMetadataTreeView::itemNew()
 {
-	aListViewItem *i = (aListViewItem *) selectedItem();
-	if ( i )
-	{
-		//if ( i->id == 0 )
-			 i->newObject();
-	}
+    aListViewItem *i = static_cast<aListViewItem*>(currentItem());
+    if (i)
+        i->newObject();
 }
 
-
-void
-aMetadataTreeView::itemDelete()
+void aMetadataTreeView::itemDelete()
 {
-	deleteItem();
+    deleteItem();
 }
 
-
-void
-aMetadataTreeView::itemEdit()
+void aMetadataTreeView::itemEdit()
 {
-	aListViewItem *i = (aListViewItem *) selectedItem();
-	if ( i )
-	{
-		i->edit();
-	}
+    aListViewItem *i = static_cast<aListViewItem*>(currentItem());
+    if (i)
+        i->edit();
 }
 
-void
-aMetadataTreeView::itemSave()
+void aMetadataTreeView::itemSave()
 {
-	aListViewItem *i = (aListViewItem *) selectedItem();
-	if ( i )
-	{
-		i->saveItem();
-	}
+    aListViewItem *i = static_cast<aListViewItem*>(currentItem());
+    if (i)
+        i->saveItem();
 }
 
-void
-aMetadataTreeView::itemLoad()
+void aMetadataTreeView::itemLoad()
 {
-	aListViewItem *i = (aListViewItem *) selectedItem();
-	if ( i )
-	{
-		i->loadItem();
-	}
+    aListViewItem *i = static_cast<aListViewItem*>(currentItem());
+    if (i)
+        i->loadItem();
 }
+
 void
 aMetadataTreeView::itemMoveUp()
 {

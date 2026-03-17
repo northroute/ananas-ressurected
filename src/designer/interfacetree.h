@@ -31,7 +31,14 @@
 
 
 #include <QTreeWidget>
-#include <q3intdict.h>
+#include <QHeaderView>
+#include <QMenu>
+#include <QLabel>
+#include <QCursor>
+#include <QPixmap>
+#include <QHash>
+#include <QMdiArea>
+
 //#include "acfg.h"
 #include "atreeitems.h"
 

@@ -1,10 +1,5 @@
 #include "deditareg.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
-#include <qstatusbar.h>
 #include "acfg.h"
 
 /*
@@ -12,8 +7,8 @@
  *  name 'name' and widget flags set to 'f'.
  *
  */
-dEditAReg::dEditAReg(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QMainWindow(parent, name, fl)
+dEditAReg::dEditAReg(QWidget* parent, Qt::WindowFlags fl)
+    : QMainWindow(parent, fl)
 {
     setupUi(this);
 
@@ -44,33 +39,35 @@ void dEditAReg::init()
     delete statusBar();
 }
 
-void dEditAReg::destroy()
+void dEditAReg::closeEditor()
 {
     updateMD();
-    ( (MainForm*)this->topLevelWidget() )->wl->remove( this );
-    ( (MainForm*)this->topLevelWidget() )->removeTab(name());
+    ((MainForm*)topLevelWidget())->wl->remove(this);
+    ((MainForm*)topLevelWidget())->removeTab(windowTitle());
 }
 
-void dEditAReg::setData( aListViewItem *o )
+void dEditAReg::setData(aListViewItem *o)
 {
-	item = o;
-	aCfg *md = o->md;
-	aCfgItem obj = o->obj;
-            aAliasEditor *a = new aAliasEditor( md, obj, tAliases );
-	al = a;
-	al->setData();
-	setCaption( tr("Accumulation register:") + md->attr( obj, mda_name ) );
-	eName->setText( md->attr( obj, mda_name ) );
-	eDescription->setText( md->sText( obj, md_description ) );
+    item = o;
+    aCfg *md = o->md;
+    aCfgItem obj = o->obj;
+
+    aAliasEditor *a = new aAliasEditor(md, obj, tAliases);
+    al = a;
+    al->setData();
+
+    setWindowTitle(tr("Accumulation register:") + md->attr(obj, mda_name));
+    eName->setText(md->attr(obj, mda_name));
+    eDescription->setText(md->sText(obj, md_description));
 }
 
 void dEditAReg::updateMD()
 {
-	aCfg *md = item->md;
-	aCfgItem obj = item->obj;
+    aCfg *md = item->md;
+    aCfgItem obj = item->obj;
 
-	al->updateMD();
-	item->setText( 0, eName->text().stripWhiteSpace() );
-	md->setAttr( obj, mda_name, eName->text().stripWhiteSpace());
-	md->setSText( obj, md_description, eDescription->text() );
+    al->updateMD();
+    item->setText(0, eName->text().trimmed());
+    md->setAttr(obj, mda_name, eName->text().trimmed());
+    md->setSText(obj, md_description, eDescription->toPlainText());
 }

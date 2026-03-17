@@ -1,15 +1,20 @@
 #ifndef DEDITFIELD_H
 #define DEDITFIELD_H
 
+
 #include "ui_deditfield.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
 
 class dEditField : public QMainWindow, public Ui::dEditField
 {
     Q_OBJECT
 
 public:
-    dEditField(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditField(QWidget* parent, Qt::WindowFlags fl);
     ~dEditField();
 
     QStringList otypes;
@@ -30,7 +35,7 @@ protected slots:
 private:
     QString capt;
 
-    void destroy();
+    void closeEditor();
     void init();
 
 };

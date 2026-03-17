@@ -3,13 +3,28 @@
 
 #include "ui_deditdialog.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QTextCodec>
+#include <QString>
+#include <QFile>
+#include <QStatusBar>
+#include <QDialog>
+#include <QFormBuilder>
+#include <QObject>
+#include <QTextStream>
+#include <QBuffer>
+#include <QProcess>
+#include <QApplication>
+#include <QScriptEngine>
 
 class dEditDialog : public QMainWindow, public Ui::dEditDialog
 {
     Q_OBJECT
 
 public:
-    dEditDialog(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditDialog(QWidget* parent, Qt::WindowFlags fl);
     ~dEditDialog();
 
     int docId;
@@ -21,7 +36,7 @@ public:
 
 public slots:
     virtual void init();
-    virtual void destroy();
+    virtual void closeEditor();
     virtual void setData( aListViewItem * o );
     virtual void EditForm();
     virtual void EditModule();

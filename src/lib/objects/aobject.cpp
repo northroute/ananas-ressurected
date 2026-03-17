@@ -61,7 +61,16 @@ aObject::aObject( QObject *parent, const char *name ) : QObject(parent)
 	selectFlag = false;
 }
 
+aObject::aObject(QDomElement obj, aDatabase *adb, QObject *parent, const char *name)
+    : QObject(parent)
+{
+    db = adb;
 
+    Q_UNUSED(obj);
+
+    if (name)
+        setObjectName(name);
+}
 
 /*!
  *	\en

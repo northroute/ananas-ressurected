@@ -26,14 +26,6 @@
 **
 **********************************************************************/
 
-#include <QTreeWidget>
-#include <q3header.h>
-#include <QMenu>
-#include <qlabel.h>
-#include <qcursor.h>
-//Added by qt3to4:
-#include <QPixmap>
-
 #include "acfg.h"
 #include "actiontree.h"
 #include "mainform.h"
@@ -45,184 +37,205 @@ extern QPixmap ANANAS_EXPORT rcIcon(const char *name);
 extern void set_Icon(QTreeWidgetItem *item, const char *name);
 
 
-ActionListViewItem::ActionListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: ananasListViewItem( parent, cfgmd, cfgobj, name )
+ActionListViewItem::ActionListViewItem(QTreeWidget *parent,
+                                       aCfg *cfgmd,
+                                       aCfgItem cfgobj,
+                                       const QString &name)
+    : ananasListViewItem(parent, cfgmd, cfgobj, name)
 {
-	if (id) setRenameEnabled(0, true);
-};
+    if (id)
+        setFlags(flags() | Qt::ItemIsEditable);
+}
 
-ActionListViewItem::ActionListViewItem( ananasListViewItem *parent, ananasListViewItem *after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: ananasListViewItem( parent, after, cfgmd, cfgobj, name )
+ActionListViewItem::ActionListViewItem(ananasListViewItem *parent,
+                                       ananasListViewItem *after,
+                                       aCfg *cfgmd,
+                                       aCfgItem cfgobj,
+                                       const QString &name)
+    : ananasListViewItem(parent, after, cfgmd, cfgobj, name)
 {
     aCfgItem active;
     QPixmap pix;
-    if (id) setRenameEnabled(0, true);
-    active = md->findChild( obj, md_active_picture, 0 );
-    if ( !active.isNull() ) {
-	pix.loadFromData( md->binary( active ) );
-	setPixmap( 0, pix );
+
+    if (id)
+        setFlags(flags() | Qt::ItemIsEditable);
+
+    active = md->findChild(obj, md_active_picture, 0);
+    if (!active.isNull()) {
+        pix.loadFromData(md->binary(active));
+        setIcon(0, pix);
     }
-};
-
-void
-ActionListViewItem::loadTree()
-{
-	QString				oclass;
-	aCfgItem			cobj;
-
-	// clear tree
-	clearTree();
-	if ( !md ) return;
-	setPixmap(0, rcIcon("actions.png"));
-	cobj = md->firstChild ( obj );
-	while ( !cobj.isNull() )
-	{
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_actiongroup )
-			loadGroup ( this, cobj );
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_action )
-			new ActionListViewItem( this, getLastChild(), md, cobj, QString::null );
-		cobj = md->nextSibling ( cobj );
-	}
-};
-
-void
-ActionListViewItem::loadGroup( ananasListViewItem * parent, aCfgItem child )
-{
-	ActionListViewItem * gparent;
-	QString				oclass;
-	aCfgItem			cobj;
-
-	gparent = new ActionListViewItem( parent, getLastChild(), md, child, QString::null );
-	gparent->setPixmap(0, rcIcon("action_g.png"));
-	cobj = md->firstChild ( gparent->obj );
-	while ( !cobj.isNull() )
-	{
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_actiongroup )
-			loadGroup ( gparent, cobj );
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_action )
-			new ActionListViewItem( gparent, getLastChild(), md, cobj, QString::null );
-		cobj = md->nextSibling ( cobj );
-	}
-};
-
-void
-ActionListViewItem::newActionGroup ()
-{
-	aCfgItem			newobj;
-	ActionListViewItem 	*newitem;
-	QString 			oclass = md->objClass( obj );
-
-	if ( oclass == md_actiongroup || oclass == md_actions )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_actiongroup, QObject::tr("New Action Group") );
-		newitem = new ActionListViewItem( this, getLastChild(), md, newobj );
-		newitem->setSelected( TRUE );
-		newitem->setPixmap(0, rcIcon("action_g.png"));
-		newitem->edit();
-	};
-
 }
 
-void
-ActionListViewItem::newAction ()
+void ActionListViewItem::loadTree()
 {
-	aCfgItem			newobj;
-	ActionListViewItem 	*newitem;
-	QString 			oclass = md->objClass( obj );
+    QString oclass;
+    aCfgItem cobj;
 
-	if ( oclass == md_actiongroup || oclass == md_actions )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_action, QObject::tr("New Action") );
-		newitem = new ActionListViewItem( this, getLastChild(), md, newobj );
-		newitem->setSelected( TRUE );
-		newitem->edit();
-	};
-}
+    // clear tree
+    clearTree();
+    if (!md) return;
 
-void
-ActionListViewItem::edit ()
-{
-    QWorkspace *ws = mainform->ws;
-    aWindowsList *wl = mainform->wl;
-    QString oclass = md->objClass( obj );
-    int objid = md->id( obj );
-    if ( wl->find( objid ) ) {
-	wl->get( objid )->setFocus();
-	return;
-    }
+    setIcon(0, rcIcon("actions.png"));
 
-    if ( oclass == md_action )
+    cobj = md->firstChild(obj);
+    while (!cobj.isNull())
     {
-	dEditAction * e = new dEditAction ( ws, 0, Qt::WDestructiveClose );
-	wl->insert( objid, e );
-	editor = e;
-	QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	e->setData( this );
-	e->show();
-	//--mainform->addTab(++mainform->lastTabId,e->name());
-	mainform->addTab(e);
-	return;
+        oclass = md->objClass(cobj);
+        if (oclass == md_actiongroup)
+            loadGroup(this, cobj);
+
+        oclass = md->objClass(cobj);
+        if (oclass == md_action)
+            new ActionListViewItem(this, 0, md, cobj, QString());
+
+        cobj = md->nextSibling(cobj);
     }
 }
 
-aActionTreeView::aActionTreeView ( QWidget *parent, aCfg *cfgmd )
-: ananasTreeView( parent, cfgmd )
+void ActionListViewItem::loadGroup(ananasListViewItem *parent, aCfgItem child)
 {
-	ActionListViewItem *actions;
-	aCfgItem	item;
-	item = md->find ( mdc_actions );
-	if ( item.isNull() )
-	{
-		item = md->insert( md->find ( mdc_root ), md_actions, QString::null, -1 );
-	}
-	actions = new ActionListViewItem ( this, md, item, QObject::tr ( "Actions" ) );
-	actions->loadTree();
-	actions->setOpen ( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
-};
+    ActionListViewItem *gparent;
+    QString oclass;
+    aCfgItem cobj;
 
+    gparent = new ActionListViewItem(parent, 0, md, child, QString());
+    gparent->setIcon(0, rcIcon("action_g.png"));
+
+    cobj = md->firstChild(gparent->obj);
+    while (!cobj.isNull())
+    {
+        oclass = md->objClass(cobj);
+        if (oclass == md_actiongroup)
+            loadGroup(gparent, cobj);
+
+        oclass = md->objClass(cobj);
+        if (oclass == md_action)
+            new ActionListViewItem(gparent, 0, md, cobj, QString());
+
+        cobj = md->nextSibling(cobj);
+    }
+}
+
+void ActionListViewItem::newActionGroup()
+{
+    aCfgItem newobj;
+    ActionListViewItem *newitem;
+    QString oclass = md->objClass(obj);
+
+    if (oclass == md_actiongroup || oclass == md_actions)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_actiongroup, QObject::tr("New Action Group"));
+        newitem = new ActionListViewItem(this, 0, md, newobj);
+        newitem->setSelected(true);
+        newitem->setIcon(0, rcIcon("action_g.png"));
+        newitem->edit();
+    }
+}
 
 void
-aActionTreeView::ContextMenu()
+ActionListViewItem::newAction()
 {
-	QMenu *m=new QMenu( this, "PopupMenu" );
-	Q_CHECK_PTR(m);
+    aCfgItem newobj;
+    ActionListViewItem *newitem;
+    QString oclass = md->objClass(obj);
 
-	ContextMenuAdd( m );
-	m->insertItem( QObject::tr("New &Group"),  this, SLOT( itemNewGroup() ), Qt::CTRL+Qt::Key_G );
-	m->insertItem( QObject::tr("New &Action"),  this, SLOT( itemNewAction() ), Qt::CTRL+Qt::Key_A );
-//	m->insertItem( QObject::tr("&Rename"), this, SLOT( itemRename() ), CTRL+Key_R);
-//	m->insertItem( QObject::tr("&Edit"),  this, SLOT( itemEdit() ), CTRL+Key_E );
-//	m->insertItem( QObject::tr("&Delete"), this, SLOT( itemDelete() ), CTRL+Key_D );
-	m->exec( QCursor::pos() );
-	delete m;
-};
+    if (oclass == md_actiongroup || oclass == md_actions)
+    {
+        setSelected(false);
+        setExpanded(true);
 
-void
-aActionTreeView::itemNewGroup()
-{
-	ActionListViewItem *i = (ActionListViewItem *) selectedItem();
-	if ( i )
-		i->newActionGroup();
-};
+        newobj = md->insert(obj, md_action, QObject::tr("New Action"));
+        newitem = new ActionListViewItem(this, 0, md, newobj);
+        newitem->setSelected(true);
+        newitem->edit();
+    }
+}
 
 void
-aActionTreeView::itemNewAction()
+ActionListViewItem::edit()
 {
-	ActionListViewItem *i = (ActionListViewItem *) selectedItem();
-	if ( i )
-		i->newAction();
-};
+    QMdiArea *ws = mainform->ws;
+    aWindowsList *wl = mainform->wl;
+    QString oclass = md->objClass(obj);
+    int objid = md->id(obj);
+
+    if (wl->find(objid)) {
+        wl->get(objid)->setFocus();
+        return;
+    }
+
+    if (oclass == md_action)
+    {
+        dEditAction *e = new dEditAction(mainform->ws, 0);
+        e->setAttribute(Qt::WA_DeleteOnClose);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        return;
+    }
+}
+
+aActionTreeView::aActionTreeView(QWidget *parent, aCfg *cfgmd)
+    : ananasTreeView(parent, cfgmd)
+{
+    ActionListViewItem *actions;
+    aCfgItem item;
+    item = md->find(mdc_actions);
+    if (item.isNull())
+    {
+        item = md->insert(md->find(mdc_root), md_actions, QString(), -1);
+    }
+
+    actions = new ActionListViewItem(this, md, item, QObject::tr("Actions"));
+    actions->loadTree();
+    actions->setExpanded(true);
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
+            this, SLOT(ContextMenu()));
+    connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
+            this, SLOT(itemEdit()));
+    connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
+            this, SLOT(itemEdit()));
+}
+
+void aActionTreeView::ContextMenu()
+{
+    QMenu *m = new QMenu(this);
+    Q_CHECK_PTR(m);
+
+    ContextMenuAdd(m);
+    m->addAction(QObject::tr("New &Group"), this, SLOT(itemNewGroup()), QKeySequence(Qt::CTRL + Qt::Key_G));
+    m->addAction(QObject::tr("New &Action"), this, SLOT(itemNewAction()), QKeySequence(Qt::CTRL + Qt::Key_A));
+//  m->addAction(QObject::tr("&Rename"), this, SLOT(itemRename()), QKeySequence(Qt::CTRL + Qt::Key_R));
+//  m->addAction(QObject::tr("&Edit"), this, SLOT(itemEdit()), QKeySequence(Qt::CTRL + Qt::Key_E));
+//  m->addAction(QObject::tr("&Delete"), this, SLOT(itemDelete()), QKeySequence(Qt::CTRL + Qt::Key_D));
+
+    m->exec(QCursor::pos());
+    delete m;
+}
+
+void aActionTreeView::itemNewGroup()
+{
+    ActionListViewItem *i = static_cast<ActionListViewItem*>(currentItem());
+    if (i)
+        i->newActionGroup();
+}
+
+void aActionTreeView::itemNewAction()
+{
+    ActionListViewItem *i = static_cast<ActionListViewItem*>(currentItem());
+    if (i)
+        i->newAction();
+}
 
 void
 aActionTreeView::itemDelete()
@@ -243,12 +256,11 @@ aActionTreeView::itemMoveDown()
 	moveDownItem();
 };
 
-void
-aActionTreeView::itemEdit()
+void aActionTreeView::itemEdit()
 {
-	ActionListViewItem *i = (ActionListViewItem *) selectedItem();
-	if ( i ) i->edit();
-};
+	ActionListViewItem *i = static_cast<ActionListViewItem*>(currentItem());
+	if (i) i->edit();
+}
 
 void
 aActionTreeView::itemRename()

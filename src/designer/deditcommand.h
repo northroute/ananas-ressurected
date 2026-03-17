@@ -3,13 +3,18 @@
 
 #include "ui_deditcommand.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QHeaderView>
 
 class dEditCommand : public QMainWindow, public Ui::dEditCommand
 {
     Q_OBJECT
 
 public:
-    dEditCommand(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditCommand(QWidget* parent, Qt::WindowFlags fl);
     ~dEditCommand();
 
     ananasTreeView *vComActions;
@@ -31,7 +36,7 @@ protected slots:
     virtual void languageChange();
 
 private:
-    void destroy();
+    void closeEditor();
     void init();
 
 };

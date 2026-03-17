@@ -26,13 +26,6 @@
 **
 **********************************************************************/
 
-#include <QTreeWidget>
-#include <q3header.h>
-#include <QMenu>
-#include <qlabel.h>
-#include <qcursor.h>
-//Added by qt3to4:
-#include <QPixmap>
 
 #include "acfg.h"
 #include "interfacetree.h"
@@ -45,287 +38,306 @@ extern MainForm *mainform;
 extern QPixmap rcIcon(const char *name);
 extern void set_Icon(QTreeWidgetItem *item, const char *name);
 
-InterfaceListViewItem::InterfaceListViewItem( QTreeWidget *parent, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: ananasListViewItem( parent, cfgmd, cfgobj, name )
+InterfaceListViewItem::InterfaceListViewItem(QTreeWidget *parent,
+                                             aCfg *cfgmd,
+                                             aCfgItem cfgobj,
+                                             const QString &name)
+    : ananasListViewItem(parent, cfgmd, cfgobj, name)
 {
-	id = md->id(obj);
-	if ( ( id ) && ( md->objClass(obj) != md_separator ) ) setRenameEnabled(0, true);
-	aCfgItem comaction, active;
-	QPixmap pix;
-	int idd;
+    id = md->id(obj);
 
-	comaction = md->findChild( obj, md_comaction, 0 );
-	idd = md->text( comaction ).toInt();
-	active = md->findChild( md->find( idd ), md_active_picture, 0 );
-	pix.loadFromData( md->binary( active ) );
-	setPixmap( 0, pix );
-	pix = 0;
-};
+    if (id && md->objClass(obj) != md_separator)
+        setFlags(flags() | Qt::ItemIsEditable);
 
-InterfaceListViewItem::InterfaceListViewItem( ananasListViewItem *parent, ananasListViewItem
-						*after, aCfg * cfgmd, aCfgItem cfgobj, const QString &name )
-: ananasListViewItem( parent, after, cfgmd, cfgobj, name )
-{
-	id = md->id( obj );
-	if ( ( id ) && ( md->objClass(obj) != md_separator ) ) setRenameEnabled(0, true);
+    aCfgItem comaction, active;
+    QPixmap pix;
+    int idd;
 
-	aCfgItem comaction, active;
-	int idd;
-	QPixmap pix;
-
-	comaction = md->findChild( obj, md_comaction, 0 );
-	idd = md->text( comaction ).toInt();
-	active = md->findChild( md->find( idd ), md_active_picture, 0 );
-	pix.loadFromData( md->binary( active ) );
-	setPixmap( 0, pix );
-	pix = 0;
-};
-
-void
-InterfaceListViewItem::loadTree()
-{
-	QString				oclass;
-	aCfgItem			cobj;
-
-	clearTree();
-
-	if ( !md ) return;
-	cobj = md->firstChild ( obj );
-	while ( !cobj.isNull() )
-	{
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_submenu || oclass == md_popupmenu || oclass == md_toolbar )
-		{
-			loadSubmenu ( this, getLastChild(), cobj );
-		}
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_command )
-		{
-			loadCommand ( this, getLastChild(), cobj );
-		}
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_separator )
-		{
-			loadSeparator ( this, getLastChild(), cobj );
-		}
-		cobj = md->nextSibling ( cobj );
-	}
-};
-
-void
-InterfaceListViewItem::loadSubmenu ( ananasListViewItem * parent, ananasListViewItem *after, aCfgItem child )
-{
-	InterfaceListViewItem * mparent;
-	QString				oclass;
-	aCfgItem			cobj;
-
-	mparent = new InterfaceListViewItem( parent, after, md, child, QString::null );
-	mparent->setPixmap(0, rcIcon("submenu.png"));
-	cobj = md->firstChild ( mparent->obj );
-	while ( !cobj.isNull() )
-	{
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_submenu  || oclass == md_toolbar )
-		{
-			loadSubmenu ( mparent, mparent->getLastChild(), cobj );
-		}
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_command )
-		{
-			loadCommand ( mparent, mparent->getLastChild(), cobj );
-		}
-		oclass = md->objClass ( cobj );
-		if ( oclass == md_separator )
-		{
-			loadSeparator ( mparent, mparent->getLastChild(), cobj );
-		}
-		cobj = md->nextSibling ( cobj );
-	}
-};
-
-void
-InterfaceListViewItem::loadCommand ( ananasListViewItem * parent, ananasListViewItem *after, aCfgItem child )
-{
-	new InterfaceListViewItem(  parent, after, md, child, QString::null );
-};
-
-void
-InterfaceListViewItem::loadSeparator ( ananasListViewItem * parent, ananasListViewItem *after, aCfgItem child )
-{
-	InterfaceListViewItem 	*newitem;
-	newitem = new InterfaceListViewItem( parent, after, md,child,QObject::tr("-------------------") );
-	newitem->setPixmap(0, rcIcon("separator.png"));
-
-};
-
-void
-InterfaceListViewItem::newCommand ()
-{
-	aCfgItem			newobj;
-	InterfaceListViewItem 	*newitem;//, *par;
-	QString 			oclass = md->objClass( obj );
-
-/*	par = (InterfaceListViewItem *)this->parent();
-	if ( par->text( 0 ) != QObject::tr("Interface") ) obj = md->findChild( obj, md_toolbars );
-*/	if ( oclass == md_popupmenu || oclass == md_submenu ||
-		oclass == md_mainmenu || oclass == md_toolbar )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_command, QObject::tr("New Command") );
-		newitem = new InterfaceListViewItem( this, getLastChild(), md, newobj );
-//		newitem->setSelected( TRUE );
-		newitem->edit();
-	};
-}
-
-void
-InterfaceListViewItem::newSubmenu ()
-{
-	aCfgItem			newobj;
-	InterfaceListViewItem 	*newitem;
-	QString 			oclass = md->objClass( obj );
-
-	if ( oclass == md_submenu || oclass ==  md_mainmenu ||
-		oclass == md_toolbars || oclass == md_popupmenus || oclass == md_popupmenu )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		if ( oclass == md_popupmenus ) newobj = md->insert( obj, md_popupmenu, QObject::tr("New Popup menu") );
-		else
-		if ( oclass == md_toolbars ) newobj = md->insert( obj, md_toolbar, QObject::tr("New tool bar") );
-		else
-		newobj = md->insert( obj, md_submenu, QObject::tr("New Submenu") );
-		newitem = new InterfaceListViewItem( this, getLastChild(), md, newobj );
-		newitem->setPixmap(0, rcIcon("submenu.png"));
-//		newitem->setSelected( TRUE );
-	};
-
-}
-
-void
-InterfaceListViewItem::newSeparator ()
-{
-	aCfgItem			newobj;
-	InterfaceListViewItem 	*newitem;
-	QString 			oclass = md->objClass( obj );
-
-	if ( oclass == md_submenu || oclass == md_mainmenu || oclass == md_popupmenu )
-	{
-		setSelected( FALSE );
-		setOpen( TRUE );
-		newobj = md->insert( obj, md_separator );
-		newitem = new InterfaceListViewItem( this, getLastChild(), md, newobj, QObject::tr("-------------------") );
-		newitem->setPixmap(0, rcIcon("separator.png"));
-//		newitem->setSelected( TRUE );
-
-	};
-}
-
-void
-InterfaceListViewItem::edit ()
-{
-    QWorkspace *ws = mainform->ws;
-    aWindowsList *wl = mainform->wl;
-    QString oclass = md->objClass( obj );
-    int objid = md->id( obj );
-    if ( wl->find( objid ) ) {
-	wl->get( objid )->setFocus();
-	return;
+    comaction = md->findChild(obj, md_comaction, 0);
+    if (!comaction.isNull()) {
+        idd = md->text(comaction).toInt();
+        active = md->findChild(md->find(idd), md_active_picture, 0);
+        if (!active.isNull()) {
+            pix.loadFromData(md->binary(active));
+            setIcon(0, QIcon(pix));
+        }
     }
+}
 
-    if ( oclass == md_command )
+InterfaceListViewItem::InterfaceListViewItem(ananasListViewItem *parent,
+                                             ananasListViewItem *after,
+                                             aCfg *cfgmd,
+                                             aCfgItem cfgobj,
+                                             const QString &name)
+    : ananasListViewItem(parent, after, cfgmd, cfgobj, name)
+{
+    Q_UNUSED(after);
+
+    id = md->id(obj);
+
+    if (id && md->objClass(obj) != md_separator)
+        setFlags(flags() | Qt::ItemIsEditable);
+
+    aCfgItem comaction, active;
+    int idd;
+    QPixmap pix;
+
+    comaction = md->findChild(obj, md_comaction, 0);
+    if (!comaction.isNull()) {
+        idd = md->text(comaction).toInt();
+        active = md->findChild(md->find(idd), md_active_picture, 0);
+        if (!active.isNull()) {
+            pix.loadFromData(md->binary(active));
+            setIcon(0, QIcon(pix));
+        }
+    }
+}
+
+void InterfaceListViewItem::loadTree()
+{
+    QString oclass;
+    aCfgItem cobj;
+
+    clearTree();
+
+    if (!md) return;
+
+    cobj = md->firstChild(obj);
+    while (!cobj.isNull())
     {
-	dEditCommand * e = new dEditCommand ( ws, 0, Qt::WDestructiveClose );
-	wl->insert( objid, e );
-	editor = e;
-	QObject::connect( mainform, SIGNAL( tosave() ), editor, SLOT( updateMD() ) );
-	e->setData( this );
-	e->show();
-	//--mainform->addTab(++mainform->lastTabId,e->name());
-	mainform->addTab(e);
-	return;
+        oclass = md->objClass(cobj);
+
+        if (oclass == md_submenu || oclass == md_popupmenu || oclass == md_toolbar)
+            loadSubmenu(this, 0, cobj);
+        else if (oclass == md_command)
+            loadCommand(this, 0, cobj);
+        else if (oclass == md_separator)
+            loadSeparator(this, 0, cobj);
+
+        cobj = md->nextSibling(cobj);
+    }
+}
+
+void InterfaceListViewItem::loadSubmenu(ananasListViewItem *parent, ananasListViewItem *after, aCfgItem child)
+{
+    Q_UNUSED(after);
+
+    InterfaceListViewItem *mparent;
+    QString oclass;
+    aCfgItem cobj;
+
+    mparent = new InterfaceListViewItem(parent, 0, md, child, QString());
+    mparent->setIcon(0, QIcon(rcIcon("submenu.png")));
+
+    cobj = md->firstChild(mparent->obj);
+    while (!cobj.isNull())
+    {
+        oclass = md->objClass(cobj);
+
+        if (oclass == md_submenu || oclass == md_toolbar)
+            loadSubmenu(mparent, 0, cobj);
+        else if (oclass == md_command)
+            loadCommand(mparent, 0, cobj);
+        else if (oclass == md_separator)
+            loadSeparator(mparent, 0, cobj);
+
+        cobj = md->nextSibling(cobj);
     }
 }
 
 
-InterfaceTreeView::InterfaceTreeView ( QWidget *parent, aCfg *cfgmd )
-: ananasTreeView ( parent, cfgmd )
+void InterfaceListViewItem::loadCommand(ananasListViewItem *parent, ananasListViewItem *after, aCfgItem child)
 {
-	InterfaceListViewItem *mainmenu, *toolbars, *popups;
-	aCfgItem iface, item;
-	iface = md->find ( mdc_interface );
-	if ( iface.isNull() ) iface = md->insert( md->find ( mdc_root ), md_interface, QString::null, -1 );
-	item = md->find ( iface, md_toolbars );
-	if ( item.isNull() ) item = md->insert( iface, md_toolbars, QString::null, -1 );
-	toolbars = new InterfaceListViewItem ( this, md, item, QObject::tr ( "Toolbars" ) );
-	toolbars->setPixmap(0, rcIcon("toolbar.png"));
-	toolbars->loadTree();
-	toolbars->setOpen ( TRUE );
-	item = md->find ( iface, md_mainmenu );
-	if ( item.isNull() ) item = md->insert( iface, md_mainmenu, QString::null, -1 );
-	mainmenu = new InterfaceListViewItem ( this, md, item, QObject::tr ( "Main menu" ) );
-	mainmenu->setPixmap(0, rcIcon("m_menu.png"));
-	mainmenu->loadTree();
-	mainmenu->setOpen ( TRUE );
-	item = md->find ( iface, md_popupmenus );
-	if ( item.isNull() ) item = md->insert( iface, md_popupmenus, QString::null, -1 );
-	popups = new InterfaceListViewItem ( this, md, item, QObject::tr ( "Popup menus" ) );
-	popups->setPixmap(0, rcIcon("p_menus.png"));
-	popups->loadTree();
-	popups->setOpen ( TRUE );
-	connect( this, SIGNAL( contextMenuRequested( QTreeWidgetItem*, const QPoint&, int) ), this, SLOT(ContextMenu() ) );
-	connect( this, SIGNAL( returnPressed( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
-	connect( this, SIGNAL( doubleClicked( QTreeWidgetItem*) ), this, SLOT( itemEdit() ) );
-};
+    Q_UNUSED(after);
+    new InterfaceListViewItem(parent, 0, md, child, QString());
+}
 
 
-void
-InterfaceTreeView::ContextMenu()
+void InterfaceListViewItem::loadSeparator(ananasListViewItem *parent, ananasListViewItem *after, aCfgItem child)
 {
-	QMenu *m=new QMenu( this, "PopupMenu" );
-	Q_CHECK_PTR(m);
+    Q_UNUSED(after);
 
-/*	QLabel *caption = new QLabel( "<font color=darkblue><u><b>" "Context Menu</b></u></font>", this );
-	caption->setAlignment( Qt::AlignCenter );
-	m->insertItem( caption );
-	m->insertItem( tr("&Rename"), this, SLOT( itemRename() ), CTRL+Key_R);
-	m->insertItem( tr("&Edit"),  this, SLOT( itemEdit() ), CTRL+Key_E );
-	m->insertItem( tr("&Delete"), this, SLOT( itemDelete() ), CTRL+Key_D );
-	m->insertItem( tr("&MoveUp"), this, SLOT( itemMoveUp() ), CTRL+Key_U );
-	m->insertItem( tr("&MoveDown"), this, SLOT( itemMoveDown() ), CTRL+Key_M );
-*/
-	ananasTreeView::ContextMenuAdd( m );
-	m->insertItem( tr("&New Submenu"),  this, SLOT( itemNewSubmenu() ), Qt::CTRL+Qt::Key_N );
-	m->insertItem( tr("New &Command"),  this, SLOT( itemNewCommand() ), Qt::CTRL+Qt::Key_C );
-	m->insertItem( tr("New &Separator"),  this, SLOT( itemNewSeparator() ), Qt::CTRL+Qt::Key_S );
-	m->exec( QCursor::pos() );
-	delete m;
-};
+    InterfaceListViewItem *newitem;
+    newitem = new InterfaceListViewItem(parent, 0, md, child, QObject::tr("-------------------"));
+    newitem->setIcon(0, QIcon(rcIcon("separator.png")));
+}
 
-void
-InterfaceTreeView::itemNewSubmenu()
+
+void InterfaceListViewItem::newCommand()
 {
-	InterfaceListViewItem *i = (InterfaceListViewItem *) selectedItem();
-	if ( i )
-		i->newSubmenu();
-};
+    aCfgItem newobj;
+    InterfaceListViewItem *newitem;
+    QString oclass = md->objClass(obj);
 
-void
-InterfaceTreeView::itemNewCommand()
-{
-	InterfaceListViewItem *i = (InterfaceListViewItem *) selectedItem();
-	if ( i )
-		i->newCommand();
-};
+    if (oclass == md_popupmenu || oclass == md_submenu ||
+        oclass == md_mainmenu || oclass == md_toolbar)
+    {
+        setSelected(false);
+        setExpanded(true);
 
-void
-InterfaceTreeView::itemNewSeparator()
+        newobj = md->insert(obj, md_command, QObject::tr("New Command"));
+        newitem = new InterfaceListViewItem(this, 0, md, newobj);
+        newitem->edit();
+    }
+}
+
+void InterfaceListViewItem::newSubmenu()
 {
-	InterfaceListViewItem *i = (InterfaceListViewItem *) selectedItem();
-	if ( i )
-		i->newSeparator();
-};
+    aCfgItem newobj;
+    InterfaceListViewItem *newitem;
+    QString oclass = md->objClass(obj);
+
+    if (oclass == md_submenu || oclass == md_mainmenu ||
+        oclass == md_toolbars || oclass == md_popupmenus || oclass == md_popupmenu)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        if (oclass == md_popupmenus)
+            newobj = md->insert(obj, md_popupmenu, QObject::tr("New Popup menu"));
+        else if (oclass == md_toolbars)
+            newobj = md->insert(obj, md_toolbar, QObject::tr("New tool bar"));
+        else
+            newobj = md->insert(obj, md_submenu, QObject::tr("New Submenu"));
+
+        newitem = new InterfaceListViewItem(this, 0, md, newobj);
+        newitem->setIcon(0, QIcon(rcIcon("submenu.png")));
+    }
+}
+
+void InterfaceListViewItem::newSeparator()
+{
+    aCfgItem newobj;
+    InterfaceListViewItem *newitem;
+    QString oclass = md->objClass(obj);
+
+    if (oclass == md_submenu || oclass == md_mainmenu || oclass == md_popupmenu)
+    {
+        setSelected(false);
+        setExpanded(true);
+
+        newobj = md->insert(obj, md_separator);
+        newitem = new InterfaceListViewItem(this, 0, md, newobj, QObject::tr("-------------------"));
+        newitem->setIcon(0, QIcon(rcIcon("separator.png")));
+    }
+}
+
+void InterfaceListViewItem::edit()
+{
+    QMdiArea *ws = mainform->ws;
+    aWindowsList *wl = mainform->wl;
+    QString oclass = md->objClass(obj);
+    int objid = md->id(obj);
+
+    if (wl->find(objid)) {
+        wl->get(objid)->setFocus();
+        return;
+    }
+
+    if (oclass == md_command)
+    {
+        dEditCommand *e = new dEditCommand(ws, 0);
+        wl->insert(objid, e);
+        editor = e;
+        QObject::connect(mainform, SIGNAL(tosave()), editor, SLOT(updateMD()));
+        e->setData(this);
+        e->show();
+        mainform->addTab(e);
+        return;
+    }
+}
+
+
+InterfaceTreeView::InterfaceTreeView(QWidget *parent, aCfg *cfgmd)
+    : ananasTreeView(parent, cfgmd)
+{
+    InterfaceListViewItem *mainmenu, *toolbars, *popups;
+    aCfgItem iface, item;
+
+    iface = md->find(mdc_interface);
+    if (iface.isNull())
+        iface = md->insert(md->find(mdc_root), md_interface, QString(), -1);
+
+    item = md->find(iface, md_toolbars);
+    if (item.isNull())
+        item = md->insert(iface, md_toolbars, QString(), -1);
+    toolbars = new InterfaceListViewItem(this, md, item, QObject::tr("Toolbars"));
+    toolbars->setIcon(0, QIcon(rcIcon("toolbar.png")));
+    toolbars->loadTree();
+    toolbars->setExpanded(true);
+
+    item = md->find(iface, md_mainmenu);
+    if (item.isNull())
+        item = md->insert(iface, md_mainmenu, QString(), -1);
+    mainmenu = new InterfaceListViewItem(this, md, item, QObject::tr("Main menu"));
+    mainmenu->setIcon(0, QIcon(rcIcon("m_menu.png")));
+    mainmenu->loadTree();
+    mainmenu->setExpanded(true);
+
+    item = md->find(iface, md_popupmenus);
+    if (item.isNull())
+        item = md->insert(iface, md_popupmenus, QString(), -1);
+    popups = new InterfaceListViewItem(this, md, item, QObject::tr("Popup menus"));
+    popups->setIcon(0, QIcon(rcIcon("p_menus.png")));
+    popups->loadTree();
+    popups->setExpanded(true);
+
+    connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(itemEdit()));
+    connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(itemEdit()));
+}
+
+void InterfaceTreeView::ContextMenu()
+{
+    QMenu *m = new QMenu(this);
+    Q_CHECK_PTR(m);
+
+    ananasTreeView::ContextMenuAdd(m);
+
+    QAction *actSubmenu = m->addAction(tr("&New Submenu"));
+    actSubmenu->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    QObject::connect(actSubmenu, SIGNAL(triggered()), this, SLOT(itemNewSubmenu()));
+
+    QAction *actCommand = m->addAction(tr("New &Command"));
+    actCommand->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+    QObject::connect(actCommand, SIGNAL(triggered()), this, SLOT(itemNewCommand()));
+
+    QAction *actSeparator = m->addAction(tr("New &Separator"));
+    actSeparator->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    QObject::connect(actSeparator, SIGNAL(triggered()), this, SLOT(itemNewSeparator()));
+
+    m->exec(QCursor::pos());
+    delete m;
+}
+
+
+void InterfaceTreeView::itemNewSubmenu()
+{
+    InterfaceListViewItem *i =
+        static_cast<InterfaceListViewItem*>(currentItem());
+
+    if (i)
+        i->newSubmenu();
+}
+
+
+void InterfaceTreeView::itemNewCommand()
+{
+    InterfaceListViewItem *i =
+        static_cast<InterfaceListViewItem*>(currentItem());
+
+    if (i)
+        i->newCommand();
+}
+
+
+void InterfaceTreeView::itemNewSeparator()
+{
+    InterfaceListViewItem *i =
+        static_cast<InterfaceListViewItem*>(currentItem());
+
+    if (i)
+        i->newSeparator();
+}
 
 void
 InterfaceTreeView::itemDelete()
@@ -345,15 +357,16 @@ InterfaceTreeView::itemMoveDown()
 	moveDownItem();
 };
 
-void
-InterfaceTreeView::itemEdit()
+void InterfaceTreeView::itemEdit()
 {
-	InterfaceListViewItem *i = (InterfaceListViewItem *) selectedItem();
-	if ( i ) i->edit();
-};
-void
-InterfaceTreeView::itemRename()
+    InterfaceListViewItem *i =
+        static_cast<InterfaceListViewItem*>(currentItem());
+
+    if (i)
+        i->edit();
+}
+
+void InterfaceTreeView::itemRename()
 {
 	renameItem();
 }
-

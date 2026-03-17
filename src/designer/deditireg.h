@@ -1,15 +1,20 @@
 #ifndef DEDITIREG_H
 #define DEDITIREG_H
 
+
 #include "ui_deditireg.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
 
 class dEditIReg : public QMainWindow, public Ui::dEditIReg
 {
     Q_OBJECT
 
 public:
-    dEditIReg(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditIReg(QWidget* parent, Qt::WindowFlags fl);
     ~dEditIReg();
 
     aListViewItem *item;
@@ -24,7 +29,7 @@ protected slots:
 
 private:
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 

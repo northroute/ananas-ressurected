@@ -3,20 +3,41 @@
 
 #include "ui_cfgform.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QTreeWidget>
+#include <QLabel>
+#include <QMenu>
+#include <QStatusBar>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QList>
+#include <QBitmap>
+#include <QTableWidget>
+#include <QDrag>
+#include <QMimeData>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QByteArray>
+#include <QGridLayout>
+#include <QCloseEvent>
+#include <QMdiArea>
+#include <QMdiSubWindow>
 
 class CfgForm : public QMainWindow, public Ui::CfgForm
 {
     Q_OBJECT
 
 public:
-    CfgForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    CfgForm(QWidget* parent, Qt::WindowFlags fl);
     ~CfgForm();
 
-    Q3IntDict<QListWidgetItem> idList;
+    QHash<int, QListWidgetItem*> idList;
     InterfaceTreeView *interfacetree;
     aActionTreeView *actiontree;
     aCfg cfg;
-    QWorkspace *ws;
+    QMdiArea *ws;
     aMetadataTreeView *mdtree;
     InterfaceTreeView *toolbartree;
     QString rcfile;
@@ -33,7 +54,7 @@ public slots:
     virtual void initImageCollection();
     virtual void bAddImage_clicked();
     virtual void bRemoveImage_clicked();
-    virtual void vImageCollection_itemRenamed( QListWidgetItem * item, const QString & name );
+    virtual void vImageCollection_itemChanged(QListWidgetItem *item);
     virtual void initLang();
     virtual void initRoles();
     virtual void save();

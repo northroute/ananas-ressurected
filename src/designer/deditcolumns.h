@@ -3,13 +3,19 @@
 
 #include "ui_deditcolumns.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QHeaderView>
+#include <QGridLayout>
 
 class dEditColumns : public QMainWindow, public Ui::dEditColumns
 {
     Q_OBJECT
 
 public:
-    dEditColumns(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditColumns(QWidget* parent, Qt::WindowFlags fl);
     ~dEditColumns();
 
 public slots:
@@ -32,7 +38,7 @@ private:
     ananasTreeView *usedFields;
     QStringList fieldsList;
 
-    void destroy();
+    void closeEditor();
     void init();
     virtual void addField( aCfgItem addItem );
 

@@ -1,15 +1,20 @@
 #ifndef DEDITJOURNAL_H
 #define DEDITJOURNAL_H
 
+
 #include "ui_deditjournal.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
 
 class dEditJournal : public QMainWindow, public Ui::dEditJournal
 {
     Q_OBJECT
 
 public:
-    dEditJournal(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditJournal(QWidget* parent, Qt::WindowFlags fl);
     ~dEditJournal();
 
     aListViewItem *item;
@@ -30,7 +35,7 @@ protected slots:
 
 private:
     void init();
-    void destroy();
+    void closeEditor();
 
 private slots:
     virtual void typeChange();

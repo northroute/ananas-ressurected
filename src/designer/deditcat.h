@@ -3,17 +3,23 @@
 
 #include "ui_deditcat.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QScriptEngine>
+#include <QHash>
 
 class dEditCat : public QMainWindow, public Ui::dEditCat
 {
     Q_OBJECT
 
 public:
-    dEditCat(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditCat(QWidget* parent, Qt::WindowFlags fl);
     ~dEditCat();
 
     aRoleEditor *re;
-    Q3IntDict<int> fields, fieldsg;
+    QHash<int, int> fields, fieldsg;
     aAliasEditor *al;
     aListViewItem *item;
 
@@ -31,7 +37,7 @@ protected slots:
 
 private:
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 

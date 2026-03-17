@@ -36,11 +36,7 @@
 
 // sdk
 #include <QtDesigner/QtDesigner>
-#include "private/qdesigner_formbuilder_p.h"
-#include "private/qtundo_p.h"
-#include "private/pluginmanager_p.h"
-
-#include <QtAssistant/QAssistantClient>
+#include <QtDesigner/QFormBuilder>
 
 #include <QtGui/QStyleFactory>
 #include <QtGui/QAction>
@@ -56,9 +52,12 @@
 #include <QtCore/QPluginLoader>
 #include <QtCore/qdebug.h>
 
+#include "private/pluginmanager_p.h"
+
 QDesignerActions::QDesignerActions(QDesignerWorkbench *workbench)
     : QObject(workbench),
-      m_workbench(workbench), m_assistantClient(0), m_openDirectory(QString())
+      m_workbench(workbench),
+      m_openDirectory(QString())
 {
     Q_ASSERT(m_workbench != 0);
 
@@ -595,18 +594,15 @@ void QDesignerActions::previewFormLater(QAction *action)
 
 void QDesignerActions::previewForm(QAction *action)
 {
-//return;
-
     if (QDesignerFormWindowInterface *fw = core()->formWindowManager()->activeFormWindow()) {
-        qdesigner_internal::QDesignerFormBuilder builder(core(), qdesigner_internal::QDesignerFormBuilder::DisableScripts);
-        builder.setWorkingDirectory(fw->absoluteDir());
+        QFormBuilder builder;
 
         QByteArray bytes = fw->contents().toUtf8();
         QBuffer buffer(&bytes);
+        buffer.open(QIODevice::ReadOnly);
 
         QWidget *widget = builder.load(&buffer, 0);
         Q_ASSERT(widget);
-
 
         widget->setParent(fw->window(), Qt::Dialog);
         widget->setWindowModality(Qt::ApplicationModal);
@@ -623,7 +619,7 @@ void QDesignerActions::previewForm(QAction *action)
                 style->setParent(widget);
                 widget->setStyle(style);
                 widget->setPalette(style->standardPalette());
-                QList<QWidget*> lst = qFindChildren<QWidget*>(widget);
+                QList<QWidget*> lst = widget->findChildren<QWidget*>();
                 foreach (QWidget *w, lst) {
                     if (w->windowType() == Qt::Popup)
                         w->setPalette(style->standardPalette());
@@ -633,7 +629,6 @@ void QDesignerActions::previewForm(QAction *action)
         }
 
         widget->setWindowTitle(tr("%1 - [Preview]").arg(widget->windowTitle()));
-
         widget->show();
     }
 }

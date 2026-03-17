@@ -3,13 +3,18 @@
 
 #include "ui_deditwebform.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QScriptEngine>
 
 class dEditWebForm : public QMainWindow, public Ui::dEditWebForm
 {
     Q_OBJECT
 
 public:
-    dEditWebForm(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditWebForm(QWidget* parent, Qt::WindowFlags fl);
     ~dEditWebForm();
 
     aAliasEditor *al;
@@ -24,7 +29,7 @@ protected slots:
 
 private:
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 

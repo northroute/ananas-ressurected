@@ -1,5 +1,6 @@
 include(../plugins/plugins.pri)
 include(../lib/lib.pri)
+
 TARGET = ananas4-designer
 TEMPLATE = app
 
@@ -8,22 +9,27 @@ CONFIG += designer
 DESTDIR = ../../bin
 
 INCLUDEPATH += . ./formdesigner ../lib ../../tmp/ui/ananas ../plugins
-LIBS += -L../../lib -lananas4 -L../../lib/designer -lananasplugin4 -lqt4-qdataschema
+
+LIBS += -L../../lib -lananas4 \
+        -L../../lib/designer -lananasplugin4 \
+        -lqt4-qdataschema
+
 unix {
-    #LIBS += -L$(QTINC)/QtDesigner
-    LIBS += -lQtDesignerComponents
-#    LIBS += -lqt4designer
+    LIBS += -lQtDesigner -lQtDesignerComponents
 }
-win32{
-    LIBS += -lQtDesignerComponents4
+
+win32 {
+    LIBS += -lQtDesigner4 -lQtDesignerComponents4
 }
 
 MOC_DIR = ../../tmp/moc/$$TARGET
 OBJECTS_DIR = ../../tmp/obj/$$TARGET
 UI_DIR = ../../tmp/ui/$$TARGET
 
-#LIBS	+= -L../lib -L../plugins -lananas -lananasplugin -ldesignercore -lqassistantclient
-#LIBS	+= -L. -L../lib -L../plugins -lananas -lananasplugin -lformdesigner -lqassistantclient
+QT += network
+
+#LIBS	+= -L../lib -L../plugins -lananas -lananasplugin -ldesignercore
+#LIBS	+= -L. -L../lib -L../plugins -lananas -lananasplugin -lformdesigner
 #INCLUDEPATH	+= ../lib ../lib/tmp/ui ../lib/.ui $(QTDIR)/tools/designer/designer ../../qt-headers/tools/designer/designer /usr/lib
 #INCLUDEPATH	+= ../lib ../lib/tmp/ui ../lib/.ui ./formdesigner /usr/lib
 

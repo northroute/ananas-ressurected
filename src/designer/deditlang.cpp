@@ -1,20 +1,15 @@
 #include "deditlang.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "acfg.h"
-#include <qstatusbar.h>
-#include <qmessagebox.h>
+
 
 /*
  *  Constructs a dEditLang as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
  *
  */
-dEditLang::dEditLang(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QMainWindow(parent, name, fl)
+dEditLang::dEditLang(QWidget* parent, Qt::WindowFlags fl)
+    : QMainWindow(parent, fl)
 {
     setupUi(this);
 
@@ -42,18 +37,15 @@ void dEditLang::languageChange()
 
 extern aCfg cfg;
 
-void dEditLang::setData( CfgForm *c, aCfgItem o )
+void dEditLang::setData(CfgForm *c, aCfgItem o)
 {
-//    aCfgItem alias;
-//    int i, n, count;
-
     cf = c;
     obj = o;
 
-    setCaption( tr("Language:") + cf->cfg.attr( obj, mda_name ) );
-    eTag->setText( cf->cfg.attr( obj, mda_tag ) );
-    eName->setText( cf->cfg.attr( obj, mda_name ) );
-    eTrFile->setText( cf->cfg.attr( obj, mda_trfile ) );
+    setWindowTitle(tr("Language:") + cf->cfg.attr(obj, mda_name));
+    eTag->setText(cf->cfg.attr(obj, mda_tag));
+    eName->setText(cf->cfg.attr(obj, mda_name));
+    eTrFile->setText(cf->cfg.attr(obj, mda_trfile));
 }
 
 void dEditLang::init()
@@ -61,18 +53,17 @@ void dEditLang::init()
     delete statusBar();
 }
 
-void dEditLang::destroy()
+void dEditLang::closeEditor()
 {
     updateMD();
-    ( (MainForm*)this->topLevelWidget() )->removeTab(name());
-}
-void
-dEditLang::updateMD()
-{
-    cf->cfg.setAttr( obj, mda_tag, eTag->text() );
-    cf->cfg.setAttr( obj, mda_name, eName->text().stripWhiteSpace() );
-    cf->cfg.setAttr( obj, mda_trfile, eTrFile->text() );
-    cf->initLang();
-    ( (MainForm*)this->topLevelWidget() )->wl->remove( this );
+    ((MainForm*)topLevelWidget())->removeTab(windowTitle());
 }
 
+void dEditLang::updateMD()
+{
+    cf->cfg.setAttr(obj, mda_tag, eTag->text());
+    cf->cfg.setAttr(obj, mda_name, eName->text().trimmed());
+    cf->cfg.setAttr(obj, mda_trfile, eTrFile->text());
+    cf->initLang();
+    ((MainForm*)topLevelWidget())->wl->remove(this);
+}

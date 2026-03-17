@@ -1,15 +1,21 @@
 #ifndef DEDITLANG_H
 #define DEDITLANG_H
 
+
 #include "ui_deditlang.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QMessageBox>
 
 class dEditLang : public QMainWindow, public Ui::dEditLang
 {
     Q_OBJECT
 
 public:
-    dEditLang(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditLang(QWidget* parent, Qt::WindowFlags fl);
     ~dEditLang();
 
 public slots:
@@ -25,7 +31,7 @@ private:
     CfgForm *cf;
 
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 
