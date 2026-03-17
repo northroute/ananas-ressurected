@@ -69,3 +69,14 @@ jobs:
               qmake-qt4
               make -j1
             "
+
+      - name: Build designer
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace/src/designer \
+            ananas-ci:latest \
+            bash -lc "
+              qmake-qt4
+              make -j1
+            "
