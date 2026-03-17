@@ -31,8 +31,9 @@
 #ifndef afilter_h
 #define afilter_h
 
+
 #include <QString>
-#include <QList> // вместо <Q3ValueList>
+#include <QList>
 #include <QDateTime>
 #include <QtGlobal>
 

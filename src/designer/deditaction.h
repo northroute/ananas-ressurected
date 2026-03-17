@@ -3,13 +3,18 @@
 
 #include "ui_deditaction.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QTabBar>
+#include <QStatusBar>
 
 class dEditAction : public QMainWindow, public Ui::dEditAction
 {
     Q_OBJECT
 
 public:
-    dEditAction(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditAction(QWidget* parent, Qt::WindowFlags fl);
     ~dEditAction();
 
     ActionListViewItem * item;

@@ -1,15 +1,21 @@
 #ifndef DEDITTOOLBAR_H
 #define DEDITTOOLBAR_H
 
+
 #include "ui_dedittoolbar.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QHeaderView>
 
 class dEditToolbar : public QMainWindow, public Ui::dEditToolbar
 {
     Q_OBJECT
 
 public:
-    dEditToolbar(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditToolbar(QWidget* parent, Qt::WindowFlags fl);
     ~dEditToolbar();
 
     ananasTreeView *vComActions;
@@ -31,7 +37,7 @@ protected slots:
     virtual void languageChange();
 
 private:
-    void destroy();
+    void closeEditor();
     void init();
 
 };

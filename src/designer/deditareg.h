@@ -3,13 +3,17 @@
 
 #include "ui_deditareg.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
 
 class dEditAReg : public QMainWindow, public Ui::dEditAReg
 {
     Q_OBJECT
 
 public:
-    dEditAReg(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditAReg(QWidget* parent, Qt::WindowFlags fl);
     ~dEditAReg();
 
     aListViewItem *item;
@@ -24,7 +28,7 @@ protected slots:
 
 private:
     void init();
-    void destroy();
+    void closeEditor();
 
 };
 

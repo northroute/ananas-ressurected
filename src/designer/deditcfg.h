@@ -3,13 +3,19 @@
 
 #include "ui_deditcfg.h"
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QLayout>
+#include <QStatusBar>
+#include <QScriptEngine>
 
 class dEditCfg : public QMainWindow, public Ui::dEditCfg
 {
     Q_OBJECT
 
 public:
-    dEditCfg(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditCfg(QWidget* parent, Qt::WindowFlags fl);
     ~dEditCfg();
 
     aListViewItem *item;
@@ -17,7 +23,7 @@ public:
 
 public slots:
     virtual void init();
-    virtual void destroy();
+    virtual void closeEditor();
     virtual void setData( aListViewItem * o );
     virtual void updateMD();
 

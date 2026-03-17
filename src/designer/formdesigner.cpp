@@ -28,7 +28,6 @@
 
 #include "formdesigner.h"
 
-#include <QCloseEvent>
 //#include <QDesignerWidgetBoxInterface>
 #include "formdesigner/qdesigner_workbench.h"
 #include "formdesigner/qdesigner_formwindow.h"

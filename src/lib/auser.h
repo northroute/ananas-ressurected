@@ -30,11 +30,12 @@
 #ifndef AUSER_H
 #define AUSER_H
 
+
 #include "arole.h"
 #include "adatabase.h"
 #include "acfg.h"
 #include "aobject.h"
-#include <QList> // вместо <Q3ValueList>
+#include <QList>
 
 
 

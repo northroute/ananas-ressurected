@@ -28,18 +28,17 @@
 #include "qdesigner_formwindow.h"
 #include "qdesigner_settings.h"
 
-#include "private/qdesigner_formbuilder_p.h"
-#include "private/sheet_delegate_p.h"
-
+#include <QtDesigner/QFormBuilder>
 #include <QtDesigner/abstractformwindow.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
+#include <QtCore/qdebug.h>
+
 #include <QtGui/QHeaderView>
 #include <QtGui/QPainter>
-
-#include <QtCore/qdebug.h>
+#include <QtGui/QItemDelegate>
 
 enum NewForm_CustomRole
 {
@@ -55,7 +54,7 @@ NewForm::NewForm(QDesignerWorkbench *workbench, QWidget *parentWidget)
       m_workbench(workbench)
 {
     ui.setupUi(this);
-    ui.treeWidget->setItemDelegate(new qdesigner_internal::SheetDelegate(ui.treeWidget, this));
+    ui.treeWidget->setItemDelegate(new QItemDelegate(ui.treeWidget));
     ui.treeWidget->header()->hide();
     ui.treeWidget->header()->setStretchLastSection(true);
     ui.lblPreview->setBackgroundRole(QPalette::Base);
@@ -157,14 +156,14 @@ QIcon NewForm::formPreviewIcon(const QString &fileName)
     QIcon result;
 
     QFile f(fileName);
-    if (f.open(QFile::ReadOnly)) {
-        qdesigner_internal::QDesignerFormBuilder formBuilder(workbench()->core(),qdesigner_internal::QDesignerFormBuilder::DisableScripts);
+    if (f.open(QIODevice::ReadOnly)) {
+
+        QFormBuilder formBuilder;
 
         QWidget *fake = new QWidget(0);
-        fake->setAttribute(Qt::WA_WState_Visible);
 
         if (QWidget *widget = formBuilder.load(&f, fake)) {
-            widget->setParent(fake, 0);
+            widget->setParent(fake);
             widget->show();
             f.close();
 
@@ -174,7 +173,7 @@ QIcon NewForm::formPreviewIcon(const QString &fileName)
             result = QPixmap::fromImage(image);
         }
 
-        fake->deleteLater();
+        delete fake;
     }
 
     return result;

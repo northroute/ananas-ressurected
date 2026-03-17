@@ -1,24 +1,18 @@
 #include "deditrole.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
 #include "acfg.h"
-#include <qstatusbar.h>
-#include <qmessagebox.h>
 
 /*
  *  Constructs a dEditRole as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
  *
  */
-dEditRole::dEditRole(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QMainWindow(parent, name, fl)
+dEditRole::dEditRole(QWidget* parent, Qt::WindowFlags fl)
+    : QMainWindow(parent, fl)
 {
     setupUi(this);
 
-    (void)statusBar();
+    statusBar();
     init();
 }
 
@@ -42,17 +36,14 @@ void dEditRole::languageChange()
 
 extern aCfg cfg;
 
-void dEditRole::setData( CfgForm *c, aCfgItem o )
+void dEditRole::setData(CfgForm *c, aCfgItem o)
 {
-//    aCfgItem alias;
-//    int i, n, count;
-
     cf = c;
     obj = o;
 
-    setCaption( tr("Role:") + cf->cfg.attr( obj, mda_name ) );
-    eName->setText( cf->cfg.attr( obj, mda_name ) );
-    eDescription->setText( cf->cfg.sText( obj, md_description ) );
+    setWindowTitle(tr("Role:") + cf->cfg.attr(obj, mda_name));
+    eName->setText(cf->cfg.attr(obj, mda_name));
+    eDescription->setPlainText(cf->cfg.sText(obj, md_description));
 }
 
 void dEditRole::init()
@@ -60,17 +51,16 @@ void dEditRole::init()
     delete statusBar();
 }
 
-void dEditRole::destroy()
+void dEditRole::closeEditor()
 {
     updateMD();
-    ( (MainForm*)this->topLevelWidget() )->removeTab(name());
-}
-void
-dEditRole::updateMD()
-{
-    cf->cfg.setAttr( obj, mda_name, eName->text().stripWhiteSpace() );
-    cf->cfg.setSText( obj, md_description, eDescription->text() );
-    cf->initRoles();
-    ( (MainForm*)this->topLevelWidget() )->wl->remove( this );
+    ((MainForm*)topLevelWidget())->removeTab(windowTitle());
 }
 
+void dEditRole::updateMD()
+{
+    cf->cfg.setAttr(obj, mda_name, eName->text().trimmed());
+    cf->cfg.setSText(obj, md_description, eDescription->toPlainText());
+    cf->initRoles();
+    ((MainForm*)topLevelWidget())->wl->remove(this);
+}

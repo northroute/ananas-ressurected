@@ -4,12 +4,18 @@
 #include "ui_deditreport.h"
 
 
+#include <QVariant>
+#include <QImage>
+#include <QPixmap>
+#include <QStatusBar>
+#include <QScriptEngine>
+
 class dEditReport : public QMainWindow, public Ui::dEditReport
 {
     Q_OBJECT
 
 public:
-    dEditReport(QWidget* parent = 0, const char* name = 0, Qt::WindowFlags fl = Qt::WType_TopLevel);
+    dEditReport(QWidget* parent, Qt::WindowFlags fl);
     ~dEditReport();
 
     aListViewItem *item;
@@ -23,7 +29,7 @@ protected slots:
     virtual void languageChange();
 
     virtual void init();
-    virtual void destroy();
+    virtual void closeEditor();
 
 
 };

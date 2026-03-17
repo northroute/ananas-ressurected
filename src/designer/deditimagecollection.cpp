@@ -1,18 +1,12 @@
 #include "deditimagecollection.h"
 
-#include <qvariant.h>
-#include <qimage.h>
-#include <qpixmap.h>
-
-#include <qstatusbar.h>
-
 /*
  *  Constructs a dEditImageCollection as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
  *
  */
-dEditImageCollection::dEditImageCollection(QWidget* parent, const char* name, Qt::WindowFlags fl)
-    : QMainWindow(parent, name, fl)
+dEditImageCollection::dEditImageCollection(QWidget* parent, Qt::WindowFlags fl)
+    : QMainWindow(parent, fl)
 {
     setupUi(this);
 
