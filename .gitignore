@@ -2,3 +2,5 @@
 .obj
 *.so
 .ui
+/bin
+/lib
