@@ -44,5 +44,5 @@ jobs:
 
               cd /workspace/src
               qmake-qt4
-              make -j$(nproc)
+              make -j1
             "
