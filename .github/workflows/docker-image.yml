@@ -26,68 +26,23 @@ jobs:
         run: |
           docker run --rm ananas-ci:latest bash -lc "qmake-qt4 -v"
 
-      - name: Build qdataschema
+      - name: Build qdataschema and Ananas
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/third-party/qdataschema/src \
             ananas-ci:latest \
             bash -lc "
-              qmake-qt4
-              make -j1
-            "
+              set -e
 
-      - name: Build Ananas core library
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/src/lib \
-            ananas-ci:latest \
-            bash -lc "
-              qmake-qt4
-              make -j1
-            "
+              mkdir -p /workspace/lib
 
-      - name: Build extensions
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/src/extensions \
-            ananas-ci:latest \
-            bash -lc "
+              cd /workspace/third-party/qdataschema/src
               qmake-qt4
-              make -j1
-            "
+              make -j$(nproc)
 
-      - name: Build plugins
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/src/plugins \
-            ananas-ci:latest \
-            bash -lc "
-              qmake-qt4
-              make -j1
-            "
+              cp -af libqt4-qdataschema.so* /workspace/lib/ 2>/dev/null || true
 
-      - name: Build designer
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/src/designer \
-            ananas-ci:latest \
-            bash -lc "
+              cd /workspace/src
               qmake-qt4
-              make -j1
-            "
-
-      - name: Build admin
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace/src/admin \
-            ananas-ci:latest \
-            bash -lc "
-              qmake-qt4
-              make -j1
+              make -j$(nproc)
             "

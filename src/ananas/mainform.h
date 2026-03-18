@@ -103,7 +103,7 @@ public slots:
 	void helpAbout();
 	void statusMessage( const QString &msg );
 	void windowsMenuAboutToShow();
-	void windowsMenuActivated( int id );
+	void windowsMenuActivated();
 	void tileHorizontal();
 	void setBackground( const QPixmap &pix );
 
