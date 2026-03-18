@@ -41,154 +41,146 @@
 #include "alog.h"
 #include "aextensionfactory.h"
 
-//QApplication *application = 0;
-QTranslator *translator = 0, tr_app(0), tr_lib(0), tr_plugins(0);
-QString lang="en",
-	rcfile="",
-	username="",
-	userpassword="";
+QTranslator tr_app, tr_lib, tr_plugins;
 
+QString lang = "en",
+        rcfile = "",
+        username = "",
+        userpassword = "";
 
-int 
-setTranslator(QString langdir, QString lang)
+int setTranslator(QString langdir, QString lang)
 {
-	tr_app.load( langdir+"ananas-engine-"+lang.lower()+".qm",".");
-	tr_lib.load( langdir+"ananas-lib-"+lang.lower()+".qm",".");
-	tr_plugins.load( langdir+"ananas-plugins-"+lang.lower()+".qm",".");
-	return 0;
+    tr_app.load(langdir + "ananas-engine-" + lang.toLower() + ".qm", ".");
+    tr_lib.load(langdir + "ananas-lib-" + lang.toLower() + ".qm", ".");
+    tr_plugins.load(langdir + "ananas-plugins-" + lang.toLower() + ".qm", ".");
+    return 0;
 }
 
-
-
-int
-parseCommandLine( AApplication *a )
+int parseCommandLine( AApplication *a )
 {
-	QString param, name, value;
-	int i, argc;
-	char **argv;
-	
-	argc = a->argc();
-	argv = a->argv();
-        setTranslator( a->langDir(), a->lang() );
-//	printf("locale=%s\n", locale );
-	QString str_ru=QString::null, str_en=QString::null;
-	bool lang_setted = false;
-	bool help_setted = false;
-	for ( i=1; i<argc; i++)
-	{
-	    param = argv[i];
-	    name = param.section("=",0,0).lower();
-	    value = param.section("=",1);
-//	    printf("%s = %s\n", (const char *) name, (const char *) value );
-	    if (param == "--help")
-	    {
-		    str_ru = "Использование: ananas [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
-		    str_ru+= "LANG=ru|en\n";
-		    str_ru+= "RC_PATH=путь к *.rc файлу описания бизнес схемы\n";
+    QString param, name, value;
+    int i, argc;
+    char **argv;
 
-	    	    str_en = "Usage: ananas [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
-		    str_en+= "LANG=ru|en\n";
-		    str_en+= "RC_PATH=path to *.rc file of paticular business scheme\n";
-		    help_setted = true;
+    argc = a->argc();
+    argv = a->argv();
+    setTranslator( a->langDir(), a->lang() );
 
-	    }
-	    if (name == "--lang") {
-		lang = value;
-		lang_setted = true;
-	        setTranslator( a->langDir(), lang );
-	    }
-	    if (name == "--rc") rcfile = value;
-	}
-	if(help_setted)
-	{
-		if(lang == "ru")
-		{
-			printf("%s",(const char*)str_ru.local8Bit());
-		}
-		else
-		{
-			printf("%s",str_en.ascii());
-		}
-		return 1;
-	}
-	return 0;
+    QString str_ru, str_en;
+    bool lang_setted = false;
+    bool help_setted = false;
+
+    for ( i = 1; i < argc; i++ )
+    {
+        param = QString::fromLocal8Bit(argv[i]);
+        name = param.section("=", 0, 0).toLower();
+        value = param.section("=", 1);
+
+        if ( param == "--help" )
+        {
+            str_ru = "Использование: ananas [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
+            str_ru += "LANG=ru|en\n";
+            str_ru += "RC_PATH=путь к *.rc файлу описания бизнес схемы\n";
+
+            str_en = "Usage: ananas [--help] [--lang=<LANG>] [--rc=<RC_PATH>]\n";
+            str_en += "LANG=ru|en\n";
+            str_en += "RC_PATH=path to *.rc file of particular business scheme\n";
+
+            help_setted = true;
+        }
+
+        if ( name == "--lang" ) {
+            lang = value;
+            lang_setted = true;
+            setTranslator( a->langDir(), lang );
+        }
+
+        if ( name == "--rc" ) {
+            rcfile = value;
+        }
+    }
+
+    if ( help_setted )
+    {
+        if ( lang == "ru" ) {
+            printf("%s", str_ru.toLocal8Bit().constData());
+        } else {
+            printf("%s", str_en.toLocal8Bit().constData());
+        }
+        return 1;
+    }
+
+    return 0;
 }
-
-
 
 int main( int argc, char ** argv )
 {
+    AApplication a( argc, argv, AApplication::Ananas );
+    dLogin dlogin;
+    int rc = 1;
+    bool ok;
+    QPixmap pixmap;
 
-	AApplication a( argc, argv, AApplication::Ananas );
-//	dSelectDB dselectdb;
-	dLogin dlogin;
-//	application = &a;
-	int rc = 1;
-	bool ok;
-	QPixmap pixmap;
+    QTextCodec::setCodecForCStrings( QTextCodec::codecForName("UTF8") );
 
-	QTextCodec::setCodecForCStrings( QTextCodec::codecForName("UTF8") );
+    a.setOrganizationName("ananasgroup");
+    a.setApplicationName("ananas");
 
-	// Для QSettings
-	a.setOrganizationName("ananasgroup");
-        a.setApplicationName("ananas");
+    if ( parseCommandLine( &a ) ) return 1;
+    qApp->installTranslator( &tr_app );
+    qApp->installTranslator( &tr_lib );
+    qApp->installTranslator( &tr_plugins );
 
-	if ( parseCommandLine( &a ) ) return 1;
-	qApp->installTranslator( &tr_app );
-	qApp->installTranslator( &tr_lib );
-	qApp->installTranslator( &tr_plugins );
-	//--pixmap = QPixmap::fromMimeSource( "engine-splash-"+lang+".png" );
-	pixmap = QPixmap( ":/images/engine-splash-"+lang+".png" );
-	if ( pixmap.isNull() )
+    pixmap = QPixmap( ":/images/engine-splash-" + lang + ".png" );
+
+    if ( pixmap.isNull() ) {
 #ifdef Q_OS_WIN32
-	pixmap = QPixmap( qApp->applicationDirPath()+"/engine-splash-"+lang+".png" );
-	qApp->addLibraryPath( qApp->applicationDirPath() );
+        pixmap = QPixmap( qApp->applicationDirPath() + "/engine-splash-" + lang + ".png" );
+        qApp->addLibraryPath( qApp->applicationDirPath() );
 #else
-	pixmap = QPixmap( "/usr/share/ananas/designer/locale/engine-splash-"+lang+".png" );
-	qApp->addLibraryPath( "/usr/lib/ananas/" );
+        pixmap = QPixmap( "/usr/share/ananas/designer/locale/engine-splash-" + lang + ".png" );
+        qApp->addLibraryPath( "/usr/lib/ananas/" );
 #endif
-	//--printf("extensions: \n%s\n",( const char *) AExtensionFactory::keys().join("\n") );
-// Test create extension
-//	AExtension *e = AExtensionFactory::create("AExtTest");
-//	if (e) printf("EXT OK\n"); else printf("NO EXT OK\n");
+    }
 
-	if ( pixmap.isNull() )
-		//--pixmap = QPixmap::fromMimeSource( "engine-splash-en.png" );
-		pixmap = QPixmap( ":/images/engine-splash-en.png" );
-	QSplashScreen *splash = new QSplashScreen( pixmap );
+    if ( pixmap.isNull() )
+        pixmap = QPixmap( ":/images/engine-splash-en.png" );
 
-//	printf("Keys:\n%s\n",( const char *) AExtensionFactory::keys().join("\n").toUtf8().data());
-	
-	if ( ananas_login( rcfile, username, userpassword, 0, AApplication::Ananas ) ){
-		splash->show();
-		splash->message( QObject::tr("Init application"), Qt::AlignBottom, Qt::white );
-		MainForm *w = new MainForm( 0, "MainForm");
-		mainform = w;
-		mainformws = mainform->ws;
-		mainformwl = mainform->wl;
-		qApp->setMainWidget( w );
-		w->rcfile = rcfile;
-//		printf( "rcfile = %s\n", rcfile.ascii() );
-		w->show();
-		ok = w->init();
-		splash->clear();
-       		splash->finish( w );
-       		delete splash;
-		if ( ok ) {
-			qApp->connect( qApp, SIGNAL( lastWindowClosed() ), qApp, SLOT( quit() ) );
-			rc = qApp->exec();
-			ananas_logout( w->engine.db );
-			if( w ) delete w;
-			w=0;
-		} else {
-			QMessageBox::critical(0, "error","Error init Ananas engine");
-		}
-		aLog::close();
-		return rc;
-	}
-	else
-	{
-		aLog::close();
-		return 0;
-	}
+    QSplashScreen *splash = new QSplashScreen( pixmap );
+
+    if ( ananas_login( rcfile, username, userpassword, 0, AApplication::Ananas ) ) {
+        splash->show();
+        splash->showMessage( QObject::tr("Init application"), Qt::AlignBottom, Qt::white );
+
+        MainForm *w = new MainForm(0);
+        mainform = w;
+        mainformws = mainform->ws;
+        mainformwl = mainform->wl;
+
+        // qApp->setMainWidget( w );
+        w->rcfile = rcfile;
+        w->show();
+
+        ok = w->init();
+
+        splash->clearMessage();
+        splash->finish( w );
+        delete splash;
+
+        if ( ok ) {
+            qApp->connect( qApp, SIGNAL( lastWindowClosed() ), qApp, SLOT( quit() ) );
+            rc = qApp->exec();
+            ananas_logout( w->engine.db );
+            delete w;
+            w = 0;
+        } else {
+            QMessageBox::critical(0, "error", "Error init Ananas engine");
+        }
+
+        aLog::close();
+        return rc;
+    } else {
+        aLog::close();
+        return 0;
+    }
 }

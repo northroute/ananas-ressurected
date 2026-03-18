@@ -34,9 +34,9 @@
 #include "atoolbar.h"
 
 
-aToolBar::aToolBar(aCfg *cfg, aCfgItem &obj, aEngine *e, QMainWindow *parent, const char *name) : QToolBar(parent)
+aToolBar::aToolBar(aCfg *cfg, aCfgItem &obj, aEngine *e, QMainWindow *parent) : QToolBar(parent)
 {
-	setObjectName(name ? name : "aToolBar");
+	setObjectName("aToolBar");
 
 	md = cfg;
 	en = e;

@@ -50,7 +50,7 @@ private:
     QMap<int, QAction*> actions;
 
 public:
-	aToolBar( aCfg *cfg, aCfgItem &obj, aEngine *e, QMainWindow* parent = 0, const char* name = 0 );
+	aToolBar(aCfg *cfg, aCfgItem &obj, aEngine *e, QMainWindow* parent = 0);
 	~aToolBar();
 
 	void ReadTool( aCfgItem &obj );
