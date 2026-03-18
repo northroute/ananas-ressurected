@@ -34,9 +34,13 @@ jobs:
             bash -lc "
               set -e
 
+              mkdir -p /workspace/lib
+
               cd /workspace/third-party/qdataschema/src
               qmake-qt4
               make -j$(nproc)
+
+              cp -af /workspace/third-party/qdataschema/lib/libqt4-qdataschema.so* /workspace/lib/
 
               cd /workspace/src
               qmake-qt4
