@@ -36,7 +36,7 @@ jobs:
 
               mkdir -p /workspace/lib
 
-              cd /workspace/third-party/qdataschema/src
+              cd /workspace/third-party/qdataschema/src/lib
               qmake-qt4
               make -j$(nproc)
 
