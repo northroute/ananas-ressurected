@@ -1,7 +1,7 @@
 HEADERS += \
-    metadata/ametadata.h \ 
-    metadata/ametaobject.h \ 
-    metadata/ametaobjectgroup.h \ 
+    metadata/ametadata.h \
+    metadata/ametaobject.h \
+    metadata/ametaobjectgroup.h \
     metadata/ametafield.h \
     metadata/ametainfo.h \
     metadata/ametaglobal.h \
@@ -12,7 +12,7 @@ HEADERS += \
     metadata/ametareport.h \
     metadata/ametajournal.h \
     metadata/ametaform.h \
-    metadata/ametadataio.h \ 
+    metadata/ametadataio.h \
     metadata/ametadataioxml.h
 
 SOURCES += \

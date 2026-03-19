@@ -44,6 +44,7 @@
 #include "ametajournal.h"
 #include "ametainfo.h"
 #include "ametaglobal.h"
+#include "ananasglobal.h"
 
 
 #ifdef __BORLANDC__
@@ -74,7 +75,7 @@
  *	Наследует QObject.
  *\_ru
  */
-class AMetaData: public AMetaGroup
+class ANANAS_EXPORT AMetaData: public AMetaGroup
 {
 Q_OBJECT
 //Q_PROPERTY( AMetaDataInfo info READ info SCRIPTABLE true )

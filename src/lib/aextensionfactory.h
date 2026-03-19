@@ -32,6 +32,7 @@
 #include "QString"
 #include "QStringList"
 #include "aextension.h"
+#include "ananasglobal.h"
 
 #include <QApplication>   // вместо <qapplication.h>
 #include <QObject>        // вместо <qobject.h>
@@ -60,7 +61,7 @@
  * \_ru
  */
 
-class AExtensionFactory
+class ANANAS_EXPORT AExtensionFactory
 {
 public:
     static QStringList keys();

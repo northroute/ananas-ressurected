@@ -1,6 +1,48 @@
-.moc
-.obj
+# =========================
+# Qt generated files
+# =========================
+qrc_*.cpp
+ui_*.h
+moc_*.cpp
+
+# .moc
+.moc/
+moc/
+
+# =========================
+# Build directories
+# =========================
+build/
+debug/
+release/
+tmp/
+obj/
+bin/
+lib/
+
+# Иногда вложенные
+*/tmp/
+*/obj/
+*/debug/
+*/release/
+
+# =========================
+# Object / binary files
+# =========================
+*.o
+*.obj
+*.a
 *.so
-.ui
-/bin
-/lib
+*.dll
+*.exe
+
+# Qt-specific build artifacts
+*.Debug
+*.Release
+
+# =========================
+# Make / qmake
+# =========================
+Makefile
+Makefile.Debug
+Makefile.Release
