@@ -8,7 +8,16 @@ TEMPLATE = app
 DESTDIR = ../../bin
 
 INCLUDEPATH += ../lib ../../tmp/ui/ananas ../plugins
-LIBS += -L../../lib -lananas4 -L../../lib/designer -lananasplugin4 -lqt4-qdataschema 
+LIBS += -L../../lib -lananas4 -L../../lib/designer -lananasplugin4
+
+unix {
+    LIBS += -L../../lib -lqt4-qdataschema
+}
+
+win32 {
+    LIBS += -L../../lib -lqt4-qdataschema1
+}
+
 #-L$(QTDIR)/lib
 #LIBS += -L$(QTDIR)/lib  -L../lib -lananas -L../plugins -lananasplugin # -lqui
 

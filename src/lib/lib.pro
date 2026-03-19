@@ -10,8 +10,14 @@ DESTDIR = ../../lib
 DLLDESTDIR = ../../bin
 
 INCLUDEPATH += ../lib ../plugins
-LIBS += -L../../lib
-LIBS +=-lqt4-qdataschema
+
+unix {
+    LIBS += -L../../lib -lqt4-qdataschema
+}
+
+win32 {
+    LIBS += -L../../lib -lqt4-qdataschema1
+}
 
 QT += network
 

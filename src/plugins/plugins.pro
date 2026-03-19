@@ -61,11 +61,11 @@ unix {
 }  
 
 win32 {
-    target.path = $(QTDIR)\plugins\designer
-    lplugin.path = $(QTDIR)\plugins\designer
+    target.path = $(QTDIR)/plugins/designer
+    lplugin.path = $(QTDIR)/plugins/designer
     lplugin.files = ananasplugin4.*
-    lplugin.extra = copy ananasplugin4.* $(QTDIR)\lib
-}  
+    lplugin.extra = copy ananasplugin4.* $(QTDIR)/lib
+}
 
 INSTALLS += lplugin 
 unix{

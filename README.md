@@ -1,5 +1,59 @@
 # Fork to revive the Ananas project
-## Unfortunately, at the moment, it is not possible to compile the branch without difficulties due to the intertwining of technologies: Qt3, Qt4, QSA (Qt Script for Applications).
+
+# Ananas ERP (Resurrected)
+
+Ananas ERP is an open-source automation accounting system.  
+This repository contains a restored and buildable version of the project.
+
+---
+
+## 📦 How to build
+
+### 🔧 Requirements
+
+- Qt 4.8.x  
+- qmake  
+- C++ compiler:
+  - Linux: `g++`
+  - Windows: MinGW (`mingw32-make`)
+
+---
+
+## 🐧 Linux
+
+```bash
+# Build qdataschema
+cd third-party/qdataschema/src/lib
+qmake
+make -j$(nproc)
+
+# Copy library (adjust path if needed)
+cp libqt4-qdataschema.so ../../../../lib/
+
+# Build Ananas
+cd ../../../../src
+qmake
+make -j$(nproc)
+
+## 🐧 Windows
+# Build qdataschema
+cd third-party/qdataschema/src/lib
+qmake
+mingw32-make
+
+# Copy library (adjust path if needed)
+copy release\qt4-qdataschema1.dll ..\..\..\..\lib\
+
+# Build Ananas
+cd ..\..\..\..\src
+qmake
+mingw32-make
+
+## How to run
+cd bin
+./ananas4-administrator
+
+## Other
 
 _Об Ананасе_
 
@@ -117,9 +171,3 @@ port=5432
 Затем следует перезапустить сервер БД командой:
 
 service postgresql restart
-
-
-
-
-
-

@@ -20,22 +20,24 @@
 #ifndef AWIDGETS_PLUGIN_H
 #define AWIDGETS_PLUGIN_H
 
-#include <QDesignerCustomWidgetCollectionInterface>
+#include <QtDesigner/customwidget.h>
+#include <QtCore/QObject>
 #include <QtPlugin>
 
-#include "qwidgetplugin.h"
-
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerCustomWidgetCollectionInterface,
+                    "com.trolltech.Qt.Designer.CustomWidgetCollectionInterface")
+#endif
 
 typedef QList<QDesignerCustomWidgetInterface*> aListInterfaces;
 
-class QT_WIDGET_PLUGIN_EXPORT aWidgetsCollection: public QObject, public QDesignerCustomWidgetCollectionInterface
+class aWidgetsCollection : public QObject, public QDesignerCustomWidgetCollectionInterface
 {
     Q_OBJECT
     Q_INTERFACES(QDesignerCustomWidgetCollectionInterface)
 
 public:
-    aWidgetsCollection(QObject *parent=0);
-
+    aWidgetsCollection(QObject *parent = 0);
     virtual aListInterfaces customWidgets() const;
 
 private:

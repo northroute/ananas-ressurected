@@ -155,9 +155,12 @@ void wCatalogEditor::openForm(const bool toSelect)
     MainForm *mainform = 0;
     if (parent())
     {
-        mainform = qobject_cast<MainForm *>(topLevelWidget());
-        if (mainform)
+        QWidget *tlw = topLevelWidget();
+        if (tlw && tlw->inherits("MainForm"))
+        {
+            mainform = (MainForm *) tlw;
             ws = mainform->ws;
+        }
     }
 
     CatalogForm *newform = new CatalogForm((QWidget *)ws);

@@ -11,8 +11,15 @@ DESTDIR = ../../bin
 INCLUDEPATH += . ./formdesigner ../lib ../../tmp/ui/ananas ../plugins
 
 LIBS += -L../../lib -lananas4 \
-        -L../../lib/designer -lananasplugin4 \
-        -lqt4-qdataschema
+        -L../../lib/designer -lananasplugin4
+
+unix {
+    LIBS += -L../../lib -lqt4-qdataschema
+}
+
+win32 {
+    LIBS += -L../../lib -lqt4-qdataschema1
+}
 
 unix {
     LIBS += -lQtDesigner -lQtDesignerComponents
