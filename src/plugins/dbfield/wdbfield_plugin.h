@@ -27,6 +27,10 @@
 
 #include "qwidgetplugin.h"
 
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerCustomWidgetInterface,
+                    "com.trolltech.Qt.Designer.CustomWidget")
+#endif
 
 class QT_WIDGET_PLUGIN_EXPORT wDBFieldPlugin : public QObject, public QDesignerCustomWidgetInterface
 {

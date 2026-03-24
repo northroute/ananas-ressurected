@@ -28,6 +28,11 @@ class QExtensionManager;
 class QAction;
 class wReport;
 
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerTaskMenuExtension,
+                    "com.trolltech.Qt.Designer.TaskMenu")
+#endif
+
 class wReportTaskMenu: public QObject, public QDesignerTaskMenuExtension
 {
     Q_OBJECT
