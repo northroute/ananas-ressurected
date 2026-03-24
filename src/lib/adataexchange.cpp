@@ -45,156 +45,195 @@ aBackup::~aBackup()
 bool
 aBackup::importData(const QString& rcfile, const QString &archfile, bool dropBase, bool replaceTemplates)
 {
+    int prg = 0;
+    int totalSteps = 10;
+    QString tmpDirName;
+    QString filename = archfile;
 
-
-	int prg=0;
-	int totalSteps=10;
-	QString tmpDirName;
-	QString filename = archfile;
-
-	QDir dir;
-        QString temp;
-	QStringList templatesName;
+    QDir dir;
+    QString temp;
+    QStringList templatesName;
 
 #ifndef _Windows
-	temp = getenv("TMPDIR");
-	if(temp=="" || temp.isEmpty())
-		temp = P_tmpdir;
+    temp = getenv("TMPDIR");
+    if (temp == "" || temp.isEmpty())
+        temp = P_tmpdir;
 #else
-	temp = getenv("TEMP");
+    temp = getenv("TEMP");
 #endif
-	tmpDirName = QString(temp+"/%1").arg(QDateTime::currentDateTime().toTime_t());
-	tmpDirName = QDir::convertSeparators(tmpDirName);
-	//printf("tmp dir name = %s\n",tmpDirName.ascii());
-	if(!dir.mkdir(tmpDirName))
-	{
-		setLastError(tr("Can't create temporary directory"));
-		aLog::print(aLog::Error, "aBackup create temporary directory %1");
-		return true;
-	}
-	else
-	{
-		aLog::print(aLog::Debug, tr("aBackup create temporary directory %1").arg(tmpDirName));
-	}
-	if(unzipArchive(archfile, tmpDirName)==true)
-	{
-		cleanupTmpFiles(tmpDirName, &templatesName);
 
-		//printf("unzip error!\n");
-		aLog::print(aLog::Error, tr("aBackup import data: unzip"));
-		return true;
-	}
-	else
-	{
-		aLog::print(aLog::Debug, tr("aBackup unzip"));
-	}
+    tmpDirName = QString(temp + "/%1").arg(QDateTime::currentDateTime().toTime_t());
+    tmpDirName = QDir::convertSeparators(tmpDirName);
 
+    if (!dir.mkdir(tmpDirName))
+    {
+        setLastError(tr("Can't create temporary directory"));
+        aLog::print(aLog::Error, tr("aBackup create temporary directory %1").arg(tmpDirName));
+        return true;
+    }
+    else
+    {
+        aLog::print(aLog::Debug, tr("aBackup create temporary directory %1").arg(tmpDirName));
+    }
 
-	QString srcDirName = QDir::toNativeSeparators(tmpDirName + "/templates/");
-	dir.setPath(srcDirName);
+    if (unzipArchive(archfile, tmpDirName) == true)
+    {
+        cleanupTmpFiles(tmpDirName, &templatesName);
+        aLog::print(aLog::Error, tr("aBackup import data: unzip"));
+        return true;
+    }
+    else
+    {
+        aLog::print(aLog::Debug, tr("aBackup unzip"));
+    }
 
-	templatesName = dir.entryList(QStringList() << "templ_*.odt" << "templ_*.ods");
+    QString srcDirName = QDir::toNativeSeparators(tmpDirName + "/templates/");
+    dir.setPath(srcDirName);
+    templatesName = dir.entryList(QStringList() << "templ_*.odt" << "templ_*.ods");
 
+    qApp->processEvents();
+    emit(progress(++prg, totalSteps));
 
-	qApp->processEvents();
-	emit(progress(++prg,totalSteps));
+    filename.truncate(filename.length() - QString(".bsa").length());
+    aLog::print(aLog::Debug, tr("aBackup filename = %1").arg(filename));
 
-	filename.truncate( filename.length() - QString(".bsa").length() );
-	aLog::print(aLog::Debug, tr("aBackup filename = %1").arg(filename));
+    changeRC(rcfile, tmpDirName + "/busines-schema.cfg");
 
-	//printf("filename = %s\n",filename.ascii());
-	changeRC(rcfile, tmpDirName + "/busines-schema.cfg");
+    QFile f(tmpDirName + "/content.xml");
+    QDomDocument xml;
 
-	QFile f(tmpDirName+"/content.xml");
-	QDomDocument xml;
-	xml.setContent(&f);
-//	printf("%s\n",xml.toString(4).ascii());
-	aDatabase db;
-	if(db.init(rcfile))
-	{
-		emit(progress(++prg,totalSteps));
-		if(!dropBase)
-		{
-			db.done();
-			cleanupTmpFiles(tmpDirName, &templatesName);
-			return false;
-		}
-		db.drop(db.cfg.rc.value("dbname"));
-		emit(progress(++prg,totalSteps));
-		db.create();
+    if (!f.open(QIODevice::ReadOnly))
+    {
+        setLastError(tr("Can't open content.xml"));
+        aLog::print(aLog::Error, tr("aBackup open content.xml failed"));
+        cleanupTmpFiles(tmpDirName, &templatesName);
+        return true;
+    }
 
-		emit(progress(++prg,totalSteps));
+    if (!xml.setContent(&f))
+    {
+        f.close();
+        setLastError(tr("Can't parse content.xml"));
+        aLog::print(aLog::Error, tr("aBackup parse content.xml failed"));
+        cleanupTmpFiles(tmpDirName, &templatesName);
+        return true;
+    }
+    f.close();
 
-		db.exchangeDataSystables ( xml, true);
-		emit(progress(++prg,totalSteps));
-		db.exchangeDataCatalogues( xml, true );
-		emit(progress(++prg,totalSteps));
-		db.exchangeDataDocuments ( xml, true );
-		emit(progress(++prg,totalSteps));
-		db.exchangeDataJournals ( xml, true );
-		db.exchangeDataInfoRegisters ( xml, true );
-		emit(progress(++prg,totalSteps));
-		db.exchangeDataAccumulationRegisters ( xml, true );
-		emit(progress(++prg,totalSteps));
-		db.exchangeDataUniques ( xml, true );
-	}
-	else
-	{
-		setLastError(tr("Can't connect to database"));
-		cleanupTmpFiles(tmpDirName, &templatesName);
-		return true;
-	}
-	qApp->processEvents();
+    aDatabase db;
+    if (db.init(rcfile))
+    {
+        emit(progress(++prg, totalSteps));
 
-	QString destDirName = QDir::convertSeparators(db.cfg.rc.value("workdir"));
+        if (!dropBase)
+        {
+            db.done();
+            cleanupTmpFiles(tmpDirName, &templatesName);
+            return false;
+        }
 
-	//create template directory
-	QDir destDir;
-//	destDir.setPath(destDirName);
-	if(!destDir.exists(destDirName))
-	{
-		aLog::print(aLog::Debug, tr("aBackup template dir `%1' not exists, try create").arg(destDirName));
-		if(!destDir.mkpath(destDirName))
-		{
-			aLog::print(aLog::Error, tr("aBackup create template dir `%1' fail").arg(destDirName));
-		}
-		else
-		{
-			aLog::print(aLog::Debug, tr("aBackup create template dir `%1'").arg(destDirName));
-		}
-	}
-	else
-	{
-		aLog::print(aLog::Debug, tr("aBackup template dir `%1' exists").arg(destDirName));
-	}
+        if (!db.drop(db.cfg.rc.value("dbname")))
+        {
+            setLastError(tr("Can't recreate database"));
+            aLog::print(aLog::Error, tr("aBackup drop database failed"));
+            db.done();
+            cleanupTmpFiles(tmpDirName, &templatesName);
+            return true;
+        }
 
-	for(uint i=0; i<templatesName.count(); i++)
-	{
-	//	aTests::print2log("f:\\ERROR.log", "aBackup", tmpDirName + "/templates/"+templatesName[i]);
-		aService::copyFile(QDir::convertSeparators(srcDirName+templatesName[i]), QDir::convertSeparators(destDirName +"/"+templatesName[i]), replaceTemplates);
-	}
+        emit(progress(++prg, totalSteps));
 
-	db.done();
+        if (!db.create())
+        {
+            setLastError(tr("Can't create database structure"));
+            aLog::print(aLog::Error, tr("aBackup create database structure failed"));
+            db.done();
+            cleanupTmpFiles(tmpDirName, &templatesName);
+            return true;
+        }
 
-//	printf("copy %s to %s\n", QDir::convertSeparators(tmpDirName+"/busines-schema.cfg").ascii(), QDir::convertSeparators(filename+".cfg").ascii());
-	if(!aService::copyFile( QDir::convertSeparators(tmpDirName+"/busines-schema.cfg"), QDir::convertSeparators(filename+".cfg"), true))
-	{
-		setLastError(tr("Can't copy .cfg file"));
-		aLog::print(aLog::Error, tr("aBackup copy unzipped business schema file"));
-		cleanupTmpFiles(tmpDirName, &templatesName);
-		return true;
-	}
-	else
-	{
-		aLog::print(aLog::Debug, tr("aBackup copy business schema file"));
-	}
-	emit(progress(++prg,totalSteps));
-//	printf("filename =%s\n",filename.ascii());
-	changeRC(rcfile, filename+".cfg");
-	cleanupTmpFiles(tmpDirName, &templatesName);
-	setLastError(tr("Database import without errors"));
-	aLog::print(aLog::Info, tr("aBackup import data ok"));
-	return false;
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataSystables(xml, true);
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataCatalogues(xml, true);
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataDocuments(xml, true);
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataJournals(xml, true);
+        db.exchangeDataInfoRegisters(xml, true);
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataAccumulationRegisters(xml, true);
+        emit(progress(++prg, totalSteps));
+
+        db.exchangeDataUniques(xml, true);
+    }
+    else
+    {
+        setLastError(tr("Can't connect to database"));
+        cleanupTmpFiles(tmpDirName, &templatesName);
+        return true;
+    }
+
+    qApp->processEvents();
+
+    QString destDirName = QDir::convertSeparators(db.cfg.rc.value("workdir"));
+
+    QDir destDir;
+    if (!destDir.exists(destDirName))
+    {
+        aLog::print(aLog::Debug, tr("aBackup template dir `%1' not exists, try create").arg(destDirName));
+        if (!destDir.mkpath(destDirName))
+        {
+            aLog::print(aLog::Error, tr("aBackup create template dir `%1' fail").arg(destDirName));
+        }
+        else
+        {
+            aLog::print(aLog::Debug, tr("aBackup create template dir `%1'").arg(destDirName));
+        }
+    }
+    else
+    {
+        aLog::print(aLog::Debug, tr("aBackup template dir `%1' exists").arg(destDirName));
+    }
+
+    for (uint i = 0; i < templatesName.count(); i++)
+    {
+        aService::copyFile(
+            QDir::convertSeparators(srcDirName + templatesName[i]),
+            QDir::convertSeparators(destDirName + "/" + templatesName[i]),
+            replaceTemplates
+        );
+    }
+
+    db.done();
+
+    if (!aService::copyFile(
+            QDir::convertSeparators(tmpDirName + "/busines-schema.cfg"),
+            QDir::convertSeparators(filename + ".cfg"),
+            true))
+    {
+        setLastError(tr("Can't copy .cfg file"));
+        aLog::print(aLog::Error, tr("aBackup copy unzipped business schema file"));
+        cleanupTmpFiles(tmpDirName, &templatesName);
+        return true;
+    }
+    else
+    {
+        aLog::print(aLog::Debug, tr("aBackup copy business schema file"));
+    }
+
+    emit(progress(++prg, totalSteps));
+
+    changeRC(rcfile, filename + ".cfg");
+    cleanupTmpFiles(tmpDirName, &templatesName);
+    setLastError(tr("Database import without errors"));
+    aLog::print(aLog::Info, tr("aBackup import data ok"));
+    return false;
 }
 
 

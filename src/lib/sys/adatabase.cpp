@@ -451,23 +451,29 @@ aDatabase::driverName()
  *	\~
  *	\return \~english Code for dynamic SQL creation  \~russian Код для формирования динамического SQL \~
  */
-QString
-aDatabase::feature(const QString& featureName)
+QString aDatabase::feature(const QString& featureName)
 {
-	QString res = QString::null;
-        if(driverName() == "QMYSQL")
-	{
-		res = featuresMySQL[featureName];
-	}
-        if(driverName() == "QSQLITE")
-	{
-		res = featuresSQLite[featureName];
-	}
-        if(driverName() == "QPSQL7")
-	{
-		res = featuresPostgreSQL[featureName];
-	}
-        return res;
+    QString res = QString::null;
+    QString drv = driverName().toUpper();
+
+    if (drv == "QMYSQL")
+    {
+        res = featuresMySQL[featureName];
+    }
+    else if (drv == "QSQLITE")
+    {
+        res = featuresSQLite[featureName];
+    }
+    else if (drv == "QPSQL" || drv == "QPSQL7")
+    {
+        res = featuresPostgreSQL[featureName];
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("Unknown DB driver: %1").arg(drv));
+    }
+
+    return res;
 }
 
 /*!
@@ -523,7 +529,12 @@ aDatabase::init ( aCfgRc *rc, const QString &dbname )
         qds->setDataDictionary ( dd );
         if ( qds->open() )
         {
-                aLog::print ( aLog::Info,tr ( "aDatabase open connection to %1" ).arg ( rc->value ( "dbname" ) ) );
+            aLog::print ( aLog::Info,tr ( "aDatabase open connection to %1" ).arg ( rc->value ( "dbname" ) ) );
+            if (dataBase->driverName() == "QSQLITE")
+            {
+                aLog::print(aLog::Debug, tr("forcing schema creation for sqlite test"));
+                create();
+            }
         }
         else
         {
@@ -549,32 +560,42 @@ aDatabase::init ( aCfgRc *rc, const QString &dbname )
  *      \return true, если драйвер успешно инициализирован. false, если возникла ошибка.
  * \_ru
  */
-bool
-aDatabase::prepareDatabaseConnect ( aCfgRc* dbParams )
+bool aDatabase::prepareDatabaseConnect(aCfgRc* dbParams)
 {
-        QString driver = "UNKNOWN";
-        QString dbtype;
+    QString dbtype = dbParams->value("dbtype");
+    done();
 
-        dbtype = dbParams->value ( "dbtype" );
-        done();
+    QString qds_dbtype = "QSQLITE";
+    if (dbtype == "internal")
+        qds_dbtype = "QSQLITE";
+    else if (dbtype == "mysql")
+        qds_dbtype = "QMYSQL";
+    else if (dbtype == "postgres")
+        qds_dbtype = "QPOSTGRESQL";
 
-        /**/
-        QString qds_dbtype = "QSQLITE";
-        if ( dbtype=="internal" ) qds_dbtype = "QSQLITE";
-        if ( dbtype=="mysql" )  qds_dbtype = "QMYSQL";
-        if ( dbtype=="postgres" ) qds_dbtype = "QPOSTGRESQL";
+    if (qds == 0)
+        qds = new QDataSchema(qds_dbtype, "ANANAS");
 
-        if ( qds==0 ) qds = new QDataSchema ( qds_dbtype, "ANANAS" );
-        //qds->setNameSpace("qds_");
+    qds->db()->setDatabaseName(dbParams->value("dbname"));
+    qds->db()->setUserName(dbParams->value("dbuser"));
+    qds->db()->setPassword(dbParams->value("dbpass"));
+    qds->db()->setHostName(dbParams->value("dbhost", "localhost"));
+    qds->db()->setPort(dbParams->value("dbport", "0").toInt());
 
-        qds->db()->setDatabaseName ( dbParams->value ( "dbname" ) );
-        qds->db()->setUserName ( dbParams->value ( "dbuser" ) );
-        qds->db()->setPassword ( dbParams->value ( "dbpass" ) );
-        qds->db()->setHostName ( dbParams->value ( "dbhost","localhost" ) );
-        qds->db()->setPort ( dbParams->value ( "dbport","0" ).toInt() );
+    dataBase = qds->db();
 
-        dataBase = qds->db();
-        return true;
+    if (dataBase)
+    {
+        aLog::print(aLog::Debug, tr("driverName = %1").arg(dataBase->driverName()));
+        aLog::print(aLog::Debug, tr("databaseName = %1").arg(dataBase->databaseName()));
+        aLog::print(aLog::Debug, tr("hostName = %1").arg(dataBase->hostName()));
+    }
+    else
+    {
+        aLog::print(aLog::Error, tr("prepareDatabaseConnect: qds->db() returned null"));
+    }
+
+    return true;
 }
 
 
@@ -671,41 +692,60 @@ aDatabase::checkStructure()
 bool
 aDatabase::create()
 {
-        return createdb ( false );
+    aLog::print(aLog::Debug, tr("aDatabase::create: has been invoked"));
+    return createdb ( false );
 }
 
 bool aDatabase::drop(const QString &dbname)
 {
+    if (!dataBase) return false;
+
+    QString systemDb = feature("systemDatabase");
+
+    // 1. Переключаемся на системную БД
+    dataBase->close();
+    dataBase->setDatabaseName(systemDb);
+
+    if (!dataBase->open())
+    {
+        reportError(dataBase->lastError(), "open system db");
+        return false;
+    }
+
+    // 2. DROP DATABASE
     QString query = QString("drop database %1").arg(dbname);
-    if (!dataBase) return true;
+    QSqlQuery dropQuery = dataBase->exec(query);
 
-    if (!dataBase->exec(query).lastError().isValid())
+    if (dropQuery.lastError().isValid())
     {
-        aLog::print(aLog::Error, tr("aDatabase drop database %1").arg(dbname));
+        reportError(dropQuery.lastError(), query);
+        return false;
     }
 
-    query = QString("create database %1 %2").arg(dbname).arg(feature("encoding"));
-    QSqlQuery q = db()->exec(query);
+    // 3. CREATE DATABASE
+    query = QString("create database %1 %2")
+        .arg(dbname)
+        .arg(feature("encoding"));
 
-    if (db()->lastError().isValid())
+    QSqlQuery createQuery = dataBase->exec(query);
+
+    if (createQuery.lastError().isValid())
     {
-        reportError(db()->lastError(), query);
+        reportError(createQuery.lastError(), query);
+        return false;
     }
 
+    // 4. Подключаемся обратно
+    dataBase->close();
     dataBase->setDatabaseName(dbname);
 
     if (!dataBase->open())
     {
-        cfg_message(3, tr("Can't open database connection\n").toUtf8().constData());
-        aLog::print(aLog::Error, tr("aDatabase open connection to %1").arg(dbname));
+        reportError(dataBase->lastError(), "reconnect db");
         return false;
     }
-    else
-    {
-        aLog::print(aLog::Info, tr("aDatabase open connection to %1").arg(dbname));
-    }
 
-    return false;
+    return true;
 }
 
 
@@ -936,32 +976,44 @@ aDatabase::tableExists ( const QString & name )
  */
 bool aDatabase::createdb(bool update)
 {
-    bool rc = false;
+    Q_UNUSED(update);
 
-    if (qds)
+    aLog::print(aLog::Debug, tr("aDatabase createdb: start"));
+
+    if (!qds)
     {
-        qds_dd(cfg);
-        qds->setDataDictionary(dd);
-
-        if (qds->verifyStructure())
-        {
-            printf("verify log:\n%s\n", qPrintable(qds->verifyLog().join("\n")));
-            printf("update structure query:\n%s\n", qPrintable(qds->updateStructureQuery().join("\n")));
-
-            if (qds->updateStructure() != 0)
-            {
-                rc = false;
-                cfg_message(2, tr("Data base update error\n").toUtf8().constData());
-            }
-            else
-            {
-                rc = true;
-                cfg_message(0, tr("Data base update successfull\n").toUtf8().constData());
-            }
-        }
+        aLog::print(aLog::Error, tr("aDatabase createdb: qds is null"));
+        cfg_message(2, tr("Data base structure engine is not initialized\n").toUtf8().constData());
+        return false;
     }
 
-    return rc;
+    qds_dd(cfg);
+    qds->setDataDictionary(dd);
+
+    int verifyRc = qds->verifyStructure();
+
+    printf("verify log:\n%s\n", qPrintable(qds->verifyLog().join("\n")));
+    printf("update structure query:\n%s\n", qPrintable(qds->updateStructureQuery().join("\n")));
+
+    // verifyRc == 0 -> изменений нет, структура уже актуальна
+    if (verifyRc == 0)
+    {
+        aLog::print(aLog::Info, tr("aDatabase createdb: structure is already up to date"));
+        cfg_message(0, tr("Data base structure is already up to date\n").toUtf8().constData());
+        return true;
+    }
+
+    // verifyRc != 0 -> есть SQL на обновление структуры
+    if (qds->updateStructure() != 0)
+    {
+        aLog::print(aLog::Error, tr("aDatabase createdb: update structure failed"));
+        cfg_message(2, tr("Data base update error\n").toUtf8().constData());
+        return false;
+    }
+
+    aLog::print(aLog::Info, tr("aDatabase createdb: update structure successful"));
+    cfg_message(0, tr("Data base update successful\n").toUtf8().constData());
+    return true;
 }
 
 
