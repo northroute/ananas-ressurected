@@ -28,6 +28,11 @@ class QExtensionManager;
 class QAction;
 class wField;
 
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerTaskMenuExtension,
+                    "com.trolltech.Qt.Designer.TaskMenu")
+#endif
+
 class wFieldTaskMenu: public QObject, public QDesignerTaskMenuExtension
 {
     Q_OBJECT

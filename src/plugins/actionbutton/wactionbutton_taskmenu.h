@@ -29,6 +29,11 @@ class QExtensionManager;
 class QAction;
 class wActionButton;
 
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerTaskMenuExtension,
+                    "com.trolltech.Qt.Designer.TaskMenu")
+#endif
+
 class wActionButtonTaskMenu: public QObject, public QDesignerTaskMenuExtension
 {
     Q_OBJECT

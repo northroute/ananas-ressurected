@@ -30,6 +30,11 @@ class QExtensionManager;
 class QAction;
 class wDocument;
 
+#ifdef Q_MOC_RUN
+Q_DECLARE_INTERFACE(QDesignerTaskMenuExtension,
+                    "com.trolltech.Qt.Designer.TaskMenu")
+#endif
+
 class wDocumentTaskMenu: public QObject, public QDesignerTaskMenuExtension
 {
     Q_OBJECT
